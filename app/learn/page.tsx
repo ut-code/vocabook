@@ -1,9 +1,6 @@
-const LANGUAGES = [
-  { slug: "en", label: "英語" },
-  { slug: "zh", label: "中国語" },
-  { slug: "fr", label: "フランス語" },
-  { slug: "es", label: "スペイン語" },
-];
+import Link from "next/link";
+
+import { LANGUAGES } from "./data";
 
 export default function LearnPage() {
   return (
@@ -16,12 +13,9 @@ export default function LearnPage() {
       </p>
       <ul className="mt-8 flex flex-wrap justify-center gap-3">
         {LANGUAGES.map((language) => (
-          <li
-            key={language.slug}
-            className="rounded-full border border-black/[.08] px-4 py-2 text-sm text-zinc-600 dark:border-white/[.145] dark:text-zinc-400"
-          >
+          <Link key={language.languageSlug} href={`/learn/${language.languageSlug}`} className="flex flex-col gap-2 rounded-2xl border border-black/[.08] bg-white p-6 text-left transition-colors hover:border-black/[.15] dark:border-white/[.145] dark:bg-zinc-950 dark:hover:border-white/[.25]">
             {language.label}
-          </li>
+          </Link>
         ))}
       </ul>
     </main>
