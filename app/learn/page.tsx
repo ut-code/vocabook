@@ -1,7 +1,7 @@
 const LANGUAGES = [
   { slug: "en", label: "英語" },
   { slug: "zh", label: "中国語" },
-  { slug: "ko", label: "韓国語" },
+  { slug: "fr", label: "フランス語" },
   { slug: "es", label: "スペイン語" },
 ];
 

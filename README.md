@@ -1,36 +1,31 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
-
-## Getting Started
-
-First, run the development server:
+## コマンドについて
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run dev # 開発モードでプロジェクトを実行（これで動作等を確認する）
 ```
+基本的に、localhost:3000が開くはず
+```bash
+npm ci # ciとはclean installの略, package-lock.jsonの内容を基にパッケージ（再利用可能なプログラムのまとまりのこと）をインストール
+```
+（なお、インストール内容について、もし手動編集をする場合、package.jsonの方を編集し、package-lock.jsonは編集しないこと）
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## プロジェクト構成について
+- layout.tsx
+  - プロジェクト全体のレンダリングを担っている
+  - {children}の中に各コンポーネントのレンダリングが集約されているイメージ
+  - プロジェクト全体で利用するコンポーネントを作らないなら基本いじらない
+- page.tsx
+  - 各URLにおけるページ本体の中身をレンダリングする
+  - 複数箇所あって戸惑うかもしれないが、それぞれの場所に応じてどのページをレンダリングしているのかが異なっている
+- globals.css
+  - プロジェクト全体のCSSを定めている
+- componentsディレクトリ
+  - ヘッダーやフッターなど、使いまわしがききやすい部品を管理するためのディレクトリ
+- learnディレクトリ
+  - 学習教材の部分
+- my-notebooks
+  - My単語帳を担うディレクトリ
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Learn More
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
