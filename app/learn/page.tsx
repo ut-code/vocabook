@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { LANGUAGES } from "./data";
+import { LANGUAGES } from "./languages";
 
 export default function LearnPage() {
   return (
