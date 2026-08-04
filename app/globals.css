@@ -24,3 +24,132 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* フランス語教材セクション（app/learn/french）専用の MDX タイポグラフィ */
+.french-content h1 {
+  border-bottom: 1px solid var(--color-zinc-200);
+  margin-bottom: 0.25rem;
+  padding-bottom: 1.25rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--color-zinc-900);
+}
+
+.french-content h2 {
+  margin-top: 2.5rem;
+  margin-bottom: 0.75rem;
+  padding-left: 0.75rem;
+  border-left: 4px solid var(--color-blue-500);
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-zinc-900);
+}
+
+.french-content p {
+  margin: 1rem 0;
+  line-height: 1.75rem;
+  color: var(--color-zinc-700);
+}
+
+/* 「第X章 〜より」の章バッジ */
+.french-content em {
+  display: inline-block;
+  margin: 0.25rem 0 1.5rem;
+  border-radius: 9999px;
+  background: var(--color-blue-50);
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  font-style: normal;
+  letter-spacing: 0.02em;
+  color: var(--color-blue-700);
+}
+
+.french-content table {
+  width: 100%;
+  max-width: 100%;
+  margin: 1.5rem 0;
+  overflow-x: auto;
+  border: 1px solid var(--color-zinc-200);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.french-content thead {
+  background: var(--color-zinc-100);
+}
+
+.french-content th {
+  padding: 0.5rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: var(--color-zinc-700);
+}
+
+.french-content td {
+  border-top: 1px solid var(--color-zinc-200);
+  padding: 0.5rem 1rem;
+  color: var(--color-zinc-700);
+}
+
+.french-content ul {
+  margin: 1rem 0;
+  padding-left: 1.25rem;
+  list-style-type: disc;
+}
+
+.french-content ul ul {
+  margin-top: 0.5rem;
+  list-style-type: circle;
+}
+
+.french-content li {
+  margin: 0.5rem 0;
+  line-height: 1.5rem;
+  color: var(--color-zinc-700);
+}
+
+.french-content li::marker {
+  color: var(--color-zinc-400);
+}
+
+@media (min-width: 640px) {
+  .french-content h1 {
+    font-size: 1.875rem;
+  }
+  .french-content h2 {
+    font-size: 1.25rem;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .french-content h1 {
+    border-color: var(--color-zinc-800);
+    color: var(--color-zinc-50);
+  }
+  .french-content h2 {
+    color: var(--color-zinc-100);
+  }
+  .french-content p,
+  .french-content td,
+  .french-content li {
+    color: var(--color-zinc-300);
+  }
+  .french-content em {
+    background: color-mix(in oklab, var(--color-blue-500) 15%, transparent);
+    color: var(--color-blue-300);
+  }
+  .french-content table {
+    border-color: var(--color-zinc-800);
+  }
+  .french-content thead {
+    background: color-mix(in oklab, var(--color-zinc-800) 60%, transparent);
+  }
+  .french-content th {
+    color: var(--color-zinc-200);
+  }
+  .french-content td {
+    border-color: var(--color-zinc-800);
+  }
+}

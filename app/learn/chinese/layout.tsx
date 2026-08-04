@@ -1,3 +1,19 @@
-import { createSectionLayout } from "@/components/SectionLayout";
+import { getLanguage } from "@/app/learn/languages";
 
-export default createSectionLayout("chinese");
+const language = getLanguage("chinese");
+
+// 中国語セクション専用レイアウト（各言語ディレクトリの layout.tsx はファイル自体が必須）
+export default function ChineseSectionLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <main className="flex flex-1 flex-col items-center px-6 py-16">
+      <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+        {language?.label}
+      </p>
+      <div className="chinese-content mt-8 w-full max-w-3xl text-left">{children}</div>
+    </main>
+  );
+}
