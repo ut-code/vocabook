@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { getLanguage, LANGUAGES } from "../languages";
 import { getSections } from "../content";
 
-
+// ルート生成の補助関数
 export function generateStaticParams() {
   return LANGUAGES.map((language) => ({ language: language.languageSlug }));
 }
