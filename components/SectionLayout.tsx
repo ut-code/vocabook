@@ -1,4 +1,4 @@
-import { getLanguage } from "../learn/languages";
+import { getLanguage } from "@/app/learn/languages";
 
 export function SectionLayout({
   languageSlug,

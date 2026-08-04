@@ -12,6 +12,7 @@ function stripWhitespace(children: ReactNode): ReactNode {
     : children
 }
 
+// mdxコンポーネントのカスタマイズを行う
 const components: MDXComponents = {
   table: ({ children, ...props }) => (
     <table {...props}>{stripWhitespace(children)}</table>

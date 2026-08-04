@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import Header from "./components/Header";
-import Footer from "./components/Footer";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -20,6 +20,7 @@ export const metadata: Metadata = {
     "自分だけの多次元単語帳を作って共有できる、多言語対応の暗記学習アプリ。",
 };
 
+// ルートレイアウト
 export default function RootLayout({
   children,
 }: Readonly<{
