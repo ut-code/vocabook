@@ -3,12 +3,29 @@
 ```bash
 npm run dev # 開発モードでプロジェクトを実行（これで動作等を確認する）
 ```
-基本的に、localhost:3000が開くはず
+基本的に、localhost:3000 が開くはず
 ```bash
 npm ci # ciとはclean installの略, package-lock.jsonの内容を基にパッケージ（再利用可能なプログラムのまとまりのこと）をインストール
 ```
-（なお、インストール内容について、もし手動編集をする場合、package.jsonの方を編集し、package-lock.jsonは編集しないこと）
+（なお、インストール内容について、もし手動編集をする場合、 package.json の方を編集し、 package-lock.json は編集しないこと）
+```bash
+git clone git@github.com:アカウント名/リポジトリ名.git # リモートリポジトリの内容を、自身のローカルリポジトリにクローンする
+```
+```bash
+git pull origin main
+# 自分のリポジトリにリモートリポジトリの main ブランチの変更（他の人が施したものなど）を取り込む
+# git fetch（最新情報の取得）と git merge（手元のデータへの統合）の2つの処理を同時に実行している
+```
 
+```bash
+git branch # 現在いるブランチを確認 
+```
+```bash
+git switch ブランチ名 # ブランチを切り替える
+```
+```bash
+git switch -c ブランチ名 # ブランチを新たに作成する
+```
 ## プロジェクト構成の大枠
 - layout.tsx
   - 共通するレイアウトのレンダリングを担っている
@@ -29,8 +46,12 @@ npm ci # ciとはclean installの略, package-lock.jsonの内容を基にパッ�
 - my-notebooks
   - My単語帳を担うディレクトリ
 
-## Next.js App Router ルーティング規則
+## Next.jsについて
+Next.jsとは、reactベースのWebアプリケーションフレームワークで、主に以下の2つの特徴がある。
+- App Router： ディレクトリを使って画面の切り替えを行い、アプリを設計する機能
+- Server Side Rendering（SSR）: サーバー側でHTMLを作ってから表示する機能
 
+### App Router ルーティング規則
 App Router のルーティングは、次の2つの軸で成り立っている。
 
 - **フォルダ** … 階層がそのまま URL のパスになる
@@ -53,7 +74,7 @@ App Router のルーティングは、次の2つの軸で成り立っている�
 └── content.ts
 ```
 
-### 1. フォルダ = URL、ファイル名 = 役割
+#### 1. フォルダ = URL、ファイル名 = 役割
 
 フォルダの階層がそのまま URL になる。ただし中に `page` ファイルが必要
 
@@ -64,7 +85,7 @@ App Router のルーティングは、次の2つの軸で成り立っている�
 | `app/learn/[language]/page.tsx` | `/learn/english` など |
 | `app/learn/[language]/[section]/page.tsx` | `/learn/english/grammar` など |
 
-### 2. 特殊ファイル（予約名）
+#### 2. 特殊ファイル（予約名）
 ファイル名によってApp Routerにおける役割が変わる
 拡張子 `.tsx` / `.jsx` / `.js`（`page` は `.mdx` も可）は選べる
 | ファイル名 | 役割 |
@@ -77,13 +98,13 @@ App Router のルーティングは、次の2つの軸で成り立っている�
 | `route` | API エンドポイント。`page` とは同じ階層に共存できない |
 | `template` | 再マウントされる点以外は `layout` に近い |
 
-#### layout について
+##### layout について
 
 - 各階層の `layout` は **任意**。`page` だけでもページは動く。
 - ただし **`app/layout.tsx`（ルートレイアウト）だけは必須**。`<html>` と `<body>` を含み、アプリ全体の土台になる。
 - レイアウトは上位階層から **自動的に継承**される。ある階層に `layout` が無くても、上位のレイアウトに包まれて表示される。
 
-### 3. 動的ルート（角括弧の記法）
+#### 3. 動的ルート（角括弧の記法）
 
 URL の一部が可変になる部分は角括弧
 | 記法 | 名称 | マッチ例 | params の中身 |
@@ -92,7 +113,7 @@ URL の一部が可変になる部分は角括弧
 | `[...folder]` | catch-all | `/shop/a/b` | `{ slug: ["a", "b"] }`（配列） |
 | `[[...folder]]` | optional catch-all | `/shop` も含む | セグメント無しにもマッチ |
 
-### 4. page.tsx のコンポーネントが受け取る引数
+#### 4. page.tsx のコンポーネントが受け取る引数
 
 `page.tsx` のデフォルトエクスポート関数は Next.js から**`params` と `searchParams` を自動的に受け取る。
 
@@ -101,5 +122,7 @@ URL の一部が可変になる部分は角括弧
 | `params` | 動的セグメント `[...]` | `/learn/english` → `{ language: "english" }` |
 | `searchParams` | クエリ文字列 `?...` | `?level=beginner` → `{ level: "beginner" }` |
 
-
+### サーバーサイドレンダリング
+- 原則、ルーティング規則に含まれるものはデフォルトで SSR が適用される
+- 'use client' は、「クライアントコンポーネント」を宣言するディレクティブであり、ファイルの一番上にこれを記述すると、 useState や useEffect などの React フックが使えるようになる（この場合でも SSR 自体は適用されるので、誤解しないよう注意）
 
