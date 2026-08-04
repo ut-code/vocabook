@@ -1,9 +1,3 @@
-import { SectionLayout } from "../../components/SectionLayout";
+import { createSectionLayout } from "../../components/SectionLayout";
 
-export default function GermanSectionLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return <SectionLayout languageSlug="german">{children}</SectionLayout>;
-}
+export default createSectionLayout("german");

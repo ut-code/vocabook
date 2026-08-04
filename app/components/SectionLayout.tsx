@@ -18,3 +18,14 @@ export function SectionLayout({
     </main>
   );
 }
+
+// 各言語ディレクトリの layout.tsx はファイル自体が必須
+export function createSectionLayout(languageSlug: string) {
+  return function LanguageSectionLayout({
+    children,
+  }: {
+    children: React.ReactNode;
+  }) {
+    return <SectionLayout languageSlug={languageSlug}>{children}</SectionLayout>;
+  };
+}
