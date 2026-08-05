@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 
-import { importNotebookFromExcel, type FormState } from "./actions";
+import { importNotebookFromExcel, type FormState } from "@/app/my-notebooks/actions";
 
 const initialState: FormState = {};
 

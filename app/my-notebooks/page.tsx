@@ -1,8 +1,8 @@
 import Link from "next/link";
 
 import { prisma } from "@/lib/prisma";
-import ImportForm from "./ImportForm";
-import DeleteNotebookButton from "./DeleteNotebookButton";
+import ImportForm from "@/components/my-notebooks/ImportForm";
+import DeleteNotebookButton from "@/components/my-notebooks/DeleteNotebookButton";
 
 export default async function MyNotebooksPage() {
   const notebooks = await prisma.notebook.findMany({

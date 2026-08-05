@@ -1,6 +1,6 @@
 "use client";
 
-import { deleteNotebook } from "./actions";
+import { deleteNotebook } from "@/app/my-notebooks/actions";
 
 // 単語帳ごと削除するボタン。取り消せない操作なので確認ダイアログを挟む
 export default function DeleteNotebookButton({ notebookId }: { notebookId: string }) {
