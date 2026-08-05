@@ -1,0 +1,37 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// My単語帳 1冊分（Excelから取り込んだ、または手動作成した単語帳）
+model Notebook {
+  id        String   @id @default(cuid())
+  title     String
+  // Excelの1行目（ヘッダー）に対応する列名を、出現順のまま保存する
+  columns   Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  cards     Card[]
+}
+
+// 単語帳内の1単語（1行）分のデータ
+model Card {
+  id         String   @id @default(cuid())
+  notebookId String
+  notebook   Notebook @relation(fields: [notebookId], references: [id], onDelete: Cascade)
+  // { [列名]: セルの値 } の形で、その行の全列を保持する
+  data       Json
+  // Notebook.columns で先頭に来る列を「表」、次を「裏」として暗記学習モードに使う
+  position   Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([notebookId, position])
+}

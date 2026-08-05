@@ -9,6 +9,10 @@ const nextConfig: NextConfig = {
     mdxRs: {
       mdxType: "gfm", // 'gfm' | 'commonmark'
     },
+    serverActions: {
+      // Excelファイルのアップロードに対応するため、デフォルト(1MB)より広げる
+      bodySizeLimit: "10mb",
+    },
   },
   turbopack: {
     root: path.join(__dirname),
