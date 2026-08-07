@@ -3,7 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 
-type Card = { id: string; data: Record<string, string> };
+import type { CardData } from "@/lib/card-data";
+
+type Card = { id: string; data: CardData };
 
 // Fisher-Yatesシャッフル
 function shuffleOrder(length: number): number[] {
@@ -30,7 +32,7 @@ export default function StudyDeck({
 
   const current = cards[order[index]];
   const frontColumn = columns[0];
-  const backColumns = columns.slice(1);
+  const senseColumns = columns.slice(1);
 
   function goNext() {
     setFlipped(false);
@@ -65,17 +67,26 @@ export default function StudyDeck({
               {frontColumn}
             </span>
             <span className="text-2xl font-semibold text-black dark:text-zinc-50">
-              {current.data[frontColumn] || "—"}
+              {current.data.head || "—"}
             </span>
           </>
-        ) : backColumns.length > 0 ? (
-          <div className="flex flex-col gap-3">
-            {backColumns.map((column) => (
-              <div key={column}>
-                <p className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
-                  {column}
-                </p>
-                <p className="text-lg text-black dark:text-zinc-50">{current.data[column] || "—"}</p>
+        ) : senseColumns.length > 0 && current.data.senses.length > 0 ? (
+          <div className="flex flex-col gap-4">
+            {current.data.senses.map((sense, senseIndex) => (
+              <div key={senseIndex} className="flex flex-col gap-3">
+                {current.data.senses.length > 1 && (
+                  <p className="text-xs font-semibold text-zinc-400 dark:text-zinc-600">
+                    意味 {senseIndex + 1}
+                  </p>
+                )}
+                {senseColumns.map((column) => (
+                  <div key={column}>
+                    <p className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
+                      {column}
+                    </p>
+                    <p className="text-lg text-black dark:text-zinc-50">{sense[column] || "—"}</p>
+                  </div>
+                ))}
               </div>
             ))}
           </div>

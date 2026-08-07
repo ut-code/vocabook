@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 
 import { prisma } from "@/lib/prisma";
 import StudyDeck from "./StudyDeck";
+import type { CardData } from "@/lib/card-data";
 
 export default async function StudyPage(props: PageProps<"/my-notebooks/[notebookId]/study">) {
   const { notebookId } = await props.params;
@@ -21,7 +22,7 @@ export default async function StudyPage(props: PageProps<"/my-notebooks/[noteboo
   const columns = notebook.columns as string[];
   const cards = notebook.cards.map((card) => ({
     id: card.id,
-    data: card.data as Record<string, string>,
+    data: card.data as CardData,
   }));
 
   return (

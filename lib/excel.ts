@@ -1,10 +1,14 @@
 import ExcelJS from "exceljs";
 
+import type { CardData } from "@/lib/card-data";
+
 export type ParsedNotebook = {
-  // Excelの1行目（ヘッダー行）の値を、出現順のまま並べたもの
+  // Excelの1行目（ヘッダー行）の値を、出現順のまま並べたもの。
+  // 1列目が見出し語、2列目以降が意味・例文などの子項目に対応する
   columns: string[];
-  // 2行目以降の各行を { 列名: セルの値 } の形にしたもの
-  rows: Record<string, string>[];
+  // 2行目以降を、1列目（見出し語）の値が同じ行どうしでグルーピングしたもの。
+  // 同じ見出し語が複数行に渡って登場する場合、多義語として1枚のカードにまとめる
+  rows: CardData[];
 };
 
 export class ExcelParseError extends Error {}
@@ -76,25 +80,41 @@ export async function parseExcelWorkbook(
     columns.push(name);
   }
 
-  const rows: Record<string, string>[] = [];
+  const senseColumns = columns.slice(1);
+  const rows: CardData[] = [];
+  // 見出し語（1列目）ごとにカードをまとめるためのインデックス。
+  // 見出し語が空欄の行は他の空欄行とまとめず、それぞれ別カードとして扱う
+  const groupIndexByHead = new Map<string, number>();
+  let blankHeadCount = 0;
+
   for (let r = 2; r <= worksheet.rowCount; r += 1) {
     const row = worksheet.getRow(r);
     if (row.actualCellCount === 0) {
       continue;
     }
 
-    const data: Record<string, string> = {};
-    let hasValue = false;
-    columns.forEach((name, index) => {
-      const text = cellToText(row.getCell(index + 1).value);
-      if (text) {
-        hasValue = true;
-      }
-      data[name] = text;
+    const cellValues = columns.map((_, index) => cellToText(row.getCell(index + 1).value));
+    const hasValue = cellValues.some((text) => text !== "");
+    if (!hasValue) {
+      continue;
+    }
+
+    const head = cellValues[0];
+    const sense: Record<string, string> = {};
+    senseColumns.forEach((name, index) => {
+      sense[name] = cellValues[index + 1];
     });
 
-    if (hasValue) {
-      rows.push(data);
+    const groupKey = head !== "" ? `h:${head}` : `b:${blankHeadCount++}`;
+    let groupIndex = groupIndexByHead.get(groupKey);
+    if (groupIndex === undefined) {
+      groupIndex = rows.length;
+      groupIndexByHead.set(groupKey, groupIndex);
+      rows.push({ head, senses: [] });
+    }
+
+    if (senseColumns.length > 0 && Object.values(sense).some((value) => value !== "")) {
+      rows[groupIndex].senses.push(sense);
     }
   }
 

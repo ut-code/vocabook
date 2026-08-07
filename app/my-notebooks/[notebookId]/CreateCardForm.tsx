@@ -4,6 +4,7 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 
 import { createCard, type FormState } from "../actions";
+import CardFieldsForm from "@/components/my-notebooks/CardFieldsForm";
 
 const initialState: FormState = {};
 
@@ -47,18 +48,12 @@ export default function CreateCardForm({
       <form
         key={formKey}
         action={formAction}
-        className="flex flex-wrap items-end gap-3 rounded-2xl border border-dashed border-black/[.15] p-4 dark:border-white/[.2]"
+        className="flex flex-col gap-3 rounded-2xl border border-dashed border-black/[.15] p-4 dark:border-white/[.2]"
       >
-        {columns.map((column) => (
-          <div key={column} className="flex flex-col gap-1">
-            <label className="text-xs text-zinc-500 dark:text-zinc-500">{column}</label>
-            <input
-              name={`field:${column}`}
-              className="rounded border border-black/[.1] bg-transparent px-2 py-1 text-sm outline-none focus:border-black/[.3] dark:border-white/[.15] dark:focus:border-white/[.4]"
-            />
-          </div>
-        ))}
-        <AddButton />
+        <CardFieldsForm columns={columns} />
+        <div>
+          <AddButton />
+        </div>
       </form>
       {state?.error && (
         <p role="alert" className="mt-2 text-sm text-red-600 dark:text-red-400">
