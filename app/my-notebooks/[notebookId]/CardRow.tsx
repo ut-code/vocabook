@@ -4,6 +4,8 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 
 import { deleteCard, updateCard, type FormState } from "../actions";
+import CardFieldsForm from "@/components/my-notebooks/CardFieldsForm";
+import type { CardData } from "@/lib/card-data";
 
 const initialState: FormState = {};
 
@@ -27,7 +29,7 @@ export default function CardRow({
 }: {
   notebookId: string;
   columns: string[];
-  card: { id: string; data: Record<string, string> };
+  card: { id: string; data: CardData };
 }) {
   const [editing, setEditing] = useState(false);
   const [state, formAction] = useActionState(
@@ -47,65 +49,91 @@ export default function CardRow({
     }
   }, [state]);
 
+  const senseColumns = columns.slice(1);
+
   if (!editing) {
+    // 意味が0件でも見出し語だけの行を1行表示する
+    const senses = card.data.senses.length > 0 ? card.data.senses : [{}];
+
     return (
-      <tr className="border-t border-black/[.06] dark:border-white/[.1]">
-        {columns.map((column) => (
-          <td key={column} className="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">
-            {card.data[column] ?? ""}
-          </td>
+      <>
+        {senses.map((sense, index) => (
+          <tr
+            key={index}
+            className={
+              index === 0
+                ? "border-t border-black/[.06] dark:border-white/[.1]"
+                : "border-t border-dashed border-black/[.06] dark:border-white/[.1]"
+            }
+          >
+            {index === 0 && (
+              <td
+                rowSpan={senses.length}
+                className="px-4 py-3 align-top text-sm font-medium text-zinc-900 dark:text-zinc-100"
+              >
+                {card.data.head}
+              </td>
+            )}
+            {senseColumns.map((column) => (
+              <td key={column} className="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">
+                {sense[column] ?? ""}
+              </td>
+            ))}
+            {index === 0 && (
+              <td
+                rowSpan={senses.length}
+                className="px-4 py-3 text-right align-top whitespace-nowrap"
+              >
+                <button
+                  type="button"
+                  onClick={() => setEditing(true)}
+                  className="mr-3 text-sm text-zinc-600 transition-colors hover:underline dark:text-zinc-400"
+                >
+                  編集
+                </button>
+                <form
+                  action={deleteCard.bind(null, card.id, notebookId)}
+                  className="inline"
+                  onSubmit={(event) => {
+                    if (!window.confirm("この単語を削除しますか？")) {
+                      event.preventDefault();
+                    }
+                  }}
+                >
+                  <button
+                    type="submit"
+                    className="text-sm text-red-600 transition-colors hover:underline dark:text-red-400"
+                  >
+                    削除
+                  </button>
+                </form>
+              </td>
+            )}
+          </tr>
         ))}
-        <td className="px-4 py-3 text-right whitespace-nowrap">
-          <button
-            type="button"
-            onClick={() => setEditing(true)}
-            className="mr-3 text-sm text-zinc-600 transition-colors hover:underline dark:text-zinc-400"
-          >
-            編集
-          </button>
-          <form
-            action={deleteCard.bind(null, card.id, notebookId)}
-            className="inline"
-            onSubmit={(event) => {
-              if (!window.confirm("この単語を削除しますか？")) {
-                event.preventDefault();
-              }
-            }}
-          >
-            <button
-              type="submit"
-              className="text-sm text-red-600 transition-colors hover:underline dark:text-red-400"
-            >
-              削除
-            </button>
-          </form>
-        </td>
-      </tr>
+      </>
     );
   }
 
   return (
     <tr className="border-t border-black/[.06] dark:border-white/[.1]">
-      <td colSpan={columns.length + 1} className="px-4 py-3">
-        <form action={formAction} className="flex flex-wrap items-end gap-3">
-          {columns.map((column) => (
-            <div key={column} className="flex flex-col gap-1">
-              <label className="text-xs text-zinc-500 dark:text-zinc-500">{column}</label>
-              <input
-                name={`field:${column}`}
-                defaultValue={card.data[column] ?? ""}
-                className="rounded border border-black/[.1] bg-transparent px-2 py-1 text-sm outline-none focus:border-black/[.3] dark:border-white/[.15] dark:focus:border-white/[.4]"
-              />
-            </div>
-          ))}
-          <SaveButton />
-          <button
-            type="button"
-            onClick={() => setEditing(false)}
-            className="text-sm text-zinc-500 transition-colors hover:underline dark:text-zinc-500"
-          >
-            キャンセル
-          </button>
+      <td colSpan={senseColumns.length + 2} className="px-4 py-3">
+        <form action={formAction} className="flex flex-col items-start gap-3">
+          <CardFieldsForm
+            columns={columns}
+            defaultHead={card.data.head}
+            defaultSenses={card.data.senses}
+          />
+          <div className="flex items-center gap-3">
+            <SaveButton />
+            <button
+              type="button"
+              onClick={() => setEditing(false)}
+              className="text-sm text-zinc-500 transition-colors hover:underline dark:text-zinc-500"
+            >
+              キャンセル
+            </button>
+          </div>
         </form>
         {state?.error && (
           <p role="alert" className="mt-2 text-sm text-red-600 dark:text-red-400">

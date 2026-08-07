@@ -5,17 +5,38 @@ import { redirect } from "next/navigation";
 
 import { prisma } from "@/lib/prisma";
 import { ExcelParseError, parseExcelWorkbook } from "@/lib/excel";
+import type { CardData } from "@/lib/card-data";
 
 export type FormState = { error?: string };
 
-// フォームの各項目は name="field:列名" という形式で送られてくるので、
-// Notebook.columns の並び順に沿って { 列名: 値 } のオブジェクトに詰め直す
-function readCardFields(columns: string[], formData: FormData): Record<string, string> {
-  const data: Record<string, string> = {};
-  for (const column of columns) {
-    data[column] = String(formData.get(`field:${column}`) ?? "").trim();
+// フォームは name="head" で見出し語、name="sense:任意のキー:列名" で
+// 各意味（複数可）の子項目を送ってくる。Notebook.columns の2列目以降の
+// 並び順に沿って { 見出し語, 意味の配列 } に詰め直す
+function readCardData(columns: string[], formData: FormData): CardData {
+  const head = String(formData.get("head") ?? "").trim();
+  const senseColumns = columns.slice(1);
+
+  const senseKeys: string[] = [];
+  const seenKeys = new Set<string>();
+  for (const key of formData.keys()) {
+    const match = /^sense:([^:]+):/.exec(key);
+    if (match && !seenKeys.has(match[1])) {
+      seenKeys.add(match[1]);
+      senseKeys.push(match[1]);
+    }
   }
-  return data;
+
+  const senses = senseKeys
+    .map((senseKey) => {
+      const sense: Record<string, string> = {};
+      for (const column of senseColumns) {
+        sense[column] = String(formData.get(`sense:${senseKey}:${column}`) ?? "").trim();
+      }
+      return sense;
+    })
+    .filter((sense) => Object.values(sense).some((value) => value !== ""));
+
+  return { head, senses };
 }
 
 // Excelファイルから新しい単語帳を作成する
@@ -75,10 +96,10 @@ export async function createCard(
     select: { columns: true },
   });
   const columns = notebook.columns as string[];
-  const data = readCardFields(columns, formData);
+  const data = readCardData(columns, formData);
 
-  if (Object.values(data).every((value) => value === "")) {
-    return { error: "少なくとも1つの項目を入力してください。" };
+  if (!data.head) {
+    return { error: "見出し語を入力してください。" };
   }
 
   const last = await prisma.card.aggregate({
@@ -106,10 +127,10 @@ export async function updateCard(
     select: { columns: true },
   });
   const columns = notebook.columns as string[];
-  const data = readCardFields(columns, formData);
+  const data = readCardData(columns, formData);
 
-  if (Object.values(data).every((value) => value === "")) {
-    return { error: "少なくとも1つの項目を入力してください。" };
+  if (!data.head) {
+    return { error: "見出し語を入力してください。" };
   }
 
   await prisma.card.update({
