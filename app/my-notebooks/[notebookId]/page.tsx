@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import CardRow from "./CardRow";
 import CreateCardForm from "./CreateCardForm";
+import type { CardData } from "@/lib/card-data";
 
 export default async function NotebookPage(props: PageProps<"/my-notebooks/[notebookId]">) {
   const { notebookId } = await props.params;
@@ -79,7 +80,7 @@ export default async function NotebookPage(props: PageProps<"/my-notebooks/[note
                     key={card.id}
                     notebookId={notebook.id}
                     columns={columns}
-                    card={{ id: card.id, data: card.data as Record<string, string> }}
+                    card={{ id: card.id, data: card.data as CardData }}
                   />
                 ))
               )}
