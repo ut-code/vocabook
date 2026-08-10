@@ -9,15 +9,15 @@ import type { CardData } from "@/lib/card-data";
 
 export type FormState = { error?: string };
 
-// フォームは name="head" で見出し語、name="sense:任意のキー:列名" で
-// 各意味（複数可）の子項目を送ってくる。Notebook.columns の2列目以降の
-// 並び順に沿って { 見出し語, 意味の配列 } に詰め直す
 function readCardData(columns: string[], formData: FormData): CardData {
   const head = String(formData.get("head") ?? "").trim();
   const senseColumns = columns.slice(1);
 
+  // senseKeys：見つかった意味ブロックの識別キーを、出現順に並べて格納する配列（最終的な戻り値）
+  // seenKeys：「もうこのキーは見た」を判定するためのSet
   const senseKeys: string[] = [];
   const seenKeys = new Set<string>();
+  // formData に含まれる全ての入力欄の名前を1つずつ見ていく
   for (const key of formData.keys()) {
     const match = /^sense:([^:]+):/.exec(key);
     if (match && !seenKeys.has(match[1])) {
@@ -26,6 +26,8 @@ function readCardData(columns: string[], formData: FormData): CardData {
     }
   }
 
+  // ステップ2〜3: キーごとに列名分の値を集めて1つの意味オブジェクトにし、
+  // 全列が空文字だったものだけをフィルタで除外する
   const senses = senseKeys
     .map((senseKey) => {
       const sense: Record<string, string> = {};
@@ -47,13 +49,17 @@ export async function importNotebookFromExcel(
   const title = String(formData.get("title") ?? "").trim();
   const file = formData.get("file");
 
+  //　タイトルが欠けている場合をはじく
   if (!title) {
     return { error: "単語帳のタイトルを入力してください。" };
   }
+  // ファイルサイズが0の場合をはじく
   if (!(file instanceof File) || file.size === 0) {
     return { error: "Excelファイル（.xlsx）を選択してください。" };
   }
 
+  // Excelを解析（1行目=列名、2行目以降=単語データに変換）。
+  // 解析に失敗した場合はエラーメッセージをフォームに戻す（それ以外の例外は再送出）
   let parsed;
   try {
     parsed = await parseExcelWorkbook(await file.arrayBuffer());
@@ -64,17 +70,23 @@ export async function importNotebookFromExcel(
     throw error;
   }
 
+  // Notebook本体とCard群を1回のPrisma呼び出しでまとめて作成する（ネストwrite）。
+  // position には行の並び順（Excelの出現順）をそのままインデックスとして採番する
   const notebook = await prisma.notebook.create({
     data: {
       title,
       columns: parsed.columns,
       cards: {
+        // data：その行の見出し語・意味などの情報
+        // position：Excel内の行の並び順として採番
         create: parsed.rows.map((data, index) => ({ data, position: index })),
       },
     },
   });
 
+  // 単語帳一覧ページのキャッシュを無効化し、新しく作った単語帳を一覧に反映
   revalidatePath("/my-notebooks");
+  // 作成された単語帳の詳細ページへ自動的に遷移
   redirect(`/my-notebooks/${notebook.id}`);
 }
 
@@ -102,6 +114,8 @@ export async function createCard(
     return { error: "見出し語を入力してください。" };
   }
 
+  // 新規カードは常に末尾に追加する。既存カードの最大positionを調べ、+1した値を採番する。
+  // カードが1件も無ければ _max.position は null になるので -1 を基点として扱う（結果0番になる）
   const last = await prisma.card.aggregate({
     where: { notebookId },
     _max: { position: true },

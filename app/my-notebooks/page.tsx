@@ -5,6 +5,8 @@ import ImportForm from "@/components/my-notebooks/ImportForm";
 import DeleteNotebookButton from "@/components/my-notebooks/DeleteNotebookButton";
 
 export default async function MyNotebooksPage() {
+  // 作成日が新しい単語帳を先頭に表示する。
+  // _count で各単語帳の単語数だけを取得し、cards本体は取得しない（一覧表示には不要なため軽量化）
   const notebooks = await prisma.notebook.findMany({
     orderBy: { createdAt: "desc" },
     include: { _count: { select: { cards: true } } },
@@ -32,6 +34,7 @@ export default async function MyNotebooksPage() {
         <h2 className="mb-3 text-sm font-semibold tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
           作成済みの単語帳
         </h2>
+        {/* 単語帳が1件も無ければ空状態のメッセージ、あれば一覧をレンダリング */}
         {notebooks.length === 0 ? (
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
             まだ単語帳がありません。上のフォームからExcelファイルを取り込んでみましょう。
