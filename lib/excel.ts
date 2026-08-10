@@ -99,13 +99,16 @@ export async function parseExcelWorkbook(
       continue;
     }
 
+    // cellValues：各列のセル値を文字化した配列
     const cellValues = columns.map((_, index) => cellToText(row.getCell(index + 1).value));
     const hasValue = cellValues.some((text) => text !== "");
     if (!hasValue) {
       continue;
     }
 
+    // head：1列目の値（見出し語）
     const head = cellValues[0];
+    // sense：2列目以降の、その列名をキーとするオブジェクト
     const sense: Record<string, string> = {};
     senseColumns.forEach((name, index) => {
       sense[name] = cellValues[index + 1];
@@ -113,12 +116,14 @@ export async function parseExcelWorkbook(
 
     const groupKey = head !== "" ? `h:${head}` : `b:${blankHeadCount++}`;
     let groupIndex = groupIndexByHead.get(groupKey);
+    // 初出のグループなら新規カードを作成
     if (groupIndex === undefined) {
       groupIndex = rows.length;
       groupIndexByHead.set(groupKey, groupIndex);
       rows.push({ head, senses: [] });
     }
 
+    // 既出のグループなら既存カードに追記
     if (senseColumns.length > 0 && Object.values(sense).some((value) => value !== "")) {
       rows[groupIndex].senses.push(sense);
     }
