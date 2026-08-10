@@ -1,3 +1,4 @@
+//花沢羚
 export default function Footer() {
   return (
     <footer className="border-t border-black/[.08] dark:border-white/[.145]">
