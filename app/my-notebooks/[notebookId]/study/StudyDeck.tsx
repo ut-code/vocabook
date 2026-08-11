@@ -7,7 +7,11 @@ import type { CardData } from "@/lib/card-data";
 
 type Card = { id: string; data: CardData };
 
-// Fisher-Yatesシャッフル
+// Fisher-Yatesシャッフル: [0, 1, ..., length-1] という「カードの元の並び順（インデックス）」の
+// 配列を作り、末尾から先頭に向かって「自分より前（自分を含む）」のランダムな位置と1つずつ
+// 交換していくことで、すべての並び替えパターンが等確率で出現するようにする。
+// cards配列自体は書き換えず、参照順だけを表すこの order 配列をシャッフルする点がポイント
+// （元のカード配列とidの対応を保ったまま表示順だけ変えられる）
 function shuffleOrder(length: number): number[] {
   const order = Array.from({ length }, (_, i) => i);
   for (let i = order.length - 1; i > 0; i -= 1) {
@@ -26,24 +30,33 @@ export default function StudyDeck({
   columns: string[];
   cards: Card[];
 }) {
+  // order: 「何番目に何のカード（cards配列のインデックス）を出すか」を表す並び替えテーブル。
+  // 初期状態は [0, 1, 2, ...] で、cardsをそのままの順番で出す
   const [order, setOrder] = useState(() => cards.map((_, i) => i));
+  // index: order の何番目（＝現在何枚目）を表示しているか
   const [index, setIndex] = useState(0);
+  // flipped: 今のカードが表（見出し語）か裏（意味）のどちらを向いているか
   const [flipped, setFlipped] = useState(false);
 
+  // 現在表示すべきカードは、order[index]（実際のcardsインデックス）から引く
   const current = cards[order[index]];
   const frontColumn = columns[0];
   const senseColumns = columns.slice(1);
 
+  // 次のカードへ。indexが末尾を超えないようMath.minでクランプし、
+  // カードが切り替わったら必ず表向きに戻す
   function goNext() {
     setFlipped(false);
     setIndex((i) => Math.min(i + 1, order.length - 1));
   }
 
+  // 前のカードへ。indexが0未満にならないようMath.maxでクランプする
   function goPrev() {
     setFlipped(false);
     setIndex((i) => Math.max(i - 1, 0));
   }
 
+  // 出題順を丸ごとシャッフルし直し、1枚目（index=0）・表向きの状態からやり直す
   function shuffle() {
     setOrder(shuffleOrder(cards.length));
     setIndex(0);
@@ -56,12 +69,15 @@ export default function StudyDeck({
         {index + 1} / {order.length}
       </p>
 
+      {/* カード自体がクリック領域。クリックするたびに表裏(flipped)をトグルするだけで、
+          カードの移動（前へ/次へ/シャッフル）とは独立した操作になっている */}
       <button
         type="button"
         onClick={() => setFlipped((f) => !f)}
         className="flex min-h-56 w-full max-w-md flex-col items-center justify-center gap-3 rounded-2xl border border-black/[.08] bg-white p-8 text-center transition-colors hover:border-black/[.15] dark:border-white/[.145] dark:bg-zinc-950 dark:hover:border-white/[.25]"
       >
         {!flipped ? (
+          // 表面: 1列目（見出し語）だけを大きく表示する
           <>
             <span className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
               {frontColumn}
@@ -71,6 +87,7 @@ export default function StudyDeck({
             </span>
           </>
         ) : senseColumns.length > 0 && current.data.senses.length > 0 ? (
+          // 裏面: 意味が1件以上あれば、多義語すべてを「意味1」「意味2」…として順番に表示する
           <div className="flex flex-col gap-4">
             {current.data.senses.map((sense, senseIndex) => (
               <div key={senseIndex} className="flex flex-col gap-3">
@@ -91,6 +108,7 @@ export default function StudyDeck({
             ))}
           </div>
         ) : (
+          // 意味の列自体が無い、またはこのカードに意味が1件も登録されていない場合のフォールバック表示
           <p className="text-sm text-zinc-500 dark:text-zinc-500">他に項目がありません</p>
         )}
         <span className="mt-2 text-xs text-zinc-400 dark:text-zinc-600">

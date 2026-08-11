@@ -9,15 +9,20 @@ import type { CardData } from "@/lib/card-data";
 export default async function NotebookPage(props: PageProps<"/my-notebooks/[notebookId]">) {
   const { notebookId } = await props.params;
 
+  // 単語帳本体と、その中の単語（Card）一覧を position 昇順（＝Excelの元の並び順）で取得する
   const notebook = await prisma.notebook.findUnique({
     where: { id: notebookId },
     include: { cards: { orderBy: { position: "asc" } } },
   });
 
+  // 存在しないIDが指定された場合は404ページを表示する
   if (!notebook) {
     notFound();
   }
 
+  // columns は「1列目=見出し語、2列目以降=意味の列名」という順序付き配列。
+  // 列数・列名はNotebookごとに異なる（Excel由来）ため、テーブルのヘッダーや
+  // 各行の入力欄は columns をループして動的に組み立てる
   const columns = notebook.columns as string[];
 
   return (
@@ -53,6 +58,7 @@ export default async function NotebookPage(props: PageProps<"/my-notebooks/[note
           <table className="w-full min-w-max border-collapse text-left">
             <thead className="bg-zinc-50 dark:bg-zinc-900">
               <tr>
+                {/* 列見出しは columns の並び順そのまま表示する */}
                 {columns.map((column) => (
                   <th
                     key={column}
@@ -75,6 +81,8 @@ export default async function NotebookPage(props: PageProps<"/my-notebooks/[note
                   </td>
                 </tr>
               ) : (
+                // 単語1件ずつをCardRowに委譲する。表示・編集・削除の切り替えは
+                // 各CardRow内で完結し、このページ自体は再取得（revalidatePath）でのみ更新される
                 notebook.cards.map((card) => (
                   <CardRow
                     key={card.id}

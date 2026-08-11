@@ -28,9 +28,14 @@ export default function CreateCardForm({
   notebookId: string;
   columns: string[];
 }) {
+  // createCard Server Actionを、このnotebook専用にbindしてuseActionStateに渡す
   const [state, formAction] = useActionState(createCard.bind(null, notebookId), initialState);
-  // 追加成功時にkeyを変えてフォームごと再マウントし、入力欄を空に戻す
+  // フォームの入力欄はCardFieldsForm内で非制御（defaultValue）で管理されているため、
+  // 「値をJSでクリアする」ことができない。そこで<form key={formKey}>のkeyを変えることで
+  // Reactにフォーム全体を作り直させ（アンマウント→再マウント）、入力欄を空に戻す
   const [formKey, setFormKey] = useState(0);
+  // useActionStateは初回マウント時にも初期state（{}）でこのuseEffectを走らせるため、
+  // 「マウンド直後に誤ってフォームをリセットしてしまう」ことを防ぐためのフラグ
   const isFirstRender = useRef(true);
 
   useEffect(() => {
@@ -38,6 +43,7 @@ export default function CreateCardForm({
       isFirstRender.current = false;
       return;
     }
+    // 追加が成功した（エラーが無い）時だけkeyをインクリメントしてフォームをリセットする
     if (!state.error) {
       setFormKey((key) => key + 1);
     }
