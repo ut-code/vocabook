@@ -13,7 +13,11 @@ npm ci # ciとはclean installの略, package-lock.jsonの内容を基にパッ�
 ```bash
 cp .env.example .env # .env.exampleの内容をコピーして自分用の.envを作成する
 ```
-（`.env`ファイルは秘密情報を含みうるため`.gitignore`でGit管理から除外されており、githubのリモートリポジトリにはないため、手動で作成すること）
+（`.env`ファイルは秘密情報を含みうるため`.gitignore`でGit管理から除外されている。`.env.example`はGit管理されているのでcloneすれば手元にあるはずだが、無ければ手動で作成すること）
+```bash
+npx prisma migrate dev # マイグレーション履歴（prisma/migrations）を基に、自分のローカル環境にDB（prisma/dev.db）を作成・更新する
+```
+（`prisma/dev.db`はSQLiteのDB実体ファイルで、複数人が同じファイルをGit管理すると変更が衝突して壊れるため`.gitignore`で除外されている。そのため各自が上記コマンドでローカルに作成する。他の人がスキーマ（`prisma/schema.prisma`）を変更してマイグレーションファイルを追加した場合、`git pull`した後に再度このコマンドを実行して自分のDBにも変更を反映すること）
 ```bash
 git clone git@github.com:アカウント名/リポジトリ名.git # リモートリポジトリの内容を、自身のローカルリポジトリにクローンする
 ```
