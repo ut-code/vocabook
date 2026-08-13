@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import Sidebar from "@/components/Sidebar";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -31,11 +32,20 @@ export default function RootLayout({
       lang="ja"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
-        <Header />
-        <div className="flex flex-1 flex-col">{children}</div>
-        <Footer />
+      <body className="min-h-full flex bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100">
+        {/* 常駐型サイドバー */}
+        <Sidebar />
+
+        {/* メインエリア（ヘッダー・コンテンツ・フッター） */}
+        <div className="flex flex-1 flex-col min-w-0">
+          <Header />
+          <main className="flex-1 px-4 py-6 md:px-8 max-w-7xl w-full mx-auto">
+            {children}
+          </main>
+          <Footer />
+        </div>
       </body>
     </html>
   );
 }
+
