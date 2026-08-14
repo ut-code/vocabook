@@ -4,9 +4,8 @@ import Link from "next/link";
 const NAV_LINKS = [
   { href: "https://forms.gle/HnspDy2kNqQxPCWA8", label: "ご意見" },
   { href: "https://utcode.net/", label: "ut.code():" },
-  { href: "https://x.com/utokyo_code", label: "公式X"},
+  { href: "https://x.com/utokyo_code", label: "公式X" },
 ];
-
 
 export default function Footer() {
   return (

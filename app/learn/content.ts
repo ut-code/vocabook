@@ -33,19 +33,21 @@ async function listSlugs(languageSlug: string): Promise<string[]> {
     return [];
   }
 
-  return entries
-    // filterによって、entries配列の中から、ディレクトリであり、かつ名前が数字のみで構成されているものを抽出する（layout.tsxを省くため）
-    .filter((entry) => entry.isDirectory() && /^\d+$/.test(entry.name))
-    // mapによって、抽出されたディレクトリの名前を配列として返す
-    .map((entry) => entry.name)
-    // sortによって、数字順に並び替える
-    .sort();
+  return (
+    entries
+      // filterによって、entries配列の中から、ディレクトリであり、かつ名前が数字のみで構成されているものを抽出する（layout.tsxを省くため）
+      .filter((entry) => entry.isDirectory() && /^\d+$/.test(entry.name))
+      // mapによって、抽出されたディレクトリの名前を配列として返す
+      .map((entry) => entry.name)
+      // sortによって、数字順に並び替える
+      .sort()
+  );
 }
 
 // 任意の言語について、セクションの番号配列を返す関数
 export async function getSections(languageSlug: string): Promise<SectionSummary[]> {
   const sectionSlugs = await listSlugs(languageSlug);
-  
+
   //　Promise.all()は、複数のPromiseをまとめて"並列"で待ち、すべて完了したら結果を1つの配列で返す
   return Promise.all(
     sectionSlugs.map(async (sectionSlug) => {

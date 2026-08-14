@@ -7,13 +7,7 @@ const bookFont = Fraunces({
   variable: "--font-book",
 });
 
-const vocabularyWords = [
-  "vocabulary",
-  "词汇",
-  "vocabulaire",
-  "Wortschatz",
-  "vocabulario",
-];
+const vocabularyWords = ["vocabulary", "词汇", "vocabulaire", "Wortschatz", "vocabulario"];
 
 const bookWords = ["book", "书", "livre", "Buch", "libro"];
 

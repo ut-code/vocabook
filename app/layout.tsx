@@ -16,8 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Vocabook | 多次元単語帳アプリ",
-  description:
-    "自分だけの多次元単語帳を作って共有できる、多言語対応の暗記学習アプリ。",
+  description: "自分だけの多次元単語帳を作って共有できる、多言語対応の暗記学習アプリ。",
 };
 
 // ルートレイアウト
@@ -27,10 +26,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="ja"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
+    <html lang="ja" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <Header />
         <div className="flex flex-1 flex-col">{children}</div>
