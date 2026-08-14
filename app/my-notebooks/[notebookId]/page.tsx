@@ -67,7 +67,7 @@ export default async function NotebookPage(props: PageProps<"/my-notebooks/[note
                     {column}
                   </th>
                 ))}
-                <th className="px-4 py-3" />
+                <th className="px-4 py-3" aria-label="操作" />
               </tr>
             </thead>
             <tbody>
