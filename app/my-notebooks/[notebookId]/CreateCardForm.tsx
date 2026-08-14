@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
 
 import { createCard, type FormState } from "../actions";
@@ -34,20 +34,16 @@ export default function CreateCardForm({
   // 「値をJSでクリアする」ことができない。そこで<form key={formKey}>のkeyを変えることで
   // Reactにフォーム全体を作り直させ（アンマウント→再マウント）、入力欄を空に戻す
   const [formKey, setFormKey] = useState(0);
-  // useActionStateは初回マウント時にも初期state（{}）でこのuseEffectを走らせるため、
-  // 「マウンド直後に誤ってフォームをリセットしてしまう」ことを防ぐためのフラグ
-  const isFirstRender = useRef(true);
-
-  useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
-    // 追加が成功した（エラーが無い）時だけkeyをインクリメントしてフォームをリセットする
+  // stateが変化した（=action実行結果が返ってきた）タイミングだけ、
+  // 成功時（エラーが無い時）にkeyをインクリメントしてフォームをリセットする。
+  // 初回マウント時はprevState === stateなので何もしない
+  const [prevState, setPrevState] = useState(state);
+  if (state !== prevState) {
+    setPrevState(state);
     if (!state.error) {
       setFormKey((key) => key + 1);
     }
-  }, [state]);
+  }
 
   return (
     <>
