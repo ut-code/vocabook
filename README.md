@@ -5,42 +5,57 @@
 ```bash
 npm run dev # 開発モードでプロジェクトを実行（これで動作等を確認する）
 ```
+
 基本的に、localhost:3000 が開くはず
+
 ```bash
 npm ci # ciとはclean installの略, package-lock.jsonの内容を基にパッケージ（再利用可能なプログラムのまとまりのこと）をインストール
 ```
+
 （なお、インストール内容について、もし手動編集をする場合、package.jsonの方を編集し、package-lock.jsonは編集しないこと）
+
 ```bash
 cp .env.example .env # .env.exampleの内容をコピーして自分用の.envを作成する
 ```
+
 （`.env`ファイルは秘密情報を含みうるため`.gitignore`でGit管理から除外されている。`.env.example`はGit管理されているのでcloneすれば手元にあるはずだが、無ければ手動で作成すること）
+
 ```bash
 npx prisma migrate dev # マイグレーション履歴（prisma/migrations）を基に、自分のローカル環境にDB（prisma/dev.db）を作成・更新する
 ```
+
 （`prisma/dev.db`はSQLiteのDB実体ファイルで、複数人が同じファイルをGit管理すると変更が衝突して壊れるため`.gitignore`で除外されている。そのため各自が上記コマンドでローカルに作成する。他の人がスキーマ（`prisma/schema.prisma`）を変更してマイグレーションファイルを追加した場合、`git pull`した後に再度このコマンドを実行して自分のDBにも変更を反映すること）
+
 ```bash
 git clone git@github.com:アカウント名/リポジトリ名.git # リモートリポジトリの内容を、自身のローカルリポジトリにクローンする
 ```
+
 ```bash
 git pull origin main
 # 自分のリポジトリにリモートリポジトリのmainブランチの変更（他の人が施したものなど）を取り込む
 # git fetch（最新情報の取得）とgit merge（手元のデータへの統合）の2つの処理を同時に実行している
 ```
+
 ```bash
-git branch # 現在いるブランチを確認 
+git branch # 現在いるブランチを確認
 ```
+
 ```bash
 git switch ブランチ名 # ブランチを切り替える
 ```
+
 ```bash
 git switch -c ブランチ名 # ブランチを新たに作成する
 ```
+
 ```bash
 rm -rf リポジトリ名
 # リポジトリを強制削除する
 # どうしてもうまくいかなかったときは、一旦ローカルリポジトリを削除して再びクローンしてもよい（多分正攻法ではない）
 ```
+
 ## プロジェクト構成の大枠
+
 - layout.tsx
   - 共通するレイアウトのレンダリングを担っている
   - {children}の中に各コンポーネントのレンダリングが集約されているイメージ
@@ -66,12 +81,16 @@ rm -rf リポジトリ名
 - prismaディレクトリ
   - Node.jsおよびTypeScript向けORMツールであるprismaを管理するディレクトリ
     - ORM（オブジェクト関係マッピング）: SQLを書かずにデータを操作する技術
+
 ## Next.jsについて
+
 Next.jsとは、reactベースのWebアプリケーションフレームワークで、主に以下の2つの特徴がある。
+
 - App Router： ディレクトリを使って画面の切り替えを行い、アプリを設計する機能
 - Server Side Rendering（SSR）: サーバー側でHTMLを作ってから表示する機能
 
 ### App Routerルーティング規則
+
 App Routerのルーティングは、次の2つの軸で成り立っている。
 
 - **フォルダ** … 階層がそのまま URL のパスになる
@@ -98,26 +117,28 @@ App Routerのルーティングは、次の2つの軸で成り立っている。
 
 フォルダの階層がそのままURLになる。ただし中に`page`ファイルが必要
 
-| フォルダ構造 | 対応するURL |
-|---|---|
-| `app/page.tsx` | `/` |
-| `app/learn/page.tsx` | `/learn` |
-| `app/learn/[language]/page.tsx` | `/learn/english` など |
+| フォルダ構造                              | 対応するURL                   |
+| ----------------------------------------- | ----------------------------- |
+| `app/page.tsx`                            | `/`                           |
+| `app/learn/page.tsx`                      | `/learn`                      |
+| `app/learn/[language]/page.tsx`           | `/learn/english` など         |
 | `app/learn/[language]/[section]/page.tsx` | `/learn/english/grammar` など |
 
 #### 2. 特殊ファイル（予約名）
+
 ファイル名によってApp Routerにおける役割が変わる
 拡張子`.tsx`/`.jsx`/`.js`（`page`は`.mdx`も可）は選べる
-| ファイル名 | 役割 |
-|---|---|
-| `page` | そのルートの UI 本体。**これがないとアクセス不可** |
-| `layout` | その階層以下で共有される枠。上位から入れ子に継承される |
-| `loading` | ロード中の UI（内部でReact Suspense利用） |
-| `error` | エラー時の UI（Error Boundary） |
-| `not-found` | 404 の UI |
-| `route` | API エンドポイント。`page`とは同じ階層に共存できない |
-| `template` | 再マウントされる点以外は`layout`に近い |
-それ以外のファイル（.tsなど）は「非公開ファイル（Colocation）」になり、そのフォルダ専用のコンポーネントやデータ処理関数を配置するのが一般的
+
+| ファイル名                                                                                                                                  | 役割                                                   |
+| ------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| `page`                                                                                                                                      | そのルートの UI 本体。**これがないとアクセス不可**     |
+| `layout`                                                                                                                                    | その階層以下で共有される枠。上位から入れ子に継承される |
+| `loading`                                                                                                                                   | ロード中の UI（内部でReact Suspense利用）              |
+| `error`                                                                                                                                     | エラー時の UI（Error Boundary）                        |
+| `not-found`                                                                                                                                 | 404 の UI                                              |
+| `route`                                                                                                                                     | API エンドポイント。`page`とは同じ階層に共存できない   |
+| `template`                                                                                                                                  | 再マウントされる点以外は`layout`に近い                 |
+| それ以外のファイル（.tsなど）は「非公開ファイル（Colocation）」になり、そのフォルダ専用のコンポーネントやデータ処理関数を配置するのが一般的 |
 
 ##### layoutについて
 
@@ -128,22 +149,23 @@ App Routerのルーティングは、次の2つの軸で成り立っている。
 #### 3. 動的ルート（角括弧の記法）
 
 URL の一部が可変になる部分は角括弧
-| 記法 | 名称 | マッチ例 | params の中身 |
-|---|---|---|---|
-| `[folder]` | 動的セグメント | `/learn/english` | `{ language: "english" }` |
-| `[...folder]` | catch-all | `/shop/a/b` | `{ slug: ["a", "b"] }`（配列） |
-| `[[...folder]]` | optional catch-all | `/shop` も含む | セグメント無しにもマッチ |
+
+| 記法            | 名称               | マッチ例         | params の中身                  |
+| --------------- | ------------------ | ---------------- | ------------------------------ |
+| `[folder]`      | 動的セグメント     | `/learn/english` | `{ language: "english" }`      |
+| `[...folder]`   | catch-all          | `/shop/a/b`      | `{ slug: ["a", "b"] }`（配列） |
+| `[[...folder]]` | optional catch-all | `/shop` も含む   | セグメント無しにもマッチ       |
 
 #### 4. page.tsxのコンポーネントが受け取る引数
 
 `page.tsx`のデフォルトエクスポート関数は Next.js から**`params`と`searchParams`を自動的に受け取る。
 
-| 引数 | 中身 | 例 |
-|---|---|---|
-| `params` | 動的セグメント `[...]` | `/learn/english` → `{ language: "english" }` |
-| `searchParams` | クエリ文字列 `?...` | `?level=beginner` → `{ level: "beginner" }` |
+| 引数           | 中身                   | 例                                           |
+| -------------- | ---------------------- | -------------------------------------------- |
+| `params`       | 動的セグメント `[...]` | `/learn/english` → `{ language: "english" }` |
+| `searchParams` | クエリ文字列 `?...`    | `?level=beginner` → `{ level: "beginner" }`  |
 
 ### サーバーサイドレンダリング
+
 - 原則、ルーティング規則に含まれるものはデフォルトでSSRが適用される
 - 'use client'は、「クライアントコンポーネント」を宣言するディレクティブであり、ファイルの一番上にこれを記述すると、useStateやuseEffectなどのReactフックが使えるようになる（この場合でもSSR自体は適用されるので、誤解しないよう注意）
-

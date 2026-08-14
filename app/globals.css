@@ -226,7 +226,6 @@ body {
   }
 }
 
-
 @keyframes vb-scroll-left {
   from {
     transform: translateX(0);

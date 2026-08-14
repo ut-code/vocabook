@@ -19,7 +19,7 @@ export default function Header() {
             className="h-10 w-auto object-contain"
           />
           <span className="text-3xl font-semibold tracking-tight self-center hover:text-emerald-500 dark:hover:text-emerald-500">
-          Vocabook
+            Vocabook
           </span>
         </Link>
         <nav className="flex gap-6 text-lg font-medium text-zinc-600 dark:text-zinc-200">

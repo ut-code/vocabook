@@ -13,7 +13,11 @@ export default function LearnPage() {
       </p>
       <ul className="mt-8 flex flex-wrap justify-center gap-3">
         {LANGUAGES.map((language) => (
-          <Link key={language.languageSlug} href={`/learn/${language.languageSlug}`} className="flex flex-col gap-2 rounded-2xl border border-black/[.08] bg-white p-6 text-left transition-colors hover:border-black/[.15] dark:border-white/[.145] dark:bg-zinc-950 dark:hover:border-white/[.25]">
+          <Link
+            key={language.languageSlug}
+            href={`/learn/${language.languageSlug}`}
+            className="flex flex-col gap-2 rounded-2xl border border-black/[.08] bg-white p-6 text-left transition-colors hover:border-black/[.15] dark:border-white/[.145] dark:bg-zinc-950 dark:hover:border-white/[.25]"
+          >
             {language.label}
           </Link>
         ))}

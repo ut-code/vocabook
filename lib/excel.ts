@@ -43,9 +43,7 @@ function cellToText(value: ExcelJS.CellValue): string {
 }
 
 // アップロードされたExcelファイルの1シート目を読み取り、1行目をヘッダーとする可変列の単語帳データに変換する
-export async function parseExcelWorkbook(
-  buffer: ArrayBuffer,
-): Promise<ParsedNotebook> {
+export async function parseExcelWorkbook(buffer: ArrayBuffer): Promise<ParsedNotebook> {
   // ファイルを読み込み、データをworkbookに格納する
   const workbook = new ExcelJS.Workbook();
   try {
