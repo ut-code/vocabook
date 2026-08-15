@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
 
 import { deleteCard, updateCard, type FormState } from "../actions";
@@ -40,18 +40,15 @@ export default function CardRow({
     updateCard.bind(null, card.id, notebookId),
     initialState,
   );
-  // 初回マウント時のstate変化（=action未実行）で誤って閉じないようにする
-  const isFirstRender = useRef(true);
-
-  useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
+  // stateが変化した（=action実行結果が返ってきた）タイミングだけ、成功時に編集モードを閉じる。
+  // 初回マウント時はprevState === stateなので何もしない
+  const [prevState, setPrevState] = useState(state);
+  if (state !== prevState) {
+    setPrevState(state);
     if (!state.error) {
       setEditing(false);
     }
-  }, [state]);
+  }
 
   const senseColumns = columns.slice(1);
 

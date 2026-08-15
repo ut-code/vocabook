@@ -35,9 +35,7 @@ export default function Home() {
               仮画像
             </span>
             <p className="text-[11px] tracking-wide text-zinc-400">FR → JA</p>
-            <p className="mt-1 text-lg font-semibold text-zinc-900 dark:text-zinc-50">
-              liberté
-            </p>
+            <p className="mt-1 text-lg font-semibold text-zinc-900 dark:text-zinc-50">liberté</p>
             <div className="mt-3 flex gap-1.5">
               <span className="rounded-full bg-coral-500 px-2.5 py-1 text-[11px] font-semibold text-white">
                 意味
@@ -49,15 +47,11 @@ export default function Home() {
                 例文
               </span>
             </div>
-            <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">
-              自由
-            </p>
+            <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">自由</p>
           </div>
 
           <div>
-            <h2 className="text-2xl font-bold text-coral-900 dark:text-coral-100">
-              My単語帳
-            </h2>
+            <h2 className="text-2xl font-bold text-coral-900 dark:text-coral-100">My単語帳</h2>
             <p className="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
               意味・発音・例文など複数の軸を持つ、自分だけの単語帳を作成。
               <br />
@@ -69,10 +63,42 @@ export default function Home() {
             単語帳を作ってみる
             <span className="vb-arrow-window" aria-hidden="true">
               <span className="vb-arrow-track">
-                <svg viewBox="0 0 14 14" fill="none"><path d="M2 7H12M12 7L8 3M12 7L8 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                <svg viewBox="0 0 14 14" fill="none"><path d="M2 7H12M12 7L8 3M12 7L8 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                <svg viewBox="0 0 14 14" fill="none"><path d="M2 7H12M12 7L8 3M12 7L8 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                <svg viewBox="0 0 14 14" fill="none"><path d="M2 7H12M12 7L8 3M12 7L8 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                <svg viewBox="0 0 14 14" fill="none">
+                  <path
+                    d="M2 7H12M12 7L8 3M12 7L8 11"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <svg viewBox="0 0 14 14" fill="none">
+                  <path
+                    d="M2 7H12M12 7L8 3M12 7L8 11"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <svg viewBox="0 0 14 14" fill="none">
+                  <path
+                    d="M2 7H12M12 7L8 3M12 7L8 11"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <svg viewBox="0 0 14 14" fill="none">
+                  <path
+                    d="M2 7H12M12 7L8 3M12 7L8 11"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
               </span>
             </span>
           </span>
@@ -118,10 +144,42 @@ export default function Home() {
             教材を見てみる
             <span className="vb-arrow-window" aria-hidden="true">
               <span className="vb-arrow-track">
-                <svg viewBox="0 0 14 14" fill="none"><path d="M2 7H12M12 7L8 3M12 7L8 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                <svg viewBox="0 0 14 14" fill="none"><path d="M2 7H12M12 7L8 3M12 7L8 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                <svg viewBox="0 0 14 14" fill="none"><path d="M2 7H12M12 7L8 3M12 7L8 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                <svg viewBox="0 0 14 14" fill="none"><path d="M2 7H12M12 7L8 3M12 7L8 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                <svg viewBox="0 0 14 14" fill="none">
+                  <path
+                    d="M2 7H12M12 7L8 3M12 7L8 11"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <svg viewBox="0 0 14 14" fill="none">
+                  <path
+                    d="M2 7H12M12 7L8 3M12 7L8 11"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <svg viewBox="0 0 14 14" fill="none">
+                  <path
+                    d="M2 7H12M12 7L8 3M12 7L8 11"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <svg viewBox="0 0 14 14" fill="none">
+                  <path
+                    d="M2 7H12M12 7L8 3M12 7L8 11"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
               </span>
             </span>
           </span>
