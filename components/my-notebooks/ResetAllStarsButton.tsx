@@ -9,11 +9,7 @@ export default function ResetAllStarsButton({ notebookId }: { notebookId: string
     <form
       action={resetAllStars.bind(null, notebookId)}
       onSubmit={(event) => {
-        if (
-          !window.confirm(
-            "この単語帳の★の回数をすべてリセットします。よろしいですか？",
-          )
-        ) {
+        if (!window.confirm("この単語帳の★の回数をすべてリセットします。よろしいですか？")) {
           event.preventDefault();
         }
       }}
