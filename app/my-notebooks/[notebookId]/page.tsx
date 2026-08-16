@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import CardRow from "./CardRow";
 import CreateCardForm from "./CreateCardForm";
+import ResetAllStarsButton from "@/components/my-notebooks/ResetAllStarsButton";
 import type { CardData } from "@/lib/card-data";
 
 export default async function NotebookPage(props: PageProps<"/my-notebooks/[notebookId]">) {
@@ -24,6 +25,10 @@ export default async function NotebookPage(props: PageProps<"/my-notebooks/[note
   // 列数・列名はNotebookごとに異なる（Excel由来）ため、テーブルのヘッダーや
   // 各行の入力欄は columns をループして動的に組み立てる
   const columns = notebook.columns as string[];
+  // ★がついている単語の件数。1件以上あれば「復習」への導線を出す
+  const starredCount = notebook.cards.filter((card) => card.starred).length;
+  // ★の回数が1回でも付いている単語があれば「一括リセット」の導線を出す
+  const hasAnyStars = notebook.cards.some((card) => card.starCount > 0);
 
   return (
     <main className="flex flex-1 flex-col items-center px-6 py-16">
@@ -45,12 +50,23 @@ export default async function NotebookPage(props: PageProps<"/my-notebooks/[note
             </p>
           </div>
           {notebook.cards.length > 0 && (
-            <Link
-              href={`/my-notebooks/${notebook.id}/study`}
-              className="rounded-full bg-black px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-black dark:hover:bg-zinc-200"
-            >
-              暗記学習を始める
-            </Link>
+            <div className="flex items-center gap-3">
+              {starredCount > 0 && (
+                <Link
+                  href={`/my-notebooks/${notebook.id}/review`}
+                  className="rounded-full border border-amber-400 px-5 py-2 text-sm font-medium text-amber-600 transition-colors hover:bg-amber-50 dark:border-amber-400/60 dark:text-amber-400 dark:hover:bg-amber-400/10"
+                >
+                  ★を復習する（{starredCount}語）
+                </Link>
+              )}
+              <Link
+                href={`/my-notebooks/${notebook.id}/study`}
+                className="rounded-full bg-black px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-black dark:hover:bg-zinc-200"
+              >
+                暗記学習を始める
+              </Link>
+              {hasAnyStars && <ResetAllStarsButton notebookId={notebook.id} />}
+            </div>
           )}
         </div>
 
@@ -88,7 +104,13 @@ export default async function NotebookPage(props: PageProps<"/my-notebooks/[note
                     key={card.id}
                     notebookId={notebook.id}
                     columns={columns}
-                    card={{ id: card.id, data: card.data as CardData }}
+                    card={{
+                      id: card.id,
+                      data: card.data as CardData,
+                      starred: card.starred,
+                      starCount: card.starCount,
+                      viewCount: card.viewCount,
+                    }}
                   />
                 ))
               )}

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import ImportForm from "@/components/my-notebooks/ImportForm";
 import DeleteNotebookButton from "@/components/my-notebooks/DeleteNotebookButton";
+import StarColorSettings from "@/components/StarColorSettings";
 
 export default async function MyNotebooksPage() {
   // 作成日が新しい単語帳を先頭に表示する。
@@ -21,6 +22,9 @@ export default async function MyNotebooksPage() {
         <p className="mt-4 text-base leading-7 text-zinc-600 dark:text-zinc-400">
           Excelファイルから自分だけの単語帳を作成できます。
         </p>
+        <div className="mt-4 flex justify-center">
+          <StarColorSettings />
+        </div>
       </div>
 
       <section className="mt-10 w-full max-w-md">
