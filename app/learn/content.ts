@@ -58,3 +58,25 @@ export async function getSections(languageSlug: string): Promise<SectionSummary[
     }),
   );
 }
+
+// 全言語のセクション情報を保持する型定義（キー: 言語スラッグ, 値: セクション一覧の配列）
+export type AllLanguageSections = Record<string, SectionSummary[]>;
+
+/**
+ * 指定された複数の言語スラッグに対応するセクション一覧をまとめて並列取得する関数
+ * サイドバー等で全言語のセクション（項目）を一括表示するために使用される
+ * 
+ * @param languageSlugs 取得対象の言語スラッグ配列（例: ["chinese", "french", "german", "spanish"]）
+ * @returns 各言語スラッグをキーとするAllLanguageSectionsオブジェクト
+ */
+export async function getAllLanguageSections(languageSlugs: string[]): Promise<AllLanguageSections> {
+  // Promise.allを用いて、引数で受け取った全言語のセクション情報を並列で非同期取得する
+  const entries = await Promise.all(
+    languageSlugs.map(async (slug) => {
+      const sections = await getSections(slug);
+      return [slug, sections] as const;
+    }),
+  );
+  // [ [key, value], ... ] 形式の二次元配列からオブジェクトを生成して返す
+  return Object.fromEntries(entries);
+}
