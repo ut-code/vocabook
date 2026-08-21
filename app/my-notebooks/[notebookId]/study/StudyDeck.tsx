@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 
 import type { CardData } from "@/lib/card-data";
+import { TriangularCard } from "@/components/my-notebooks/ThreeElement";//三次元用の三角柱UIを導入
 
 type Card = { id: string; data: CardData };
 
@@ -43,6 +44,41 @@ export default function StudyDeck({
   const frontColumn = columns[0];
   const senseColumns = columns.slice(1);
 
+  // 要素数がちょうど3個の時だけ3Dモードにする判定
+  const is3DMode = columns.length === 3;
+
+  // 3D三角柱のそれぞれの面に入れるコンテンツの準備
+  const primarySense = current?.data.senses[0] || {};
+  const faces: [React.ReactNode, React.ReactNode, React.ReactNode] = [
+    // 面1（見出し語）
+    <div key="face1" className="flex flex-col items-center gap-2 text-center">
+      <span className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
+        {columns[0]}
+      </span>
+      <span className="text-2xl font-semibold text-black dark:text-zinc-50">
+        {current?.data.head || "—"}
+      </span>
+    </div>,
+    // 面2（2つ目の要素）
+    <div key="face2" className="flex flex-col items-center gap-2 text-center">
+      <span className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
+        {columns[1]}
+      </span>
+      <span className="text-xl font-medium text-black dark:text-zinc-50">
+        {primarySense[columns[1]] || "—"}
+      </span>
+    </div>,
+    // 面3（3つ目の要素）
+    <div key="face3" className="flex flex-col items-center gap-2 text-center">
+      <span className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
+        {columns[2]}
+      </span>
+      <span className="text-base text-zinc-700 dark:text-zinc-300">
+        {primarySense[columns[2]] || "—"}
+      </span>
+    </div>,
+  ];
+
   // 次のカードへ。indexが末尾を超えないようMath.minでクランプし、
   // カードが切り替わったら必ず表向きに戻す
   function goNext() {
@@ -68,14 +104,21 @@ export default function StudyDeck({
       <p className="text-sm text-zinc-500 dark:text-zinc-500">
         {index + 1} / {order.length}
       </p>
-
-      {/* カード自体がクリック領域。クリックするたびに表裏(flipped)をトグルするだけで、
-          カードの移動（前へ/次へ/シャッフル）とは独立した操作になっている */}
-      <button
-        type="button"
-        onClick={() => setFlipped((f) => !f)}
-        className="flex min-h-56 w-full max-w-md flex-col items-center justify-center gap-3 rounded-2xl border border-black/[.08] bg-white p-8 text-center transition-colors hover:border-black/[.15] dark:border-white/[.145] dark:bg-zinc-950 dark:hover:border-white/[.25]"
-      >
+      {is3DMode ? (
+        /* 3つの要素があるときは三角柱 */
+        <div className="my-2 flex flex-col items-center gap-2">
+          <TriangularCard key={current.id} faces={faces} columnNames={columns as [string, string, string]} width={320} height={220} />
+          <span className="mt-2 text-xs text-zinc-400 dark:text-zinc-600">
+            クリックして次の面へ回転
+          </span>
+        </div>
+      ) : (
+        /* それ以外の時（2つの要素など）は元通りの表裏ボタン */
+        <button
+          type="button"
+          onClick={() => setFlipped((f) => !f)}
+          className="flex min-h-56 w-full max-w-md flex-col items-center justify-center gap-3 rounded-2xl border border-black/[.08] bg-white p-8 text-center transition-colors hover:border-black/[.15] dark:border-white/[.145] dark:bg-zinc-950 dark:hover:border-white/[.25]"
+        >
         {!flipped ? (
           // 表面: 1列目（見出し語）だけを大きく表示する
           <>
@@ -114,7 +157,10 @@ export default function StudyDeck({
         <span className="mt-2 text-xs text-zinc-400 dark:text-zinc-600">
           クリックして{flipped ? "表" : "裏"}を見る
         </span>
-      </button>
+        </button>
+      )}
+
+      
 
       <div className="flex items-center gap-3">
         <button
