@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 
 import type { CardData } from "@/lib/card-data";
-import { TriangularCard } from "@/components/my-notebooks/ThreeElement";//三次元用の三角柱UIを導入
+import { TriangularCard } from "@/components/my-notebooks/ThreeElement"; //三次元用の三角柱UIを導入
 
 type Card = { id: string; data: CardData };
 
@@ -107,7 +107,13 @@ export default function StudyDeck({
       {is3DMode ? (
         /* 3つの要素があるときは三角柱 */
         <div className="my-2 flex flex-col items-center gap-2">
-          <TriangularCard key={current.id} faces={faces} columnNames={columns as [string, string, string]} width={320} height={220} />
+          <TriangularCard
+            key={current.id}
+            faces={faces}
+            columnNames={columns as [string, string, string]}
+            width={320}
+            height={220}
+          />
           <span className="mt-2 text-xs text-zinc-400 dark:text-zinc-600">
             クリックして次の面へ回転
           </span>
@@ -144,7 +150,9 @@ export default function StudyDeck({
                       <p className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
                         {column}
                       </p>
-                      <p className="text-lg text-black dark:text-zinc-50">{sense[column] || "—"}</p>
+                      <p className="text-lg text-black dark:text-zinc-50">
+                        {sense[column] || "—"}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -152,15 +160,15 @@ export default function StudyDeck({
             </div>
           ) : (
             // 意味の列自体が無い、またはこのカードに意味が1件も登録されていない場合のフォールバック表示
-            <p className="text-sm text-zinc-500 dark:text-zinc-500">他に項目がありません</p>
+            <p className="text-sm text-zinc-500 dark:text-zinc-500">
+              他に項目がありません
+            </p>
           )}
           <span className="mt-2 text-xs text-zinc-400 dark:text-zinc-600">
             クリックして{flipped ? "表" : "裏"}を見る
           </span>
         </button>
       )}
-
-
 
       <div className="flex items-center gap-3">
         <button
