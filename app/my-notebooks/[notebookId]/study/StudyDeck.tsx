@@ -150,9 +150,7 @@ export default function StudyDeck({
                       <p className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
                         {column}
                       </p>
-                      <p className="text-lg text-black dark:text-zinc-50">
-                        {sense[column] || "—"}
-                      </p>
+                      <p className="text-lg text-black dark:text-zinc-50">{sense[column] || "—"}</p>
                     </div>
                   ))}
                 </div>
@@ -160,9 +158,7 @@ export default function StudyDeck({
             </div>
           ) : (
             // 意味の列自体が無い、またはこのカードに意味が1件も登録されていない場合のフォールバック表示
-            <p className="text-sm text-zinc-500 dark:text-zinc-500">
-              他に項目がありません
-            </p>
+            <p className="text-sm text-zinc-500 dark:text-zinc-500">他に項目がありません</p>
           )}
           <span className="mt-2 text-xs text-zinc-400 dark:text-zinc-600">
             クリックして{flipped ? "表" : "裏"}を見る
