@@ -29,9 +29,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   // サイドバーで利用する全言語のセクション一覧を取得
-  const allSections = await getAllLanguageSections(
-    LANGUAGES.map((l) => l.languageSlug)
-  );
+  const allSections = await getAllLanguageSections(LANGUAGES.map((l) => l.languageSlug));
 
   return (
     <html lang="ja" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>

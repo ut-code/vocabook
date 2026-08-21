@@ -14,13 +14,13 @@ type SidebarProps = {
 
 /**
  * サイドバーコンポーネント
- * 
+ *
  * 階層構造:
  * 1. My単語帳
  * 2. 学習教材
  *    └── 各言語 (中国語、フランス語、ドイツ語、スペイン語など)
  *         └── 各セクション (01, 02 などの章)
- * 
+ *
  * 画面上の機能:
  * - ルートパス（`/`）等ではサイドバーを表示しない自動判定
  * - サイドバー全体の折りたたみ（完全閉じる・開く）機能
@@ -81,7 +81,12 @@ export default function Sidebar({ allSections = {} }: SidebarProps) {
           className="flex items-center gap-2 rounded-lg border border-black/[.08] p-2 text-sm text-zinc-600 hover:bg-zinc-100 hover:text-black dark:border-white/[.145] dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-white"
         >
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 6h16M4 12h16M4 18h16"
+            />
           </svg>
         </button>
       </div>
@@ -102,7 +107,12 @@ export default function Sidebar({ allSections = {} }: SidebarProps) {
           className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:text-zinc-500 dark:hover:bg-zinc-900 dark:hover:text-zinc-300"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
+            />
           </svg>
         </button>
       </div>
@@ -135,7 +145,12 @@ export default function Sidebar({ allSections = {} }: SidebarProps) {
                 viewBox="0 0 24 24"
                 stroke="currentColor"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
               </svg>
             </button>
           </div>
@@ -168,7 +183,12 @@ export default function Sidebar({ allSections = {} }: SidebarProps) {
                 viewBox="0 0 24 24"
                 stroke="currentColor"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
               </svg>
             </button>
           </div>
