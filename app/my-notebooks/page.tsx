@@ -3,6 +3,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import ImportForm from "@/components/my-notebooks/ImportForm";
 import DeleteNotebookButton from "@/components/my-notebooks/DeleteNotebookButton";
+import StarColorSettings from "@/components/StarColorSettings";
 
 // DBの最新状態を常に表示するため、ビルド時の静的プリレンダリングを避けてリクエスト時にレンダリングする
 export const dynamic = "force-dynamic";
@@ -24,6 +25,9 @@ export default async function MyNotebooksPage() {
         <p className="mt-4 text-base leading-7 text-zinc-600 dark:text-zinc-400">
           Excelファイルから自分だけの単語帳を作成できます。
         </p>
+        <div className="mt-4 flex justify-center">
+          <StarColorSettings />
+        </div>
       </div>
 
       <section className="mt-10 w-full max-w-md">
