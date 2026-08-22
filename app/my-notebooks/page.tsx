@@ -5,6 +5,9 @@ import ImportForm from "@/components/my-notebooks/ImportForm";
 import DeleteNotebookButton from "@/components/my-notebooks/DeleteNotebookButton";
 import StarColorSettings from "@/components/StarColorSettings";
 
+// DBの最新状態を常に表示するため、ビルド時の静的プリレンダリングを避けてリクエスト時にレンダリングする
+export const dynamic = "force-dynamic";
+
 export default async function MyNotebooksPage() {
   // 作成日が新しい単語帳を先頭に表示する。
   // _count で各単語帳の単語数だけを取得し、cards本体は取得しない（一覧表示には不要なため軽量化）

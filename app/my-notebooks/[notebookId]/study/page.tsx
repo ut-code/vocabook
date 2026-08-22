@@ -4,6 +4,9 @@ import { prisma } from "@/lib/prisma";
 import StudyDeck from "./StudyDeck";
 import type { CardData } from "@/lib/card-data";
 
+// DBの最新状態を常に表示するため、ビルド時の静的プリレンダリングを避けてリクエスト時にレンダリングする
+export const dynamic = "force-dynamic";
+
 export default async function StudyPage(props: PageProps<"/my-notebooks/[notebookId]/study">) {
   const { notebookId } = await props.params;
 
