@@ -1,4 +1,4 @@
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { PrismaLibSql } from "@prisma/adapter-libsql";
 import { PrismaClient } from "@/app/generated/prisma/client";
 
 // 開発モードではファイル変更のたびにモジュールが再評価され、
@@ -8,7 +8,10 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-const adapter = new PrismaBetterSqlite3({ url: process.env.DATABASE_URL! });
+// ローカル開発時は file:./prisma/dev.db、本番(Turso)時は
+// libsql://<db>.turso.io?authToken=... 形式の DATABASE_URL を使う。
+// authToken はURLのクエリパラメータとして埋め込まれ、libsqlクライアントが解釈する。
+const adapter = new PrismaLibSql({ url: process.env.DATABASE_URL! });
 
 export const prisma = globalForPrisma.prisma ?? new PrismaClient({ adapter });
 
