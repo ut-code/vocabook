@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { readdir } from "node:fs/promises";
 import path from "node:path";
 
@@ -44,6 +45,13 @@ async function listSlugs(languageSlug: string): Promise<string[]> {
   );
 }
 
+// 任意のセクションについて、page.mdx / page.tsx のうち実際に存在する方の拡張子を返す関数
+// （動詞活用ドリルのような練習教材は、静的なMDXではなくインタラクティブなpage.tsxとして実装されるため）
+function resolveSectionExtension(languageSlug: string, sectionSlug: string): "mdx" | "tsx" {
+  const dirPath = path.join(process.cwd(), "app", "learn", languageSlug, sectionSlug);
+  return existsSync(path.join(dirPath, "page.tsx")) ? "tsx" : "mdx";
+}
+
 // 任意の言語について、セクションの番号配列を返す関数
 export async function getSections(languageSlug: string): Promise<SectionSummary[]> {
   const sectionSlugs = await listSlugs(languageSlug);
@@ -52,8 +60,12 @@ export async function getSections(languageSlug: string): Promise<SectionSummary[
   return Promise.all(
     sectionSlugs.map(async (sectionSlug) => {
       // ここでのimport()は動的インポートであり、指定されたパスの情報を読み込む
-      // page.mdxファイルの中からtitleプロパティを、分割代入によって取得している
-      const { title } = await import(`./${languageSlug}/${sectionSlug}/page.mdx`);
+      // page.mdx / page.tsx ファイルの中からtitleプロパティを、分割代入によって取得している
+      const extension = resolveSectionExtension(languageSlug, sectionSlug);
+      const { title } =
+        extension === "tsx"
+          ? await import(`./${languageSlug}/${sectionSlug}/page.tsx`)
+          : await import(`./${languageSlug}/${sectionSlug}/page.mdx`);
       return { sectionSlug, title };
     }),
   );
