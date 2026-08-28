@@ -123,6 +123,7 @@ export default function Sidebar({ allSections = {} }: SidebarProps) {
           <div className="flex items-center justify-between">
             <Link
               href="/my-notebooks"
+              onClick={() => setIsMyNotebooksOpen((prev) => !prev)}
               className={`flex-1 rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
                 isMyNotebooksActive
                   ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400"
@@ -161,6 +162,7 @@ export default function Sidebar({ allSections = {} }: SidebarProps) {
           <div className="flex items-center justify-between">
             <Link
               href="/learn"
+              onClick={() => setIsLearnOpen((prev) => !prev)}
               className={`flex-1 rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
                 isLearnActive && !currentLanguageSlug
                   ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400"
