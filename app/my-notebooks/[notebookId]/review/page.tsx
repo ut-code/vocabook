@@ -1,31 +1,27 @@
 import { notFound, redirect } from "next/navigation";
 
 import { prisma } from "@/lib/prisma";
-import StudyDeck from "./StudyDeck";
+import StudyDeck from "../study/StudyDeck";
 import type { CardData } from "@/lib/card-data";
 
-// DBの最新状態を常に表示するため、ビルド時の静的プリレンダリングを避けてリクエスト時にレンダリングする
-export const dynamic = "force-dynamic";
-
-export default async function StudyPage(props: PageProps<"/my-notebooks/[notebookId]/study">) {
+export default async function ReviewPage(props: PageProps<"/my-notebooks/[notebookId]/review">) {
   const { notebookId } = await props.params;
 
-  // 単語帳と、その中のカードをposition昇順（表側の並び順）で取得する
+  // 単語帳と、その中の★がついたカードだけをposition昇順で取得する
   const notebook = await prisma.notebook.findUnique({
     where: { id: notebookId },
-    include: { cards: { orderBy: { position: "asc" } } },
+    include: { cards: { where: { starred: true }, orderBy: { position: "asc" } } },
   });
 
   if (!notebook) {
     notFound();
   }
-  // 暗記するカードが1件も無い状態では学習モードが成立しないため、
-  // 単語帳のトップページ（追加フォームがある場所）へ差し戻す
+  // ★のついた単語が1件も無い状態では復習モードが成立しないため、単語帳のトップページへ差し戻す
   if (notebook.cards.length === 0) {
     redirect(`/my-notebooks/${notebook.id}`);
   }
 
-  // シャッフルやフリップ等のインタラクションはすべてクライアント側のStudyDeckが担当するため、
+  // 表示・フリップ・★の付け外しはすべてクライアント側のStudyDeckが担当するため、
   // ここではサーバーでDBから取得したデータをそのまま整形して渡すだけ
   const columns = notebook.columns as string[];
   const cards = notebook.cards.map((card) => ({
@@ -41,7 +37,9 @@ export default async function StudyPage(props: PageProps<"/my-notebooks/[noteboo
       <h1 className="text-2xl font-semibold tracking-tight text-black dark:text-zinc-50">
         {notebook.title}
       </h1>
-      <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-500">暗記学習モード</p>
+      <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-500">
+        復習モード（★をつけた単語のみ）
+      </p>
 
       <div className="mt-8 w-full">
         <StudyDeck notebookId={notebook.id} columns={columns} cards={cards} />

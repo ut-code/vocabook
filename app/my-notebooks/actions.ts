@@ -161,3 +161,71 @@ export async function deleteCard(cardId: string, notebookId: string) {
   await prisma.card.delete({ where: { id: cardId } });
   revalidatePath(`/my-notebooks/${notebookId}`);
 }
+
+// 単語の★を付け外しする。付けるときだけ starCount を+1し、外してもstarCountは減らさない
+export async function toggleStar(cardId: string, notebookId: string) {
+  const card = await prisma.card.findUniqueOrThrow({
+    where: { id: cardId },
+    select: { starred: true },
+  });
+
+  await prisma.card.update({
+    where: { id: cardId },
+    data: card.starred ? { starred: false } : { starred: true, starCount: { increment: 1 } },
+  });
+
+  revalidatePath(`/my-notebooks/${notebookId}`);
+  // 通常の暗記学習（全件）は並び順・件数が変わらないので再検証してよい
+  // 復習モード（★のみ）は外した瞬間にカードが抜けて表示中のインデックスがずれるため、セッション中は再検証せず、次回開いたときのDB取得だけに反映させる
+  revalidatePath(`/my-notebooks/${notebookId}/study`);
+}
+
+// 誤ってクリックした場合などに、★の回数を手動で書き換える
+// 0にした場合は「一度も★を付けていない」状態と矛盾しないよう、starredも自動でfalseに戻す
+export async function setStarCount(cardId: string, notebookId: string, formData: FormData) {
+  const raw = Number(formData.get("count"));
+  const count = Number.isFinite(raw) ? Math.max(0, Math.trunc(raw)) : 0;
+
+  await prisma.card.update({
+    where: { id: cardId },
+    data: count === 0 ? { starCount: 0, starred: false } : { starCount: count },
+  });
+
+  revalidatePath(`/my-notebooks/${notebookId}`);
+  revalidatePath(`/my-notebooks/${notebookId}/study`);
+}
+
+// ★の回数・付け外し状態をまとめて未使用の状態（0・未付与）に戻す
+export async function resetStar(cardId: string, notebookId: string) {
+  await prisma.card.update({
+    where: { id: cardId },
+    data: { starCount: 0, starred: false },
+  });
+
+  revalidatePath(`/my-notebooks/${notebookId}`);
+  revalidatePath(`/my-notebooks/${notebookId}/study`);
+}
+
+// 単語帳内の全カードの★（回数・付け外し状態）を一括でリセットする
+export async function resetAllStars(notebookId: string) {
+  await prisma.card.updateMany({
+    where: { notebookId },
+    data: { starCount: 0, starred: false },
+  });
+
+  revalidatePath(`/my-notebooks/${notebookId}`);
+  revalidatePath(`/my-notebooks/${notebookId}/study`);
+}
+
+// 暗記学習モード（/study, /review）でカードが1枚表示されるたびに呼び、表示回数を+1する
+// ★の付け外しとは異なりカードの抽出条件（starred）を変えないため、復習モード（/review）を再検証しても表示中のカード構成はズレない
+export async function incrementViewCount(cardId: string, notebookId: string) {
+  await prisma.card.update({
+    where: { id: cardId },
+    data: { viewCount: { increment: 1 } },
+  });
+
+  revalidatePath(`/my-notebooks/${notebookId}`);
+  revalidatePath(`/my-notebooks/${notebookId}/study`);
+  revalidatePath(`/my-notebooks/${notebookId}/review`);
+}

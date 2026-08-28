@@ -1,11 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useOptimistic, useRef, useState } from "react";
 import Link from "next/link";
 
+import { incrementViewCount, toggleStar } from "../../actions";
+import EyeIcon from "@/components/EyeIcon";
+import StarCountEditor from "@/components/StarCountEditor";
+import { useStarColors } from "@/components/UseStarColors";
+import { starColorFor } from "@/lib/star-colors";
 import type { CardData } from "@/lib/card-data";
 
-type Card = { id: string; data: CardData };
+type Card = {
+  id: string;
+  data: CardData;
+  starred: boolean;
+  starCount: number;
+  viewCount: number;
+};
 
 // Fisher-Yatesシャッフル: [0, 1, ..., length-1] という「カードの元の並び順（インデックス）」の
 // 配列を作り、末尾から先頭に向かって「自分より前（自分を含む）」のランダムな位置と1つずつ
@@ -43,6 +54,39 @@ export default function StudyDeck({
   const frontColumn = columns[0];
   const senseColumns = columns.slice(1);
 
+  // toggleStarの結果（サーバーの往復）を待たず、クリックした瞬間に★・回数・色を切り替えるためのUI
+  // idも保持し、往復の間にカードを送り進めても別カードへ誤って適用されないようにする
+  const [optimisticStar, setOptimisticStar] = useOptimistic(
+    { id: current.id, starred: current.starred, starCount: current.starCount },
+    (_state, next: { id: string; starred: boolean; starCount: number }) => next,
+  );
+  const displayedStar =
+    optimisticStar.id === current.id
+      ? optimisticStar
+      : { id: current.id, starred: current.starred, starCount: current.starCount };
+  async function handleToggleStar() {
+    setOptimisticStar(
+      current.starred
+        ? { id: current.id, starred: false, starCount: current.starCount }
+        : { id: current.id, starred: true, starCount: current.starCount + 1 },
+    );
+    await toggleStar(current.id, notebookId);
+  }
+
+  // ★を付けた回数（displayedStar.starCount）に応じた色。0回（未使用）ならundefinedになりニュートラル表示にする
+  const { colors: starColors } = useStarColors();
+  const starColor = starColorFor(displayedStar.starCount, starColors);
+
+  // カードが切り替わる（＝暗記モードでこの単語が表示される）たびに、表示回数を1増やす
+  // countedIdRefで直前に数えたカードIDを覚えておき、同じidに対して二重に数えないようにする
+  // （開発時のStrictModeによるeffect二重発火対策も兼ねる）
+  const countedIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (countedIdRef.current === current.id) return;
+    countedIdRef.current = current.id;
+    incrementViewCount(current.id, notebookId).catch(() => {});
+  }, [current.id, notebookId]);
+
   // 次のカードへ。indexが末尾を超えないようMath.minでクランプし、
   // カードが切り替わったら必ず表向きに戻す
   function goNext() {
@@ -69,52 +113,100 @@ export default function StudyDeck({
         {index + 1} / {order.length}
       </p>
 
-      {/* カード自体がクリック領域。クリックするたびに表裏(flipped)をトグルするだけで、
-          カードの移動（前へ/次へ/シャッフル）とは独立した操作になっている */}
-      <button
-        type="button"
-        onClick={() => setFlipped((f) => !f)}
-        className="flex min-h-56 w-full max-w-md flex-col items-center justify-center gap-3 rounded-2xl border border-black/[.08] bg-white p-8 text-center transition-colors hover:border-black/[.15] dark:border-white/[.145] dark:bg-zinc-950 dark:hover:border-white/[.25]"
-      >
-        {!flipped ? (
-          // 表面: 1列目（見出し語）だけを大きく表示する
-          <>
-            <span className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
-              {frontColumn}
-            </span>
-            <span className="text-2xl font-semibold text-black dark:text-zinc-50">
-              {current.data.head || "—"}
-            </span>
-          </>
-        ) : senseColumns.length > 0 && current.data.senses.length > 0 ? (
-          // 裏面: 意味が1件以上あれば、多義語すべてを「意味1」「意味2」…として順番に表示する
-          <div className="flex flex-col gap-4">
-            {current.data.senses.map((sense, senseIndex) => (
-              <div key={senseIndex} className="flex flex-col gap-3">
-                {current.data.senses.length > 1 && (
-                  <p className="text-xs font-semibold text-zinc-400 dark:text-zinc-600">
-                    意味 {senseIndex + 1}
-                  </p>
-                )}
-                {senseColumns.map((column) => (
-                  <div key={column}>
-                    <p className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
-                      {column}
+      {/* relativeなラッパーで囲み、右上の★ボタンをカードに重ねて絶対配置する。
+          ★ボタンはフリップ用ボタンとは別要素（兄弟）なので、クリックがフリップに巻き込まれない */}
+      <div className="relative w-full max-w-md">
+        {/* カード自体がクリック領域。クリックするたびに表裏(flipped)をトグルするだけで、
+            カードの移動（前へ/次へ/シャッフル）とは独立した操作になっている */}
+        <button
+          type="button"
+          onClick={() => setFlipped((f) => !f)}
+          className="flex min-h-56 w-full flex-col items-center justify-center gap-3 rounded-2xl border border-black/[.08] bg-white p-8 text-center transition-colors hover:border-black/[.15] dark:border-white/[.145] dark:bg-zinc-950 dark:hover:border-white/[.25]"
+        >
+          {!flipped ? (
+            // 表面: 1列目（見出し語）だけを大きく表示する
+            <>
+              <span className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
+                {frontColumn}
+              </span>
+              <span className="text-2xl font-semibold text-black dark:text-zinc-50">
+                {current.data.head || "—"}
+              </span>
+            </>
+          ) : senseColumns.length > 0 && current.data.senses.length > 0 ? (
+            // 裏面: 意味が1件以上あれば、多義語すべてを「意味1」「意味2」…として順番に表示する
+            <div className="flex flex-col gap-4">
+              {current.data.senses.map((sense, senseIndex) => (
+                <div key={senseIndex} className="flex flex-col gap-3">
+                  {current.data.senses.length > 1 && (
+                    <p className="text-xs font-semibold text-zinc-400 dark:text-zinc-600">
+                      意味 {senseIndex + 1}
                     </p>
-                    <p className="text-lg text-black dark:text-zinc-50">{sense[column] || "—"}</p>
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
-        ) : (
-          // 意味の列自体が無い、またはこのカードに意味が1件も登録されていない場合のフォールバック表示
-          <p className="text-sm text-zinc-500 dark:text-zinc-500">他に項目がありません</p>
-        )}
-        <span className="mt-2 text-xs text-zinc-400 dark:text-zinc-600">
-          クリックして{flipped ? "表" : "裏"}を見る
-        </span>
-      </button>
+                  )}
+                  {senseColumns.map((column) => (
+                    <div key={column}>
+                      <p className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
+                        {column}
+                      </p>
+                      <p className="text-lg text-black dark:text-zinc-50">{sense[column] || "—"}</p>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          ) : (
+            // 意味の列自体が無い、またはこのカードに意味が1件も登録されていない場合のフォールバック表示
+            <p className="text-sm text-zinc-500 dark:text-zinc-500">他に項目がありません</p>
+          )}
+          <span className="mt-2 text-xs text-zinc-400 dark:text-zinc-600">
+            クリックして{flipped ? "表" : "裏"}を見る
+          </span>
+        </button>
+
+        {/* handleToggleStar は楽観的UI: optimisticStar を即座に切り替えてから
+            toggleStar（サーバー更新）を呼ぶ。表示も current.starred ではなく
+            displayedStar.starred を見るため、通信を待たずに★が切り替わる。
+
+            ★ボタンはフリップボタンと別要素にし、右上に絶対的に配置。
+            ★クリックがフリップに巻き込まれないようにするため。
+
+            回数の表示・修正は StarCountEditor に分離。誤クリック時も
+            手動で書き換え・0リセットができる。
+
+            全件モード（/study）は再検証しても件数・並び順が変わらないため、
+            ★の付け外しをその場で反映できる。 */}
+        <div className="absolute top-3 right-3 flex items-center gap-1">
+          <form action={handleToggleStar}>
+            <button
+              type="submit"
+              aria-label={displayedStar.starred ? "★を外す" : "★をつける"}
+              style={starColor ? { color: starColor } : undefined}
+              className={
+                starColor
+                  ? "text-2xl transition-opacity hover:opacity-75"
+                  : "text-2xl text-zinc-300 transition-colors hover:text-zinc-400 dark:text-zinc-700 dark:hover:text-zinc-500"
+              }
+            >
+              {displayedStar.starred ? "★" : "☆"}
+            </button>
+          </form>
+          <StarCountEditor
+            cardId={current.id}
+            notebookId={notebookId}
+            starCount={displayedStar.starCount}
+            color={starColor}
+          />
+          {/* 目アイコンは暗記モード（/study, /review）でこのカードが表示された累計回数。
+              ★（左）の右隣に並べる。サイズは★の文字サイズ（text-2xl）に合わせている */}
+          <span
+            aria-label="暗記モードで表示した回数"
+            className="inline-flex items-center gap-0.5 text-sm text-zinc-400 dark:text-zinc-600"
+          >
+            <EyeIcon className="h-6 w-6" />
+            {current.viewCount}
+          </span>
+        </div>
+      </div>
 
       <div className="flex items-center gap-3">
         <button
