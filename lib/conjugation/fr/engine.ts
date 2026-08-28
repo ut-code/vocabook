@@ -46,8 +46,22 @@ function conjugateRegularBase(infinitive: string, group: 1 | 2 | 3): RegularBase
     const stem = infinitive.slice(0, -2);
     return {
       présent: [stem + "e", stem + "es", stem + "e", stem + "ons", stem + "ez", stem + "ent"],
-      subjonctifPrésent: [stem + "e", stem + "es", stem + "e", stem + "ions", stem + "iez", stem + "ent"],
-      passéSimple: [stem + "ai", stem + "as", stem + "a", stem + "âmes", stem + "âtes", stem + "èrent"],
+      subjonctifPrésent: [
+        stem + "e",
+        stem + "es",
+        stem + "e",
+        stem + "ions",
+        stem + "iez",
+        stem + "ent",
+      ],
+      passéSimple: [
+        stem + "ai",
+        stem + "as",
+        stem + "a",
+        stem + "âmes",
+        stem + "âtes",
+        stem + "èrent",
+      ],
       futurStem: infinitive,
       pastParticiple: stem + "é",
     };
@@ -55,9 +69,30 @@ function conjugateRegularBase(infinitive: string, group: 1 | 2 | 3): RegularBase
   if (group === 2) {
     const stem = infinitive.slice(0, -2);
     return {
-      présent: [stem + "is", stem + "is", stem + "it", stem + "issons", stem + "issez", stem + "issent"],
-      subjonctifPrésent: [stem + "isse", stem + "isses", stem + "isse", stem + "issions", stem + "issiez", stem + "issent"],
-      passéSimple: [stem + "is", stem + "is", stem + "it", stem + "îmes", stem + "îtes", stem + "irent"],
+      présent: [
+        stem + "is",
+        stem + "is",
+        stem + "it",
+        stem + "issons",
+        stem + "issez",
+        stem + "issent",
+      ],
+      subjonctifPrésent: [
+        stem + "isse",
+        stem + "isses",
+        stem + "isse",
+        stem + "issions",
+        stem + "issiez",
+        stem + "issent",
+      ],
+      passéSimple: [
+        stem + "is",
+        stem + "is",
+        stem + "it",
+        stem + "îmes",
+        stem + "îtes",
+        stem + "irent",
+      ],
       futurStem: infinitive,
       pastParticiple: stem + "i",
     };
@@ -65,15 +100,30 @@ function conjugateRegularBase(infinitive: string, group: 1 | 2 | 3): RegularBase
   const stem = infinitive.slice(0, -2);
   return {
     présent: [stem + "s", stem + "s", stem, stem + "ons", stem + "ez", stem + "ent"],
-    subjonctifPrésent: [stem + "e", stem + "es", stem + "e", stem + "ions", stem + "iez", stem + "ent"],
-    passéSimple: [stem + "is", stem + "is", stem + "it", stem + "îmes", stem + "îtes", stem + "irent"],
+    subjonctifPrésent: [
+      stem + "e",
+      stem + "es",
+      stem + "e",
+      stem + "ions",
+      stem + "iez",
+      stem + "ent",
+    ],
+    passéSimple: [
+      stem + "is",
+      stem + "is",
+      stem + "it",
+      stem + "îmes",
+      stem + "îtes",
+      stem + "irent",
+    ],
     futurStem: infinitive.slice(0, -1),
     pastParticiple: stem + "u",
   };
 }
 
 export function buildConjugation(verb: VerbEntry): ConjugationTable {
-  const base: RegularBase = verb.kind === "regular" ? conjugateRegularBase(verb.infinitive, verb.group) : verb;
+  const base: RegularBase =
+    verb.kind === "regular" ? conjugateRegularBase(verb.infinitive, verb.group) : verb;
 
   const imparfait = deriveImparfait(base.présent, base.imparfaitStem);
   const { futurSimple, conditionnelPrésent } = deriveFuturEtConditionnel(base.futurStem);

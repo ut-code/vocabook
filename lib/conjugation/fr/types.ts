@@ -2,7 +2,14 @@ import type { SixForms, TenseOption } from "@/lib/conjugation/shared";
 
 export type { SixForms };
 
-export const PERSONS: readonly string[] = ["je", "tu", "il / elle / on", "nous", "vous", "ils / elles"];
+export const PERSONS: readonly string[] = [
+  "je",
+  "tu",
+  "il / elle / on",
+  "nous",
+  "vous",
+  "ils / elles",
+];
 
 export type IndicatifTense =
   | "présent"

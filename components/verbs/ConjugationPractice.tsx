@@ -37,12 +37,29 @@ interface ConjugationPracticeProps<V extends VerbLike, T> {
   language: ConjugationLanguageConfig<V, T>;
 }
 
-export function ConjugationPractice<V extends VerbLike, T>({ verbs, language }: ConjugationPracticeProps<V, T>) {
-  const { persons, tenseOptions, buildConjugation, formsFor, speak, accentCycles, toolbarChars, inputPlaceholder } = language;
+export function ConjugationPractice<V extends VerbLike, T>({
+  verbs,
+  language,
+}: ConjugationPracticeProps<V, T>) {
+  const {
+    persons,
+    tenseOptions,
+    buildConjugation,
+    formsFor,
+    speak,
+    accentCycles,
+    toolbarChars,
+    inputPlaceholder,
+  } = language;
 
-  const conjugationById = useMemo(() => new Map(verbs.map((v) => [v.id, buildConjugation(v)])), [verbs, buildConjugation]);
+  const conjugationById = useMemo(
+    () => new Map(verbs.map((v) => [v.id, buildConjugation(v)])),
+    [verbs, buildConjugation],
+  );
   const [phase, setPhase] = useState<"settings" | "practice">("settings");
-  const [selectedVerbIds, setSelectedVerbIds] = useState<Set<string>>(() => new Set(verbs.map((v) => v.id)));
+  const [selectedVerbIds, setSelectedVerbIds] = useState<Set<string>>(
+    () => new Set(verbs.map((v) => v.id)),
+  );
   const [selectedTenseKeys, setSelectedTenseKeys] = useState<Set<string>>(
     () => new Set(tenseOptions.map((t) => tenseKey(t.mood, t.tense))),
   );
@@ -64,7 +81,10 @@ export function ConjugationPractice<V extends VerbLike, T>({ verbs, language }: 
 
   const toggleAudio = () => setAudioEnabled((prev) => !prev);
 
-  const selectedVerbs = useMemo(() => verbs.filter((v) => selectedVerbIds.has(v.id)), [verbs, selectedVerbIds]);
+  const selectedVerbs = useMemo(
+    () => verbs.filter((v) => selectedVerbIds.has(v.id)),
+    [verbs, selectedVerbIds],
+  );
   const selectedTenses = useMemo(
     () => tenseOptions.filter((t) => selectedTenseKeys.has(tenseKey(t.mood, t.tense))),
     [tenseOptions, selectedTenseKeys],
@@ -88,7 +108,11 @@ export function ConjugationPractice<V extends VerbLike, T>({ verbs, language }: 
     });
   };
 
-  const generateQuestion = (verbPool = selectedVerbs, tensePool = selectedTenses, history = recentKeys) => {
+  const generateQuestion = (
+    verbPool = selectedVerbs,
+    tensePool = selectedTenses,
+    history = recentKeys,
+  ) => {
     window.speechSynthesis?.cancel();
     setSpeaking(false);
     if (verbPool.length === 0 || tensePool.length === 0) return;
@@ -155,9 +179,12 @@ export function ConjugationPractice<V extends VerbLike, T>({ verbs, language }: 
     }
   };
 
-  const setAllVerbs = (on: boolean) => setSelectedVerbIds(on ? new Set(verbs.map((v) => v.id)) : new Set());
+  const setAllVerbs = (on: boolean) =>
+    setSelectedVerbIds(on ? new Set(verbs.map((v) => v.id)) : new Set());
   const setAllTenses = (on: boolean) =>
-    setSelectedTenseKeys(on ? new Set(tenseOptions.map((t) => tenseKey(t.mood, t.tense))) : new Set());
+    setSelectedTenseKeys(
+      on ? new Set(tenseOptions.map((t) => tenseKey(t.mood, t.tense))) : new Set(),
+    );
 
   if (phase === "settings") {
     const canStart = selectedVerbIds.size > 0 && selectedTenseKeys.size > 0;
@@ -196,7 +223,9 @@ export function ConjugationPractice<V extends VerbLike, T>({ verbs, language }: 
                   className="h-4 w-4 accent-tealblue-600"
                 />
                 <span>
-                  <span className="font-medium text-zinc-800 dark:text-zinc-100">{v.infinitive}</span>
+                  <span className="font-medium text-zinc-800 dark:text-zinc-100">
+                    {v.infinitive}
+                  </span>
                   <span className="ml-1 text-xs text-zinc-500 dark:text-zinc-400">{v.meaning}</span>
                 </span>
               </label>
@@ -206,7 +235,9 @@ export function ConjugationPractice<V extends VerbLike, T>({ verbs, language }: 
 
         <section>
           <div className="mb-3 flex items-center justify-between">
-            <div className="text-base font-bold text-zinc-800 dark:text-zinc-100">出題する時制・法</div>
+            <div className="text-base font-bold text-zinc-800 dark:text-zinc-100">
+              出題する時制・法
+            </div>
             <div className="flex gap-3 text-sm">
               <button
                 type="button"
@@ -325,7 +356,9 @@ export function ConjugationPractice<V extends VerbLike, T>({ verbs, language }: 
         </div>
 
         <div className="mb-6 text-center">
-          <div className="text-3xl font-bold text-zinc-800 dark:text-zinc-100">{question.infinitive}</div>
+          <div className="text-3xl font-bold text-zinc-800 dark:text-zinc-100">
+            {question.infinitive}
+          </div>
           <div className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{question.meaning}</div>
         </div>
 
@@ -358,7 +391,9 @@ export function ConjugationPractice<V extends VerbLike, T>({ verbs, language }: 
             {isCorrect ? (
               <div className="font-bold text-green-600 dark:text-green-400">正解！</div>
             ) : (
-              <div className="font-bold text-red-600 dark:text-red-400">不正解 — 正解は「{question.answer}」</div>
+              <div className="font-bold text-red-600 dark:text-red-400">
+                不正解 — 正解は「{question.answer}」
+              </div>
             )}
             <button
               type="button"

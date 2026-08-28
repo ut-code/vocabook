@@ -14,10 +14,14 @@ const PREFERRED_VOICE_KEYWORDS = ["google", "natural", "neural", "enhanced", "pr
 function pickVoice(langPrefix: string): SpeechSynthesisVoice | undefined {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return undefined;
 
-  const matching = window.speechSynthesis.getVoices().filter((v) => v.lang.toLowerCase().startsWith(langPrefix));
+  const matching = window.speechSynthesis
+    .getVoices()
+    .filter((v) => v.lang.toLowerCase().startsWith(langPrefix));
   if (matching.length === 0) return undefined;
 
-  const preferred = matching.find((v) => PREFERRED_VOICE_KEYWORDS.some((keyword) => v.name.toLowerCase().includes(keyword)));
+  const preferred = matching.find((v) =>
+    PREFERRED_VOICE_KEYWORDS.some((keyword) => v.name.toLowerCase().includes(keyword)),
+  );
 
   return preferred ?? matching[0];
 }
@@ -39,7 +43,11 @@ export function createUtterance(text: string, lang: string): SpeechSynthesisUtte
 let activeUtterance: SpeechSynthesisUtterance | null = null;
 
 // 指定した言語での読み上げを開始する。開始できた場合はtrueを返す
-export function speak(text: string, lang: string, handlers: { onEnd?: () => void; onError?: () => void } = {}): boolean {
+export function speak(
+  text: string,
+  lang: string,
+  handlers: { onEnd?: () => void; onError?: () => void } = {},
+): boolean {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return false;
 
   window.speechSynthesis.cancel();
