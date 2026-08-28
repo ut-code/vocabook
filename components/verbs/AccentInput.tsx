@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useRef } from "react";
-import type { KeyboardEvent } from "react";
+import type { KeyboardEvent, ReactNode } from "react";
 
 interface AccentInputProps {
   value: string;
@@ -15,6 +15,11 @@ interface AccentInputProps {
   accentCycles: string[][];
   // 入力欄の下に並べる、クリックで直接入力できるボタンの文字一覧
   toolbarChars: string[];
+  // 入力欄の下に表示する操作ヒント（省略時はアクセント記号向けの既定文言）
+  hintText?: ReactNode;
+  // 2文字の組み合わせを1文字に置き換える。キー: 「直前の文字 + 押したキー」、値: 置換後の文字。
+  // 例: { "u\\": "ü" } なら、u を打った直後に \ を打つと ü になる
+  chordReplacements?: Record<string, string>;
 }
 
 export function AccentInput({
@@ -27,6 +32,8 @@ export function AccentInput({
   className,
   accentCycles,
   toolbarChars,
+  hintText,
+  chordReplacements,
 }: AccentInputProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -77,12 +84,38 @@ export function AccentInput({
     return true;
   };
 
+  // カーソル直前の文字と押したキーの組み合わせが chordReplacements に一致すれば、
+  // その2文字を置換後の文字に差し替える。差し替えた場合はtrueを返す
+  const applyChordReplacement = (key: string): boolean => {
+    if (!chordReplacements) return false;
+    const input = inputRef.current;
+    if (!input) return false;
+    const caret = input.selectionStart;
+    if (caret === null || caret !== input.selectionEnd || caret === 0) return false;
+
+    const prev = value[caret - 1];
+    const replacement = chordReplacements[prev + key];
+    if (replacement === undefined) return false;
+
+    onChange(value.slice(0, caret - 1) + replacement + value.slice(caret));
+    const nextCaret = caret - 1 + replacement.length;
+    requestAnimationFrame(() => {
+      input.setSelectionRange(nextCaret, nextCaret);
+    });
+    return true;
+  };
+
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       onSubmit?.();
       return;
     }
     if (disabled) return;
+
+    if (e.key.length === 1 && applyChordReplacement(e.key)) {
+      e.preventDefault();
+      return;
+    }
 
     if (e.key === "ArrowUp") {
       if (applyCycledChar(nextAccentChar)) e.preventDefault();
@@ -137,8 +170,12 @@ export function AccentInput({
         ))}
       </div>
       <div className="mt-1.5 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-        ヒント: アルファベットを入力した直後に ↑キーを押すと、{accentCycles[0]?.join(" → ")}
-        のようにアクセント記号付きの文字へ切り替えられます（↓キーで逆順）。上のボタンから直接入力することもできます。
+        {hintText ?? (
+          <>
+            ヒント: アルファベットを入力した直後に ↑キーを押すと、{accentCycles[0]?.join(" → ")}
+            のようにアクセント記号付きの文字へ切り替えられます（↓キーで逆順）。上のボタンから直接入力することもできます。
+          </>
+        )}
       </div>
     </div>
   );
