@@ -82,24 +82,9 @@ export const TriangularCard: React.FC<TriangularCardProps> = ({
               <div
                 key={index}
                 style={{
-                  position: "absolute",
-                  width: "100%",
-                  height: "100%",
-                  // 上から見下ろした時に奥の面が透けて重ならないように設定
-                  backfaceVisibility: "visible",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  borderRadius: "16px",
-                  border: "1px solid rgba(0, 0, 0, 0.18)",
-                  borderTop: "2px solid rgba(0, 0, 0, 0.3)",
-                  backgroundColor: "#ffffff",
-                  boxShadow:
-                    "0 10px 25px -5px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.6)",
-                  padding: "24px",
-                  transform: `rotateY(${angle}deg) translateZ(${tz}px)`,
+                transform: `rotateY(${angle}deg) translateZ(${tz}px)`,
                 }}
-                className="dark:border-white/[.2] dark:bg-zinc-950"
+                className="absolute h-full w-full flex items-center justify-center p-6 rounded-2xl [backface-visibility:visible] border border-black/18 border-t-black/30 bg-white shadow-xl shadow-black/10 inset-shadow-sm dark:border-white/20 dark:border-t-white/40 dark:bg-zinc-950 dark:shadow-white/5"
               >
                 {content}
               </div>
