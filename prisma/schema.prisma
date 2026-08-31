@@ -30,6 +30,12 @@ model Card {
   data       Json
   // Notebook.columns で先頭に来る列を「表」、次を「裏」として暗記学習モードに使う
   position   Int
+  // 現在★がついているか（復習抽出の対象になるかどうか）
+  starred    Boolean  @default(false)
+  // ★を付けた累計回数。付け外しを繰り返すほど増え、覚えにくさの目安になる
+  starCount  Int      @default(0)
+  // 暗記学習モード（/study, /review）でこの単語がカードとして表示された累計回数
+  viewCount  Int      @default(0)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
