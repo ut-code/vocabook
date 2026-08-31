@@ -1,5 +1,8 @@
+import { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
+
+import HeaderAuthStatus from "@/components/HeaderAuthStatus";
 
 const NAV_LINKS = [
   { href: "/my-notebooks", label: "My単語帳" },
@@ -22,17 +25,22 @@ export default function Header() {
             Vocabook
           </span>
         </Link>
-        <nav className="flex gap-6 text-lg font-medium text-zinc-600 dark:text-zinc-200">
-          {NAV_LINKS.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="transition-colors hover:text-emerald-500 dark:hover:text-emerald-500"
-            >
-              {link.label}
-            </Link>
-          ))}
-        </nav>
+        <div className="flex items-center gap-6">
+          <nav className="flex gap-6 text-lg font-medium text-zinc-600 dark:text-zinc-200">
+            {NAV_LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="transition-colors hover:text-emerald-500 dark:hover:text-emerald-500"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+          <Suspense fallback={<div className="h-8 w-24" />}>
+            <HeaderAuthStatus />
+          </Suspense>
+        </div>
       </div>
     </header>
   );

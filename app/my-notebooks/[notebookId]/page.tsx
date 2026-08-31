@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/session";
 import CardRow from "./CardRow";
 import CreateCardForm from "./CreateCardForm";
 import ResetAllStarsButton from "@/components/my-notebooks/ResetAllStarsButton";
@@ -11,11 +12,13 @@ import type { CardData } from "@/lib/card-data";
 export const dynamic = "force-dynamic";
 
 export default async function NotebookPage(props: PageProps<"/my-notebooks/[notebookId]">) {
+  const user = await requireUser();
   const { notebookId } = await props.params;
 
-  // 単語帳本体と、その中の単語（Card）一覧を position 昇順（＝Excelの元の並び順）で取得する
-  const notebook = await prisma.notebook.findUnique({
-    where: { id: notebookId },
+  // 単語帳本体と、その中の単語（Card）一覧を position 昇順（＝Excelの元の並び順）で取得する。
+  // userIdも条件に含めることで、他人の単語帳IDを直接踏んでもアクセスできないようにする
+  const notebook = await prisma.notebook.findFirst({
+    where: { id: notebookId, userId: user.id },
     include: { cards: { orderBy: { position: "asc" } } },
   });
 
