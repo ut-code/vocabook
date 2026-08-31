@@ -82,7 +82,7 @@ export const TriangularCard: React.FC<TriangularCardProps> = ({
               <div
                 key={index}
                 style={{
-                transform: `rotateY(${angle}deg) translateZ(${tz}px)`,
+                  transform: `rotateY(${angle}deg) translateZ(${tz}px)`,
                 }}
                 className="absolute h-full w-full flex items-center justify-center p-6 rounded-2xl [backface-visibility:visible] border border-black/18 border-t-black/30 bg-white shadow-xl shadow-black/10 inset-shadow-sm dark:border-white/20 dark:border-t-white/40 dark:bg-zinc-950 dark:shadow-white/5"
               >

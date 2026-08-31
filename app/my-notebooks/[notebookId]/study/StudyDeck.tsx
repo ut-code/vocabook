@@ -147,74 +147,76 @@ export default function StudyDeck({
       <p className="text-sm text-zinc-500 dark:text-zinc-500">
         {index + 1} / {order.length}
       </p>
-      
+
       {/* relativeなラッパーで囲み、右上の★ボタンをカードに重ねて絶対配置する。
           ★ボタンはフリップ用ボタンとは別要素（兄弟）なので、クリックがフリップに巻き込まれない */}
       <div className="relative w-full max-w-md">
         {/* カード自体がクリック領域。クリックするたびに表裏(flipped)をトグルするだけで、
             カードの移動（前へ/次へ/シャッフル）とは独立した操作になっている */}
-        
-      {is3DMode ? (
-        /* 3つの要素があるときは三角柱 */
-        <div className="my-2 flex flex-col items-center gap-2">
-          <TriangularCard
-            key={current.id}
-            faces={faces}
-            columnNames={columns as [string, string, string]}
-            width={320}
-            height={220}
-          />
-          <span className="mt-2 text-xs text-zinc-400 dark:text-zinc-600">
-            クリックして次の面へ回転
-          </span>
-        </div>
-      ) : (
-        /* それ以外の時（2つの要素など）は元通りの表裏ボタン */
-        <button
-          type="button"
-          onClick={() => setFlipped((f) => !f)}
-          className="flex min-h-56 w-full max-w-md flex-col items-center justify-center gap-3 rounded-2xl border border-black/[.08] bg-white p-8 text-center transition-colors hover:border-black/[.15] dark:border-white/[.145] dark:bg-zinc-950 dark:hover:border-white/[.25]"
-        >
-          {!flipped ? (
-            // 表面: 1列目（見出し語）だけを大きく表示する
-            <>
-              <span className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
-                {frontColumn}
-              </span>
-              <span className="text-2xl font-semibold text-black dark:text-zinc-50">
-                {current.data.head || "—"}
-              </span>
-            </>
-          ) : senseColumns.length > 0 && current.data.senses.length > 0 ? (
-            // 裏面: 意味が1件以上あれば、多義語すべてを「意味1」「意味2」…として順番に表示する
-            <div className="flex flex-col gap-4">
-              {current.data.senses.map((sense, senseIndex) => (
-                <div key={senseIndex} className="flex flex-col gap-3">
-                  {current.data.senses.length > 1 && (
-                    <p className="text-xs font-semibold text-zinc-400 dark:text-zinc-600">
-                      意味 {senseIndex + 1}
-                    </p>
-                  )}
-                  {senseColumns.map((column) => (
-                    <div key={column}>
-                      <p className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
-                        {column}
+
+        {is3DMode ? (
+          /* 3つの要素があるときは三角柱 */
+          <div className="my-2 flex flex-col items-center gap-2">
+            <TriangularCard
+              key={current.id}
+              faces={faces}
+              columnNames={columns as [string, string, string]}
+              width={320}
+              height={220}
+            />
+            <span className="mt-2 text-xs text-zinc-400 dark:text-zinc-600">
+              クリックして次の面へ回転
+            </span>
+          </div>
+        ) : (
+          /* それ以外の時（2つの要素など）は元通りの表裏ボタン */
+          <button
+            type="button"
+            onClick={() => setFlipped((f) => !f)}
+            className="flex min-h-56 w-full max-w-md flex-col items-center justify-center gap-3 rounded-2xl border border-black/[.08] bg-white p-8 text-center transition-colors hover:border-black/[.15] dark:border-white/[.145] dark:bg-zinc-950 dark:hover:border-white/[.25]"
+          >
+            {!flipped ? (
+              // 表面: 1列目（見出し語）だけを大きく表示する
+              <>
+                <span className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
+                  {frontColumn}
+                </span>
+                <span className="text-2xl font-semibold text-black dark:text-zinc-50">
+                  {current.data.head || "—"}
+                </span>
+              </>
+            ) : senseColumns.length > 0 && current.data.senses.length > 0 ? (
+              // 裏面: 意味が1件以上あれば、多義語すべてを「意味1」「意味2」…として順番に表示する
+              <div className="flex flex-col gap-4">
+                {current.data.senses.map((sense, senseIndex) => (
+                  <div key={senseIndex} className="flex flex-col gap-3">
+                    {current.data.senses.length > 1 && (
+                      <p className="text-xs font-semibold text-zinc-400 dark:text-zinc-600">
+                        意味 {senseIndex + 1}
                       </p>
-                      <p className="text-lg text-black dark:text-zinc-50">{sense[column] || "—"}</p>
-                    </div>
-                  ))}
-                </div>
-              ))}
-            </div>
-          ) : (
-            // 意味の列自体が無い、またはこのカードに意味が1件も登録されていない場合のフォールバック表示
-            <p className="text-sm text-zinc-500 dark:text-zinc-500">他に項目がありません</p>
-          )}
-          <span className="mt-2 text-xs text-zinc-400 dark:text-zinc-600">
-            クリックして{flipped ? "表" : "裏"}を見る
-          </span>
-        </button>
-      )}
+                    )}
+                    {senseColumns.map((column) => (
+                      <div key={column}>
+                        <p className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
+                          {column}
+                        </p>
+                        <p className="text-lg text-black dark:text-zinc-50">
+                          {sense[column] || "—"}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              // 意味の列自体が無い、またはこのカードに意味が1件も登録されていない場合のフォールバック表示
+              <p className="text-sm text-zinc-500 dark:text-zinc-500">他に項目がありません</p>
+            )}
+            <span className="mt-2 text-xs text-zinc-400 dark:text-zinc-600">
+              クリックして{flipped ? "表" : "裏"}を見る
+            </span>
+          </button>
+        )}
 
         {/* handleToggleStar は楽観的UI: optimisticStar を即座に切り替えてから
             toggleStar（サーバー更新）を呼ぶ。表示も current.starred ではなく
