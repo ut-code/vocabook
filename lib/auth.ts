@@ -1,4 +1,5 @@
 import { betterAuth } from "better-auth";
+import { username } from "better-auth/plugins";
 import { prismaAdapter } from "@better-auth/prisma-adapter";
 import { nextCookies } from "better-auth/next-js";
 
@@ -9,6 +10,9 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
-  // Server Actionからサインイン/サインアップした際にCookieを自動でセットする
-  plugins: [nextCookies()],
+  plugins: [
+    username(),
+    // Server Actionからサインイン/サインアップした際にCookieを自動でセットする
+    nextCookies(),
+  ],
 });

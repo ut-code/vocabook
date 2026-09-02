@@ -27,14 +27,14 @@ export default function LoginForm() {
     setPending(true);
 
     const formData = new FormData(event.currentTarget);
-    const email = String(formData.get("email") ?? "");
+    const username = String(formData.get("username") ?? "");
     const password = String(formData.get("password") ?? "");
 
-    const { error } = await authClient.signIn.email({ email, password });
+    const { error } = await authClient.signIn.username({ username, password });
 
     if (error) {
       setPending(false);
-      setError(error.message ?? "メールアドレスまたはパスワードが正しくありません。");
+      setError(error.message ?? "ユーザー名またはパスワードが正しくありません。");
       return;
     }
 
@@ -48,14 +48,14 @@ export default function LoginForm() {
       className="flex flex-col gap-4 rounded-2xl border border-black/[.08] bg-white p-6 dark:border-white/[.145] dark:bg-zinc-950"
     >
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="email" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-          メールアドレス
+        <label htmlFor="username" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+          ユーザー名
         </label>
         <input
-          id="email"
-          name="email"
-          type="email"
-          autoComplete="email"
+          id="username"
+          name="username"
+          type="text"
+          autoComplete="username"
           required
           className="rounded-lg border border-black/[.08] bg-transparent px-3 py-2 text-sm outline-none focus:border-black/[.3] dark:border-white/[.145] dark:focus:border-white/[.4]"
         />

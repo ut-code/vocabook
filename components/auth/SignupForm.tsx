@@ -6,6 +6,10 @@ import Link from "next/link";
 
 import { authClient } from "@/lib/auth-client";
 
+function syntheticEmail(username: string): string {
+  return `${username}@vocabook.local`;
+}
+
 export default function SignupForm() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -17,7 +21,7 @@ export default function SignupForm() {
 
     const formData = new FormData(event.currentTarget);
     const name = String(formData.get("name") ?? "").trim();
-    const email = String(formData.get("email") ?? "");
+    const username = String(formData.get("username") ?? "").trim();
     const password = String(formData.get("password") ?? "");
 
     if (password.length < 8) {
@@ -26,7 +30,12 @@ export default function SignupForm() {
     }
 
     setPending(true);
-    const { error } = await authClient.signUp.email({ name, email, password });
+    const { error } = await authClient.signUp.email({
+      name,
+      email: syntheticEmail(username),
+      password,
+      username,
+    });
 
     if (error) {
       setPending(false);
@@ -58,14 +67,18 @@ export default function SignupForm() {
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="email" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-          メールアドレス
+        <label htmlFor="username" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+          ユーザー名
         </label>
         <input
-          id="email"
-          name="email"
-          type="email"
-          autoComplete="email"
+          id="username"
+          name="username"
+          type="text"
+          autoComplete="username"
+          minLength={3}
+          maxLength={30}
+          pattern="[A-Za-z0-9_]+"
+          title="半角英数字とアンダースコアのみ使用できます"
           required
           className="rounded-lg border border-black/[.08] bg-transparent px-3 py-2 text-sm outline-none focus:border-black/[.3] dark:border-white/[.145] dark:focus:border-white/[.4]"
         />

@@ -49,18 +49,21 @@ model Card {
 }
 
 model User {
-  id            String     @id
-  name          String
-  email         String
-  emailVerified Boolean    @default(false)
-  image         String?
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-  sessions      Session[]
-  accounts      Account[]
-  notebooks     Notebook[]
+  id              String     @id
+  name            String
+  email           String
+  emailVerified   Boolean    @default(false)
+  username        String?
+  displayUsername String?
+  image           String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  sessions        Session[]
+  accounts        Account[]
+  notebooks       Notebook[]
 
   @@unique([email])
+  @@unique([username])
   @@map("user")
 }
 
