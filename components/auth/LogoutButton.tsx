@@ -1,0 +1,28 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+
+import { authClient } from "@/lib/auth-client";
+
+export default function LogoutButton() {
+  const router = useRouter();
+  const [pending, setPending] = useState(false);
+
+  async function handleLogout() {
+    setPending(true);
+    await authClient.signOut();
+    router.push("/login");
+    router.refresh();
+  }
+
+  return (
+    <button
+      onClick={handleLogout}
+      disabled={pending}
+      className="rounded-full border border-black/[.08] px-4 py-1.5 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 disabled:opacity-50 dark:border-white/[.145] dark:text-zinc-300 dark:hover:bg-zinc-900"
+    >
+      {pending ? "ログアウト中…" : "ログアウト"}
+    </button>
+  );
+}

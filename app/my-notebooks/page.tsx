@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/session";
 import ImportForm from "@/components/my-notebooks/ImportForm";
 import DeleteNotebookButton from "@/components/my-notebooks/DeleteNotebookButton";
 import StarColorSettings from "@/components/StarColorSettings";
@@ -9,9 +10,12 @@ import StarColorSettings from "@/components/StarColorSettings";
 export const dynamic = "force-dynamic";
 
 export default async function MyNotebooksPage() {
-  // 作成日が新しい単語帳を先頭に表示する。
+  const user = await requireUser();
+
+  // 作成日が新しい単語帳を先頭に表示する。ログイン中のユーザー自身の単語帳のみに絞り込む。
   // _count で各単語帳の単語数だけを取得し、cards本体は取得しない（一覧表示には不要なため軽量化）
   const notebooks = await prisma.notebook.findMany({
+    where: { userId: user.id },
     orderBy: { createdAt: "desc" },
     include: { _count: { select: { cards: true } } },
   });

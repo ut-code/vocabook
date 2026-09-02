@@ -1,0 +1,100 @@
+"use client";
+
+import { useState, type FormEvent } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+
+import { authClient } from "@/lib/auth-client";
+
+// 外部URL（"https://..."）やプロトコル相対URL（"//evil.com"）へのオープンリダイレクトを防ぐため、
+// アプリ内の絶対パスのみを許可する
+function safeRedirectPath(target: string | null): string {
+  if (!target || !target.startsWith("/") || target.startsWith("//") || target.startsWith("/\\")) {
+    return "/my-notebooks";
+  }
+  return target;
+}
+
+export default function LoginForm() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    setPending(true);
+
+    const formData = new FormData(event.currentTarget);
+    const username = String(formData.get("username") ?? "");
+    const password = String(formData.get("password") ?? "");
+
+    const { error } = await authClient.signIn.username({ username, password });
+
+    if (error) {
+      setPending(false);
+      setError(error.message ?? "ユーザー名またはパスワードが正しくありません。");
+      return;
+    }
+
+    router.push(safeRedirectPath(searchParams.get("redirect")));
+    router.refresh();
+  }
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="flex flex-col gap-4 rounded-2xl border border-black/[.08] bg-white p-6 dark:border-white/[.145] dark:bg-zinc-950"
+    >
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="username" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+          ユーザー名
+        </label>
+        <input
+          id="username"
+          name="username"
+          type="text"
+          autoComplete="username"
+          required
+          className="rounded-lg border border-black/[.08] bg-transparent px-3 py-2 text-sm outline-none focus:border-black/[.3] dark:border-white/[.145] dark:focus:border-white/[.4]"
+        />
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="password" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+          パスワード
+        </label>
+        <input
+          id="password"
+          name="password"
+          type="password"
+          autoComplete="current-password"
+          required
+          className="rounded-lg border border-black/[.08] bg-transparent px-3 py-2 text-sm outline-none focus:border-black/[.3] dark:border-white/[.145] dark:focus:border-white/[.4]"
+        />
+      </div>
+
+      {error && (
+        <p role="alert" className="text-sm text-red-600 dark:text-red-400">
+          {error}
+        </p>
+      )}
+
+      <button
+        type="submit"
+        disabled={pending}
+        className="rounded-full bg-black px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-50 dark:text-black dark:hover:bg-zinc-200"
+      >
+        {pending ? "ログイン中…" : "ログイン"}
+      </button>
+
+      <p className="text-center text-sm text-zinc-500 dark:text-zinc-500">
+        アカウントをお持ちでない場合は{" "}
+        <Link href="/signup" className="text-emerald-600 hover:underline dark:text-emerald-400">
+          新規登録
+        </Link>
+      </p>
+    </form>
+  );
+}

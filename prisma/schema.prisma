@@ -11,17 +11,23 @@ datasource db {
 }
 
 // My単語帳 1冊分（Excelから取り込んだ、または手動作成した単語帳）
+
 model Notebook {
   id        String   @id @default(cuid())
   title     String
   // Excelの1行目（ヘッダー）に対応する列名を、出現順のまま保存する
   columns   Json
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   cards     Card[]
+
+  @@index([userId])
 }
 
 // 単語帳内の1単語（1行）分のデータ
+
 model Card {
   id         String   @id @default(cuid())
   notebookId String
@@ -40,4 +46,75 @@ model Card {
   updatedAt  DateTime @updatedAt
 
   @@index([notebookId, position])
+}
+
+model User {
+  id              String     @id
+  name            String
+  email           String
+  emailVerified   Boolean    @default(false)
+  username        String?
+  displayUsername String?
+  image           String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  sessions        Session[]
+  accounts        Account[]
+  notebooks       Notebook[]
+
+  @@unique([email])
+  @@unique([username])
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  // ログイン方法の種類（email/password なら "local:credential"）。
+  // better-auth 1.7 以降、同一providerId内でaccountIdの一意性を保証するために追加されたフィールド
+  issuer                String
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@unique([issuer, accountId])
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
 }
