@@ -6,6 +6,15 @@ import Link from "next/link";
 
 import { authClient } from "@/lib/auth-client";
 
+// 外部URL（"https://..."）やプロトコル相対URL（"//evil.com"）へのオープンリダイレクトを防ぐため、
+// アプリ内の絶対パスのみを許可する
+function safeRedirectPath(target: string | null): string {
+  if (!target || !target.startsWith("/") || target.startsWith("//") || target.startsWith("/\\")) {
+    return "/my-notebooks";
+  }
+  return target;
+}
+
 export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -29,7 +38,7 @@ export default function LoginForm() {
       return;
     }
 
-    router.push(searchParams.get("redirect") || "/my-notebooks");
+    router.push(safeRedirectPath(searchParams.get("redirect")));
     router.refresh();
   }
 
