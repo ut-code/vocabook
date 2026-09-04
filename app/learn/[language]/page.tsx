@@ -33,7 +33,13 @@ export default async function LearnLanguagePage(
           href="/learn"
           className="inline-flex items-center gap-1.5 text-xs font-medium text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200 transition-colors"
         >
-          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg
+            className="h-3.5 w-3.5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
           学習教材一覧に戻る
@@ -60,9 +66,7 @@ export default async function LearnLanguagePage(
               <span className="text-xs font-semibold uppercase tracking-wider text-tealblue-600 dark:text-tealblue-400">
                 Section {index + 1}
               </span>
-              <span className="font-medium text-zinc-900 dark:text-zinc-50">
-                {section.title}
-              </span>
+              <span className="font-medium text-zinc-900 dark:text-zinc-50">{section.title}</span>
             </div>
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-400 transition-colors group-hover:bg-tealblue-50 group-hover:text-tealblue-600 dark:bg-zinc-900 dark:text-zinc-500 dark:group-hover:bg-tealblue-950/60 dark:group-hover:text-tealblue-400">
               <svg
