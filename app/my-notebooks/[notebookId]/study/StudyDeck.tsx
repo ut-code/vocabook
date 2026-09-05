@@ -9,6 +9,7 @@ import StarCountEditor from "@/components/StarCountEditor";
 import { useStarColors } from "@/components/UseStarColors";
 import { starColorFor } from "@/lib/star-colors";
 import type { CardData } from "@/lib/card-data";
+import { TriangularCard } from "@/components/my-notebooks/ThreeElement"; //三次元用の三角柱UIを導入
 
 type Card = {
   id: string;
@@ -54,6 +55,40 @@ export default function StudyDeck({
   const frontColumn = columns[0];
   const senseColumns = columns.slice(1);
 
+  // 要素数がちょうど3個の時だけ3Dモードにする判定
+  const is3DMode = columns.length === 3;
+
+  // 3D三角柱のそれぞれの面に入れるコンテンツの準備
+  const primarySense = current?.data.senses[0] || {};
+  const faces: [React.ReactNode, React.ReactNode, React.ReactNode] = [
+    // 面1（見出し語）
+    <div key="face1" className="flex flex-col items-center gap-2 text-center">
+      <span className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
+        {columns[0]}
+      </span>
+      <span className="text-2xl font-semibold text-black dark:text-zinc-50">
+        {current?.data.head || "—"}
+      </span>
+    </div>,
+    // 面2（2つ目の要素）
+    <div key="face2" className="flex flex-col items-center gap-2 text-center">
+      <span className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
+        {columns[1]}
+      </span>
+      <span className="text-xl font-medium text-black dark:text-zinc-50">
+        {primarySense[columns[1]] || "—"}
+      </span>
+    </div>,
+    // 面3（3つ目の要素）
+    <div key="face3" className="flex flex-col items-center gap-2 text-center">
+      <span className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
+        {columns[2]}
+      </span>
+      <span className="text-base text-zinc-700 dark:text-zinc-300">
+        {primarySense[columns[2]] || "—"}
+      </span>
+    </div>,
+  ];
   // toggleStarの結果（サーバーの往復）を待たず、クリックした瞬間に★・回数・色を切り替えるためのUI
   // idも保持し、往復の間にカードを送り進めても別カードへ誤って適用されないようにする
   const [optimisticStar, setOptimisticStar] = useOptimistic(
@@ -118,50 +153,70 @@ export default function StudyDeck({
       <div className="relative w-full max-w-md">
         {/* カード自体がクリック領域。クリックするたびに表裏(flipped)をトグルするだけで、
             カードの移動（前へ/次へ/シャッフル）とは独立した操作になっている */}
-        <button
-          type="button"
-          onClick={() => setFlipped((f) => !f)}
-          className="flex min-h-56 w-full flex-col items-center justify-center gap-3 rounded-2xl border border-black/[.08] bg-white p-8 text-center transition-colors hover:border-black/[.15] dark:border-white/[.145] dark:bg-zinc-950 dark:hover:border-white/[.25]"
-        >
-          {!flipped ? (
-            // 表面: 1列目（見出し語）だけを大きく表示する
-            <>
-              <span className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
-                {frontColumn}
-              </span>
-              <span className="text-2xl font-semibold text-black dark:text-zinc-50">
-                {current.data.head || "—"}
-              </span>
-            </>
-          ) : senseColumns.length > 0 && current.data.senses.length > 0 ? (
-            // 裏面: 意味が1件以上あれば、多義語すべてを「意味1」「意味2」…として順番に表示する
-            <div className="flex flex-col gap-4">
-              {current.data.senses.map((sense, senseIndex) => (
-                <div key={senseIndex} className="flex flex-col gap-3">
-                  {current.data.senses.length > 1 && (
-                    <p className="text-xs font-semibold text-zinc-400 dark:text-zinc-600">
-                      意味 {senseIndex + 1}
-                    </p>
-                  )}
-                  {senseColumns.map((column) => (
-                    <div key={column}>
-                      <p className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
-                        {column}
+
+        {is3DMode ? (
+          /* 3つの要素があるときは三角柱 */
+          <div className="my-2 flex flex-col items-center gap-2">
+            <TriangularCard
+              key={current.id}
+              faces={faces}
+              columnNames={columns as [string, string, string]}
+              width={320}
+              height={220}
+            />
+            <span className="mt-2 text-xs text-zinc-400 dark:text-zinc-600">
+              クリックして次の面へ回転
+            </span>
+          </div>
+        ) : (
+          /* それ以外の時（2つの要素など）は元通りの表裏ボタン */
+          <button
+            type="button"
+            onClick={() => setFlipped((f) => !f)}
+            className="flex min-h-56 w-full max-w-md flex-col items-center justify-center gap-3 rounded-2xl border border-black/[.08] bg-white p-8 text-center transition-colors hover:border-black/[.15] dark:border-white/[.145] dark:bg-zinc-950 dark:hover:border-white/[.25]"
+          >
+            {!flipped ? (
+              // 表面: 1列目（見出し語）だけを大きく表示する
+              <>
+                <span className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
+                  {frontColumn}
+                </span>
+                <span className="text-2xl font-semibold text-black dark:text-zinc-50">
+                  {current.data.head || "—"}
+                </span>
+              </>
+            ) : senseColumns.length > 0 && current.data.senses.length > 0 ? (
+              // 裏面: 意味が1件以上あれば、多義語すべてを「意味1」「意味2」…として順番に表示する
+              <div className="flex flex-col gap-4">
+                {current.data.senses.map((sense, senseIndex) => (
+                  <div key={senseIndex} className="flex flex-col gap-3">
+                    {current.data.senses.length > 1 && (
+                      <p className="text-xs font-semibold text-zinc-400 dark:text-zinc-600">
+                        意味 {senseIndex + 1}
                       </p>
-                      <p className="text-lg text-black dark:text-zinc-50">{sense[column] || "—"}</p>
-                    </div>
-                  ))}
-                </div>
-              ))}
-            </div>
-          ) : (
-            // 意味の列自体が無い、またはこのカードに意味が1件も登録されていない場合のフォールバック表示
-            <p className="text-sm text-zinc-500 dark:text-zinc-500">他に項目がありません</p>
-          )}
-          <span className="mt-2 text-xs text-zinc-400 dark:text-zinc-600">
-            クリックして{flipped ? "表" : "裏"}を見る
-          </span>
-        </button>
+                    )}
+                    {senseColumns.map((column) => (
+                      <div key={column}>
+                        <p className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
+                          {column}
+                        </p>
+                        <p className="text-lg text-black dark:text-zinc-50">
+                          {sense[column] || "—"}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              // 意味の列自体が無い、またはこのカードに意味が1件も登録されていない場合のフォールバック表示
+              <p className="text-sm text-zinc-500 dark:text-zinc-500">他に項目がありません</p>
+            )}
+            <span className="mt-2 text-xs text-zinc-400 dark:text-zinc-600">
+              クリックして{flipped ? "表" : "裏"}を見る
+            </span>
+          </button>
+        )}
 
         {/* handleToggleStar は楽観的UI: optimisticStar を即座に切り替えてから
             toggleStar（サーバー更新）を呼ぶ。表示も current.starred ではなく
