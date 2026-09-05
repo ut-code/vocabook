@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "node scripts/migrate.mjs && next start",
+    "start": "npx prisma migrate deploy && next start",
     "lint": "eslint",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
