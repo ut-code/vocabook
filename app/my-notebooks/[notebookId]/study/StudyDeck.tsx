@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useOptimistic, useRef, useState } from "react";
+import { useEffect, useOptimistic, useRef, useState, useMemo } from "react";
 import Link from "next/link";
 
 import { incrementViewCount, toggleStar } from "../../actions";
@@ -9,7 +9,7 @@ import StarCountEditor from "@/components/StarCountEditor";
 import { useStarColors } from "@/components/UseStarColors";
 import { starColorFor } from "@/lib/star-colors";
 import type { CardData } from "@/lib/card-data";
-import { TriangularCard } from "@/components/my-notebooks/ThreeElement"; //三次元用の三角柱UIを導入
+import { TriangularCard } from "@/components/my-notebooks/MultiElement"; //三次元用の三角柱UIを導入
 
 type Card = {
   id: string;
@@ -50,45 +50,54 @@ export default function StudyDeck({
   // flipped: 今のカードが表（見出し語）か裏（意味）のどちらを向いているか
   const [flipped, setFlipped] = useState(false);
 
+  const [frontColumn, setFrontColumn] = useState<string>(columns[0]);
+
   // 現在表示すべきカードは、order[index]（実際のcardsインデックス）から引く
   const current = cards[order[index]];
-  const frontColumn = columns[0];
-  const senseColumns = columns.slice(1);
-
-  // 要素数がちょうど3個の時だけ3Dモードにする判定
-  const is3DMode = columns.length === 3;
-
-  // 3D三角柱のそれぞれの面に入れるコンテンツの準備
   const primarySense = current?.data.senses[0] || {};
-  const faces: [React.ReactNode, React.ReactNode, React.ReactNode] = [
-    // 面1（見出し語）
-    <div key="face1" className="flex flex-col items-center gap-2 text-center">
-      <span className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
-        {columns[0]}
-      </span>
-      <span className="text-2xl font-semibold text-black dark:text-zinc-50">
-        {current?.data.head || "—"}
-      </span>
-    </div>,
-    // 面2（2つ目の要素）
-    <div key="face2" className="flex flex-col items-center gap-2 text-center">
-      <span className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
-        {columns[1]}
-      </span>
-      <span className="text-xl font-medium text-black dark:text-zinc-50">
-        {primarySense[columns[1]] || "—"}
-      </span>
-    </div>,
-    // 面3（3つ目の要素）
-    <div key="face3" className="flex flex-col items-center gap-2 text-center">
-      <span className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
-        {columns[2]}
-      </span>
-      <span className="text-base text-zinc-700 dark:text-zinc-300">
-        {primarySense[columns[2]] || "—"}
-      </span>
-    </div>,
-  ];
+
+// 今のカードでデータが存在する列一覧
+  const rawActiveColumns = columns.filter((col, idx) => {
+    if (idx === 0) return Boolean(current?.data.head);
+    return Boolean(primarySense[col]);
+  });
+
+  // 選択された frontColumn が先頭（1面目）に来るように並び替える
+  const activeColumns = useMemo(() => {
+    if (!rawActiveColumns.includes(frontColumn)) return rawActiveColumns;
+    return [frontColumn, ...rawActiveColumns.filter((col) => col !== frontColumn)];
+  }, [rawActiveColumns, frontColumn]);
+
+  const senseColumns = activeColumns.slice(1);
+
+  // 表示しようとしているカードの要素数が3個以上の時だけ3Dモードにする判定
+  const is3DMode = activeColumns.length >= 3;
+
+
+  // 3D多角柱のそれぞれの面に入れるコンテンツの準備
+
+  const faces = activeColumns.map((colName) => {
+  // その列が見出し語（1列目）のデータか、それ以外の意味のデータかを判定
+    const isHead = colName === columns[0];
+    const value = isHead ? current?.data.head : primarySense[colName];
+
+    return (
+      <div key={colName} className="flex flex-col items-center gap-2 text-center">
+        <span className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
+          {colName}
+        </span>
+        <span
+          className={
+            isHead
+              ? "text-2xl font-semibold text-black dark:text-zinc-50"
+              : "text-lg text-zinc-800 dark:text-zinc-200"
+          }
+        >
+          {value || "—"}
+        </span>
+      </div>
+    );
+  });
   // toggleStarの結果（サーバーの往復）を待たず、クリックした瞬間に★・回数・色を切り替えるためのUI
   // idも保持し、往復の間にカードを送り進めても別カードへ誤って適用されないようにする
   const [optimisticStar, setOptimisticStar] = useOptimistic(
@@ -144,13 +153,31 @@ export default function StudyDeck({
 
   return (
     <div className="flex flex-col items-center gap-6">
-      <p className="text-sm text-zinc-500 dark:text-zinc-500">
-        {index + 1} / {order.length}
-      </p>
-
+      {/* 進捗と最初の面選択UI */}
+      <div className="flex w-full max-w-[320px] items-center justify-between text-sm text-zinc-500">
+        <p>
+          {index + 1} / {order.length}
+        </p>
+        
+        {/* ★ 最初に表にする項目の選択 */}
+        <select
+          value={frontColumn}
+          onChange={(e) => {
+            setFrontColumn(e.target.value);
+            setFlipped(false); // 切り替えたら表面に戻す
+          }}
+          className="rounded-lg border border-black/[.08] bg-white px-2 py-1 text-xs dark:border-white/[.145] dark:bg-zinc-900"
+        >
+          {columns.map((col) => (
+            <option key={col} value={col}>
+              表: {col}
+            </option>
+          ))}
+        </select>
+      </div>
       {/* relativeなラッパーで囲み、右上の★ボタンをカードに重ねて絶対配置する。
           ★ボタンはフリップ用ボタンとは別要素（兄弟）なので、クリックがフリップに巻き込まれない */}
-      <div className="relative w-full max-w-md">
+      <div className="relative mx-auto w-[320px]">
         {/* カード自体がクリック領域。クリックするたびに表裏(flipped)をトグルするだけで、
             カードの移動（前へ/次へ/シャッフル）とは独立した操作になっている */}
 
@@ -160,20 +187,20 @@ export default function StudyDeck({
             <TriangularCard
               key={current.id}
               faces={faces}
-              columnNames={columns as [string, string, string]}
+              columnNames={activeColumns}
               width={320}
               height={220}
             />
             <span className="mt-2 text-xs text-zinc-400 dark:text-zinc-600">
-              クリックして次の面へ回転
+              クリックして次の面へ回転（{activeColumns.length}角柱）
             </span>
           </div>
         ) : (
-          /* それ以外の時（2つの要素など）は元通りの表裏ボタン */
+          /* それ以外の時は元通りの表裏ボタン */
           <button
             type="button"
             onClick={() => setFlipped((f) => !f)}
-            className="flex min-h-56 w-full max-w-md flex-col items-center justify-center gap-3 rounded-2xl border border-black/[.08] bg-white p-8 text-center transition-colors hover:border-black/[.15] dark:border-white/[.145] dark:bg-zinc-950 dark:hover:border-white/[.25]"
+            className="flex h-[220px] w-[320px] flex-col items-center justify-center gap-3 rounded-2xl border border-black/[.08] bg-white p-8 text-center transition-colors hover:border-black/[.15] dark:border-white/[.145] dark:bg-zinc-950 dark:hover:border-white/[.25]"
           >
             {!flipped ? (
               // 表面: 1列目（見出し語）だけを大きく表示する
@@ -230,7 +257,7 @@ export default function StudyDeck({
 
             全件モード（/study）は再検証しても件数・並び順が変わらないため、
             ★の付け外しをその場で反映できる。 */}
-        <div className="absolute top-3 right-3 flex items-center gap-1">
+        <div className="absolute top-10 right-3 flex items-center gap-1">
           <form action={handleToggleStar}>
             <button
               type="submit"
