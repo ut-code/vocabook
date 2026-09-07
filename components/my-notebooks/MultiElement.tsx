@@ -5,7 +5,7 @@ import React, { useState } from "react";
 //カードに使うデータ型の設定
 interface TriangularCardProps {
   faces: React.ReactNode[];
-  columnNames?:  string[];
+  columnNames?: string[];
   width?: number;
   height?: number;
 }
@@ -19,7 +19,6 @@ export const TriangularCard: React.FC<TriangularCardProps> = ({
 }) => {
   //回転回数の記録
   const [rotationStep, setRotationStep] = useState(0);
-
 
   // 面の数と1ステップの回転数を用意しておく
   const numFaces = faces.length;

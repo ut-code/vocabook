@@ -56,7 +56,7 @@ export default function StudyDeck({
   const current = cards[order[index]];
   const primarySense = current?.data.senses[0] || {};
 
-// 今のカードでデータが存在する列一覧
+  // 今のカードでデータが存在する列一覧
   const rawActiveColumns = columns.filter((col, idx) => {
     if (idx === 0) return Boolean(current?.data.head);
     return Boolean(primarySense[col]);
@@ -73,11 +73,10 @@ export default function StudyDeck({
   // 表示しようとしているカードの要素数が3個以上の時だけ3Dモードにする判定
   const is3DMode = activeColumns.length >= 3;
 
-
   // 3D多角柱のそれぞれの面に入れるコンテンツの準備
 
   const faces = activeColumns.map((colName) => {
-  // その列が見出し語（1列目）のデータか、それ以外の意味のデータかを判定
+    // その列が見出し語（1列目）のデータか、それ以外の意味のデータかを判定
     const isHead = colName === columns[0];
     const value = isHead ? current?.data.head : primarySense[colName];
 
@@ -158,7 +157,7 @@ export default function StudyDeck({
         <p>
           {index + 1} / {order.length}
         </p>
-        
+
         {/* ★ 最初に表にする項目の選択 */}
         <select
           value={frontColumn}
