@@ -1,0 +1,51 @@
+import SpanishFillInPracticeLoader from "@/components/spanish/SpanishFillInPracticeLoader";
+
+{/* セクションタイトルの定義（サイドバーや一覧ページで自動取得・表示される） */}
+export const title = "紛らわしい文法（ser/estar・点過去/線過去）穴埋め演習";
+
+# 紛らわしい文法（ser/estar・点過去/線過去）穴埋め演習
+
+{/* 穴埋め演習用コンポーネントの読み込み */}
+
+<SpanishFillInPracticeLoader />
+
+{/_
+【出題データ定義テーブル】
+表示上は display: none (hidden) で非表示にしていますが、
+サーバー側（SpanishFillInPracticeLoader）がこのファイルを読み込んで
+穴埋め出題データを自動抽出・パースするためのデータソースとして機能します。
+_/}
+
+<div className="hidden" style={{ display: "none" }} aria-hidden="true">
+
+### ser と estar の使い分け
+
+| 例文 (問題文)                 | 日本語訳・ヒント                 | 正解    |
+| ----------------------------- | -------------------------------- | ------- |
+| Ella \_\_\_ profesora.        | 彼女は教員です。                 | es      |
+| Hoy \_\_\_ nublado.           | 今日は曇っています。             | está    |
+| Nosotros \_\_\_ en el parque. | 私たちは公園にいます。           | estamos |
+| Juan \_\_\_ alto y simpático. | フアンは背が高くて親切です。     | es      |
+| La sopa \_\_\_ muy fría.      | スープがとても冷えています。     | está    |
+| Madrid \_\_\_ en España.      | マドリードはスペインにあります。 | está    |
+| Mis padres \_\_\_ abogados.   | 私の両親は弁護士です。           | son     |
+| ¿Dónde \_\_\_ las llaves?     | 鍵はどこにありますか？           | están   |
+| Mañana \_\_\_ domingo.        | 明日は日曜日です。               | es      |
+| El café \_\_\_ muy caliente.  | コーヒーがとても熱いです。       | está    |
+
+### 線過去 と 点過去 の使い分け
+
+| 例文 (問題文)                           | 日本語訳・ヒント                                    | 正解   |
+| --------------------------------------- | --------------------------------------------------- | ------ |
+| Yo \_\_\_ con María ayer.               | 私は昨日マリアと話した（hablar）。                  | hablé  |
+| Cuando yo \_\_\_ niño, vivía en Madrid. | 私が子供だったとき（ser）、マドリードに住んでいた。 | era    |
+| Ayer \_\_\_ un día maravilloso.         | 昨日は素晴らしい一日だった（ser）。                 | fue    |
+| Mientras yo estudiaba, él \_\_\_.       | 私は勉強していた間、彼は寝ていた（dormir）。        | dormía |
+| Todos los días yo \_\_\_ al parque.     | 毎日私は公園に行っていた（ir）。                    | iba    |
+| De repente, \_\_\_ a llover.            | 突然、雨が降り始めた（empezar）。                   | empezó |
+| Cuando la vi, ella \_\_\_ 10 años.      | 私が彼女に会ったとき、彼女は10歳だった（tener）。   | tenía  |
+| El año pasado \_\_\_ a España.          | 去年、スペインへ旅行した（viajar）。                | viajé  |
+| Siempre \_\_\_ en la calle.             | いつも通りで遊んでいた（jugar）。                   | jugaba |
+| Ayer \_\_\_ mucho frío.                 | 昨日はとても寒かった（hacer）。                     | hizo   |
+
+</div>
