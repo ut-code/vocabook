@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 // 出題データアイテムの型定義
 export type SpanishNumberItem = {
@@ -91,8 +91,22 @@ export default function SpanishNumberPractice({ items }: { items: SpanishNumberI
   const [selectedRange, setSelectedRange] = useState<RangePreset>("all");
   const [selectedCount, setSelectedCount] = useState<CountOption>("10");
 
-  // 現在の演習セッション用の問題一覧・現在インデックス・入力・スコア状態
-  const [questions, setQuestions] = useState<SpanishNumberItem[]>([]);
+  // 選択条件（出題範囲・出題数）に基づき問題リストを構築する純粋関数ヘルパー
+  const buildQuestions = useCallback(
+    (itemsList: SpanishNumberItem[], range: RangePreset, count: CountOption) => {
+      const filtered = filterItemsByRange(itemsList, range);
+      const shuffled = shuffleArray(filtered);
+      const countNum = count === "all" ? shuffled.length : parseInt(count, 10);
+      return shuffled.slice(0, countNum);
+    },
+    [],
+  );
+
+  // 初期化時に items から直ちに問題セットを生成（useEffect内でのsetState呼び出しによるカスケードレンダリングを回避）
+  const [questions, setQuestions] = useState<SpanishNumberItem[]>(() =>
+    buildQuestions(items, "all", "10"),
+  );
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [userAnswer, setUserAnswer] = useState("");
   const [isAnswered, setIsAnswered] = useState(false);
@@ -104,29 +118,21 @@ export default function SpanishNumberPractice({ items }: { items: SpanishNumberI
   const inputRef = useRef<HTMLInputElement>(null);
 
   /**
-   * 範囲選択や出題数が変更された際、問題をフィルタリング・シャッフルして再スタートする処理
+   * 範囲選択や出題数が変更された際、または再挑戦時に問題をリセットする処理
    */
-  const initializeQuiz = (range: RangePreset, count: CountOption) => {
-    const filtered = filterItemsByRange(items, range);
-    const shuffled = shuffleArray(filtered);
-    const countNum = count === "all" ? shuffled.length : parseInt(count, 10);
-    const sliced = shuffled.slice(0, countNum);
-
-    setQuestions(sliced);
-    setCurrentIndex(0);
-    setScore(0);
-    setIsFinished(false);
-    setIsAnswered(false);
-    setUserAnswer("");
-    setIsCorrect(null);
-  };
-
-  // コンポーネントの初期化時に問題セットを生成
-  useEffect(() => {
-    if (items.length > 0) {
-      initializeQuiz(selectedRange, selectedCount);
-    }
-  }, [items, initializeQuiz, selectedCount, selectedRange]);
+  const resetQuiz = useCallback(
+    (range: RangePreset, count: CountOption) => {
+      const newQuestions = buildQuestions(items, range, count);
+      setQuestions(newQuestions);
+      setCurrentIndex(0);
+      setScore(0);
+      setIsFinished(false);
+      setIsAnswered(false);
+      setUserAnswer("");
+      setIsCorrect(null);
+    },
+    [items, buildQuestions],
+  );
 
   // 新しい問題が表示された際、入力欄へ自動フォーカスをあてる
   useEffect(() => {
@@ -140,13 +146,13 @@ export default function SpanishNumberPractice({ items }: { items: SpanishNumberI
   // 出題範囲変更時のハンドラ
   const handleRangeChange = (range: RangePreset) => {
     setSelectedRange(range);
-    initializeQuiz(range, selectedCount);
+    resetQuiz(range, selectedCount);
   };
 
   // 出題数変更時のハンドラ
   const handleCountChange = (count: CountOption) => {
     setSelectedCount(count);
-    initializeQuiz(selectedRange, count);
+    resetQuiz(selectedRange, count);
   };
 
   /**
@@ -347,7 +353,7 @@ export default function SpanishNumberPractice({ items }: { items: SpanishNumberI
           </p>
           <button
             type="button"
-            onClick={() => initializeQuiz(selectedRange, selectedCount)}
+            onClick={() => resetQuiz(selectedRange, selectedCount)}
             className="mt-6 inline-flex items-center rounded-xl bg-teal-600 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-600"
           >
             もう一度挑戦する
