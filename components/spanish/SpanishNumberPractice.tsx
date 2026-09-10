@@ -126,7 +126,7 @@ export default function SpanishNumberPractice({ items }: { items: SpanishNumberI
     if (items.length > 0) {
       initializeQuiz(selectedRange, selectedCount);
     }
-  }, [items]);
+  }, [items, initializeQuiz, selectedCount, selectedRange]);
 
   // 新しい問題が表示された際、入力欄へ自動フォーカスをあてる
   useEffect(() => {
@@ -268,7 +268,9 @@ export default function SpanishNumberPractice({ items }: { items: SpanishNumberI
   if (!items || items.length === 0) {
     return (
       <div className="my-6 rounded-2xl border border-dashed border-zinc-300 p-6 text-center dark:border-zinc-700">
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">問題データが見つかりませんでした。</p>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+          問題データが見つかりませんでした。
+        </p>
       </div>
     );
   }
@@ -280,7 +282,9 @@ export default function SpanishNumberPractice({ items }: { items: SpanishNumberI
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           {/* 出題範囲選択 */}
           <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center">
-            <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">出題範囲:</span>
+            <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
+              出題範囲:
+            </span>
             <div className="flex flex-wrap gap-1">
               {[
                 { label: "全範囲", value: "all" },
@@ -337,7 +341,8 @@ export default function SpanishNumberPractice({ items }: { items: SpanishNumberI
         <div className="py-8 text-center">
           <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">演習終了！</h3>
           <p className="mt-3 text-lg text-zinc-700 dark:text-zinc-300">
-            スコア: <span className="font-semibold text-teal-600 dark:text-teal-400">{score}</span> / {questions.length} (
+            スコア: <span className="font-semibold text-teal-600 dark:text-teal-400">{score}</span>{" "}
+            / {questions.length} (
             {questions.length > 0 ? Math.round((score / questions.length) * 100) : 0}%)
           </p>
           <button
@@ -399,7 +404,8 @@ export default function SpanishNumberPractice({ items }: { items: SpanishNumberI
               </div>
 
               <p className="mt-2 text-center text-xs text-zinc-500 dark:text-zinc-400">
-                💡 <strong>↑ / ↓ 矢印キー</strong> で文字にアクセント記号（á, é, í, ó, ú, ñ など）を付与・切替できます。
+                💡 <strong>↑ / ↓ 矢印キー</strong> で文字にアクセント記号（á, é, í, ó, ú, ñ
+                など）を付与・切替できます。
               </p>
             </div>
 
