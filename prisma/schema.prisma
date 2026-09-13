@@ -17,6 +17,8 @@ model Notebook {
   title     String
   // Excelの1行目（ヘッダー）に対応する列名を、出現順のまま保存する
   columns   Json
+  // trueの間、/share/[id] からログイン無しで閲覧できる
+  isPublic  Boolean  @default(false)
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
