@@ -6,6 +6,7 @@ import { requireUser } from "@/lib/session";
 import CardRow from "./CardRow";
 import CreateCardForm from "./CreateCardForm";
 import ResetAllStarsButton from "@/components/my-notebooks/ResetAllStarsButton";
+import ShareNotebookButton from "@/components/my-notebooks/ShareNotebookButton";
 import type { CardData } from "@/lib/card-data";
 
 // DBの最新状態を常に表示するため、ビルド時の静的プリレンダリングを避けてリクエスト時にレンダリングする
@@ -54,6 +55,9 @@ export default async function NotebookPage(props: PageProps<"/my-notebooks/[note
             <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-500">
               {notebook.cards.length}語
             </p>
+            <div className="mt-3">
+              <ShareNotebookButton notebookId={notebook.id} isPublic={notebook.isPublic} />
+            </div>
           </div>
           {notebook.cards.length > 0 && (
             <div className="flex items-center gap-3">

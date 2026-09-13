@@ -178,6 +178,24 @@ export async function deleteCard(cardId: string, notebookId: string) {
   revalidatePath(`/my-notebooks/${notebookId}`);
 }
 
+// 単語帳の公開・非公開を切り替える。公開中は /share/[notebookId] からログイン無しで閲覧できる
+export async function toggleNotebookPublic(notebookId: string) {
+  const user = await requireUser();
+
+  const notebook = await prisma.notebook.findUniqueOrThrow({
+    where: { id: notebookId, userId: user.id },
+    select: { isPublic: true },
+  });
+
+  await prisma.notebook.update({
+    where: { id: notebookId },
+    data: { isPublic: !notebook.isPublic },
+  });
+
+  revalidatePath(`/my-notebooks/${notebookId}`);
+  revalidatePath(`/share/${notebookId}`);
+}
+
 // 単語の★を付け外しする。付けるときだけ starCount を+1し、外してもstarCountは減らさない
 export async function toggleStar(cardId: string, notebookId: string) {
   const user = await requireUser();
