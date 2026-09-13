@@ -1,11 +1,21 @@
 import Link from "next/link";
 
 import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/session";
 import ImportForm from "@/components/my-notebooks/ImportForm";
 import DeleteNotebookButton from "@/components/my-notebooks/DeleteNotebookButton";
+import StarColorSettings from "@/components/StarColorSettings";
+
+// DBの最新状態を常に表示するため、ビルド時の静的プリレンダリングを避けてリクエスト時にレンダリングする
+export const dynamic = "force-dynamic";
 
 export default async function MyNotebooksPage() {
+  const user = await requireUser();
+
+  // 作成日が新しい単語帳を先頭に表示する。ログイン中のユーザー自身の単語帳のみに絞り込む。
+  // _count で各単語帳の単語数だけを取得し、cards本体は取得しない（一覧表示には不要なため軽量化）
   const notebooks = await prisma.notebook.findMany({
+    where: { userId: user.id },
     orderBy: { createdAt: "desc" },
     include: { _count: { select: { cards: true } } },
   });
@@ -19,6 +29,9 @@ export default async function MyNotebooksPage() {
         <p className="mt-4 text-base leading-7 text-zinc-600 dark:text-zinc-400">
           Excelファイルから自分だけの単語帳を作成できます。
         </p>
+        <div className="mt-4 flex justify-center">
+          <StarColorSettings />
+        </div>
       </div>
 
       <section className="mt-10 w-full max-w-md">
@@ -32,6 +45,7 @@ export default async function MyNotebooksPage() {
         <h2 className="mb-3 text-sm font-semibold tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
           作成済みの単語帳
         </h2>
+        {/* 単語帳が1件も無ければ空状態のメッセージ、あれば一覧をレンダリング */}
         {notebooks.length === 0 ? (
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
             まだ単語帳がありません。上のフォームからExcelファイルを取り込んでみましょう。

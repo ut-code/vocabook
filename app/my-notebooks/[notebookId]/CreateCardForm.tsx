@@ -1,9 +1,10 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
 
 import { createCard, type FormState } from "../actions";
+import CardFieldsForm from "@/components/my-notebooks/CardFieldsForm";
 
 const initialState: FormState = {};
 
@@ -27,38 +28,34 @@ export default function CreateCardForm({
   notebookId: string;
   columns: string[];
 }) {
+  // createCard Server Actionを、このnotebook専用にbindしてuseActionStateに渡す
   const [state, formAction] = useActionState(createCard.bind(null, notebookId), initialState);
-  // 追加成功時にkeyを変えてフォームごと再マウントし、入力欄を空に戻す
+  // フォームの入力欄はCardFieldsForm内で非制御（defaultValue）で管理されているため、
+  // 「値をJSでクリアする」ことができない。そこで<form key={formKey}>のkeyを変えることで
+  // Reactにフォーム全体を作り直させ（アンマウント→再マウント）、入力欄を空に戻す
   const [formKey, setFormKey] = useState(0);
-  const isFirstRender = useRef(true);
-
-  useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
+  // stateが変化した（=action実行結果が返ってきた）タイミングだけ、
+  // 成功時（エラーが無い時）にkeyをインクリメントしてフォームをリセットする。
+  // 初回マウント時はprevState === stateなので何もしない
+  const [prevState, setPrevState] = useState(state);
+  if (state !== prevState) {
+    setPrevState(state);
     if (!state.error) {
       setFormKey((key) => key + 1);
     }
-  }, [state]);
+  }
 
   return (
     <>
       <form
         key={formKey}
         action={formAction}
-        className="flex flex-wrap items-end gap-3 rounded-2xl border border-dashed border-black/[.15] p-4 dark:border-white/[.2]"
+        className="flex flex-col gap-3 rounded-2xl border border-dashed border-black/[.15] p-4 dark:border-white/[.2]"
       >
-        {columns.map((column) => (
-          <div key={column} className="flex flex-col gap-1">
-            <label className="text-xs text-zinc-500 dark:text-zinc-500">{column}</label>
-            <input
-              name={`field:${column}`}
-              className="rounded border border-black/[.1] bg-transparent px-2 py-1 text-sm outline-none focus:border-black/[.3] dark:border-white/[.15] dark:focus:border-white/[.4]"
-            />
-          </div>
-        ))}
-        <AddButton />
+        <CardFieldsForm columns={columns} />
+        <div>
+          <AddButton />
+        </div>
       </form>
       {state?.error && (
         <p role="alert" className="mt-2 text-sm text-red-600 dark:text-red-400">

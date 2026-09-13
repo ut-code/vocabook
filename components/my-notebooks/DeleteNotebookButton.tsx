@@ -8,7 +8,11 @@ export default function DeleteNotebookButton({ notebookId }: { notebookId: strin
     <form
       action={deleteNotebook.bind(null, notebookId)}
       onSubmit={(event) => {
-        if (!window.confirm("この単語帳を削除します。中の単語も含めて元に戻せません。よろしいですか？")) {
+        if (
+          !window.confirm(
+            "この単語帳を削除します。中の単語も含めて元に戻せません。よろしいですか？",
+          )
+        ) {
           event.preventDefault();
         }
       }}

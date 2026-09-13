@@ -2,22 +2,39 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/session";
 import CardRow from "./CardRow";
 import CreateCardForm from "./CreateCardForm";
+import ResetAllStarsButton from "@/components/my-notebooks/ResetAllStarsButton";
+import type { CardData } from "@/lib/card-data";
+
+// DBの最新状態を常に表示するため、ビルド時の静的プリレンダリングを避けてリクエスト時にレンダリングする
+export const dynamic = "force-dynamic";
 
 export default async function NotebookPage(props: PageProps<"/my-notebooks/[notebookId]">) {
+  const user = await requireUser();
   const { notebookId } = await props.params;
 
-  const notebook = await prisma.notebook.findUnique({
-    where: { id: notebookId },
+  // 単語帳本体と、その中の単語（Card）一覧を position 昇順（＝Excelの元の並び順）で取得する。
+  // userIdも条件に含めることで、他人の単語帳IDを直接踏んでもアクセスできないようにする
+  const notebook = await prisma.notebook.findFirst({
+    where: { id: notebookId, userId: user.id },
     include: { cards: { orderBy: { position: "asc" } } },
   });
 
+  // 存在しないIDが指定された場合は404ページを表示する
   if (!notebook) {
     notFound();
   }
 
+  // columns は「1列目=見出し語、2列目以降=意味の列名」という順序付き配列。
+  // 列数・列名はNotebookごとに異なる（Excel由来）ため、テーブルのヘッダーや
+  // 各行の入力欄は columns をループして動的に組み立てる
   const columns = notebook.columns as string[];
+  // ★がついている単語の件数。1件以上あれば「復習」への導線を出す
+  const starredCount = notebook.cards.filter((card) => card.starred).length;
+  // ★の回数が1回でも付いている単語があれば「一括リセット」の導線を出す
+  const hasAnyStars = notebook.cards.some((card) => card.starCount > 0);
 
   return (
     <main className="flex flex-1 flex-col items-center px-6 py-16">
@@ -39,12 +56,23 @@ export default async function NotebookPage(props: PageProps<"/my-notebooks/[note
             </p>
           </div>
           {notebook.cards.length > 0 && (
-            <Link
-              href={`/my-notebooks/${notebook.id}/study`}
-              className="rounded-full bg-black px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-black dark:hover:bg-zinc-200"
-            >
-              暗記学習を始める
-            </Link>
+            <div className="flex items-center gap-3">
+              {starredCount > 0 && (
+                <Link
+                  href={`/my-notebooks/${notebook.id}/review`}
+                  className="rounded-full border border-amber-400 px-5 py-2 text-sm font-medium text-amber-600 transition-colors hover:bg-amber-50 dark:border-amber-400/60 dark:text-amber-400 dark:hover:bg-amber-400/10"
+                >
+                  ★を復習する（{starredCount}語）
+                </Link>
+              )}
+              <Link
+                href={`/my-notebooks/${notebook.id}/study`}
+                className="rounded-full bg-black px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-black dark:hover:bg-zinc-200"
+              >
+                暗記学習を始める
+              </Link>
+              {hasAnyStars && <ResetAllStarsButton notebookId={notebook.id} />}
+            </div>
           )}
         </div>
 
@@ -52,6 +80,7 @@ export default async function NotebookPage(props: PageProps<"/my-notebooks/[note
           <table className="w-full min-w-max border-collapse text-left">
             <thead className="bg-zinc-50 dark:bg-zinc-900">
               <tr>
+                {/* 列見出しは columns の並び順そのまま表示する */}
                 {columns.map((column) => (
                   <th
                     key={column}
@@ -60,7 +89,7 @@ export default async function NotebookPage(props: PageProps<"/my-notebooks/[note
                     {column}
                   </th>
                 ))}
-                <th className="px-4 py-3" />
+                <th className="px-4 py-3" aria-label="操作" />
               </tr>
             </thead>
             <tbody>
@@ -74,12 +103,20 @@ export default async function NotebookPage(props: PageProps<"/my-notebooks/[note
                   </td>
                 </tr>
               ) : (
+                // 単語1件ずつをCardRowに委譲する。表示・編集・削除の切り替えは
+                // 各CardRow内で完結し、このページ自体は再取得（revalidatePath）でのみ更新される
                 notebook.cards.map((card) => (
                   <CardRow
                     key={card.id}
                     notebookId={notebook.id}
                     columns={columns}
-                    card={{ id: card.id, data: card.data as Record<string, string> }}
+                    card={{
+                      id: card.id,
+                      data: card.data as CardData,
+                      starred: card.starred,
+                      starCount: card.starCount,
+                      viewCount: card.viewCount,
+                    }}
                   />
                 ))
               )}

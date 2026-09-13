@@ -1,5 +1,5 @@
-import type { MDXComponents } from 'mdx/types'
-import type { ReactNode } from 'react'
+import type { MDXComponents } from "mdx/types";
+import type { ReactNode } from "react";
 
 // The Rust-based MDX compiler (experimental.mdxRs) emits raw "\n" text
 // nodes between table child elements. Browsers strip whitespace text
@@ -8,26 +8,18 @@ import type { ReactNode } from 'react'
 // server and client agree.
 function stripWhitespace(children: ReactNode): ReactNode {
   return Array.isArray(children)
-    ? children.filter((child) => typeof child !== 'string' || child.trim() !== '')
-    : children
+    ? children.filter((child) => typeof child !== "string" || child.trim() !== "")
+    : children;
 }
 
 // mdxコンポーネントのカスタマイズを行う
 const components: MDXComponents = {
-  table: ({ children, ...props }) => (
-    <table {...props}>{stripWhitespace(children)}</table>
-  ),
-  thead: ({ children, ...props }) => (
-    <thead {...props}>{stripWhitespace(children)}</thead>
-  ),
-  tbody: ({ children, ...props }) => (
-    <tbody {...props}>{stripWhitespace(children)}</tbody>
-  ),
-  tr: ({ children, ...props }) => (
-    <tr {...props}>{stripWhitespace(children)}</tr>
-  ),
-}
+  table: ({ children, ...props }) => <table {...props}>{stripWhitespace(children)}</table>,
+  thead: ({ children, ...props }) => <thead {...props}>{stripWhitespace(children)}</thead>,
+  tbody: ({ children, ...props }) => <tbody {...props}>{stripWhitespace(children)}</tbody>,
+  tr: ({ children, ...props }) => <tr {...props}>{stripWhitespace(children)}</tr>,
+};
 
 export function useMDXComponents(): MDXComponents {
-  return components
+  return components;
 }

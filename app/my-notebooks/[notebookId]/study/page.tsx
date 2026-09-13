@@ -1,27 +1,41 @@
 import { notFound, redirect } from "next/navigation";
 
 import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/session";
 import StudyDeck from "./StudyDeck";
+import type { CardData } from "@/lib/card-data";
+
+// DBの最新状態を常に表示するため、ビルド時の静的プリレンダリングを避けてリクエスト時にレンダリングする
+export const dynamic = "force-dynamic";
 
 export default async function StudyPage(props: PageProps<"/my-notebooks/[notebookId]/study">) {
+  const user = await requireUser();
   const { notebookId } = await props.params;
 
-  const notebook = await prisma.notebook.findUnique({
-    where: { id: notebookId },
+  // 単語帳と、その中のカードをposition昇順（表側の並び順）で取得する
+  const notebook = await prisma.notebook.findFirst({
+    where: { id: notebookId, userId: user.id },
     include: { cards: { orderBy: { position: "asc" } } },
   });
 
   if (!notebook) {
     notFound();
   }
+  // 暗記するカードが1件も無い状態では学習モードが成立しないため、
+  // 単語帳のトップページ（追加フォームがある場所）へ差し戻す
   if (notebook.cards.length === 0) {
     redirect(`/my-notebooks/${notebook.id}`);
   }
 
+  // シャッフルやフリップ等のインタラクションはすべてクライアント側のStudyDeckが担当するため、
+  // ここではサーバーでDBから取得したデータをそのまま整形して渡すだけ
   const columns = notebook.columns as string[];
   const cards = notebook.cards.map((card) => ({
     id: card.id,
-    data: card.data as Record<string, string>,
+    data: card.data as CardData,
+    starred: card.starred,
+    starCount: card.starCount,
+    viewCount: card.viewCount,
   }));
 
   return (

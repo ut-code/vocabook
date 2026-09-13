@@ -33,19 +33,21 @@ async function listSlugs(languageSlug: string): Promise<string[]> {
     return [];
   }
 
-  return entries
-    // filterによって、entries配列の中から、ディレクトリであり、かつ名前が数字のみで構成されているものを抽出する（layout.tsxを省くため）
-    .filter((entry) => entry.isDirectory() && /^\d+$/.test(entry.name))
-    // mapによって、抽出されたディレクトリの名前を配列として返す
-    .map((entry) => entry.name)
-    // sortによって、数字順に並び替える
-    .sort();
+  return (
+    entries
+      // filterによって、entries配列の中から、ディレクトリであり、かつ名前が数字のみで構成されているものを抽出する（layout.tsxを省くため）
+      .filter((entry) => entry.isDirectory() && /^\d+$/.test(entry.name))
+      // mapによって、抽出されたディレクトリの名前を配列として返す
+      .map((entry) => entry.name)
+      // sortによって、数字順に並び替える
+      .sort()
+  );
 }
 
 // 任意の言語について、セクションの番号配列を返す関数
 export async function getSections(languageSlug: string): Promise<SectionSummary[]> {
   const sectionSlugs = await listSlugs(languageSlug);
-  
+
   //　Promise.all()は、複数のPromiseをまとめて"並列"で待ち、すべて完了したら結果を1つの配列で返す
   return Promise.all(
     sectionSlugs.map(async (sectionSlug) => {
@@ -55,4 +57,28 @@ export async function getSections(languageSlug: string): Promise<SectionSummary[
       return { sectionSlug, title };
     }),
   );
+}
+
+// 全言語のセクション情報を保持する型定義（キー: 言語スラッグ, 値: セクション一覧の配列）
+export type AllLanguageSections = Record<string, SectionSummary[]>;
+
+/**
+ * 指定された複数の言語スラッグに対応するセクション一覧をまとめて並列取得する関数
+ * サイドバー等で全言語のセクション（項目）を一括表示するために使用される
+ *
+ * @param languageSlugs 取得対象の言語スラッグ配列（例: ["chinese", "french", "german", "spanish"]）
+ * @returns 各言語スラッグをキーとするAllLanguageSectionsオブジェクト
+ */
+export async function getAllLanguageSections(
+  languageSlugs: string[],
+): Promise<AllLanguageSections> {
+  // Promise.allを用いて、引数で受け取った全言語のセクション情報を並列で非同期取得する
+  const entries = await Promise.all(
+    languageSlugs.map(async (slug) => {
+      const sections = await getSections(slug);
+      return [slug, sections] as const;
+    }),
+  );
+  // [ [key, value], ... ] 形式の二次元配列からオブジェクトを生成して返す
+  return Object.fromEntries(entries);
 }

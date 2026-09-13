@@ -1,10 +1,14 @@
 import ExcelJS from "exceljs";
 
+import type { CardData } from "@/lib/card-data";
+
 export type ParsedNotebook = {
-  // Excelの1行目（ヘッダー行）の値を、出現順のまま並べたもの
+  // Excelの1行目（ヘッダー行）の値を、出現順のまま並べたもの。
+  // 1列目が見出し語、2列目以降が意味・例文などの子項目に対応する
   columns: string[];
-  // 2行目以降の各行を { 列名: セルの値 } の形にしたもの
-  rows: Record<string, string>[];
+  // 2行目以降を、1列目（見出し語）の値が同じ行どうしでグルーピングしたもの。
+  // 同じ見出し語が複数行に渡って登場する場合、多義語として1枚のカードにまとめる
+  rows: CardData[];
 };
 
 export class ExcelParseError extends Error {}
@@ -38,11 +42,9 @@ function cellToText(value: ExcelJS.CellValue): string {
   return String(value).trim();
 }
 
-// アップロードされたExcelファイル（1シート目）を読み取り、
-// 1行目をヘッダーとする可変列の単語帳データに変換する
-export async function parseExcelWorkbook(
-  buffer: ArrayBuffer,
-): Promise<ParsedNotebook> {
+// アップロードされたExcelファイルの1シート目を読み取り、1行目をヘッダーとする可変列の単語帳データに変換する
+export async function parseExcelWorkbook(buffer: ArrayBuffer): Promise<ParsedNotebook> {
+  // ファイルを読み込み、データをworkbookに格納する
   const workbook = new ExcelJS.Workbook();
   try {
     await workbook.xlsx.load(buffer);
@@ -52,21 +54,26 @@ export async function parseExcelWorkbook(
     );
   }
 
+  // 1シート目のみを対象とする
   const worksheet = workbook.worksheets[0];
   if (!worksheet || worksheet.actualRowCount === 0) {
     throw new ExcelParseError("シートにデータが見つかりませんでした。");
   }
 
+  // 1行目のコラム名を取得する
   const headerRow = worksheet.getRow(1);
   const columnCount = Math.max(headerRow.actualCellCount, worksheet.actualColumnCount);
   if (columnCount === 0) {
     throw new ExcelParseError("1行目にヘッダーが見つかりませんでした。");
   }
 
+  // 列名の組み立て
   const usedNames = new Set<string>();
   const columns: string[] = [];
+  // コラム数だけ繰り返す
   for (let col = 1; col <= columnCount; col += 1) {
     const raw = cellToText(headerRow.getCell(col).value);
+    // 列名が空白ならデフォルト名を割り当てる
     let name = raw || `列${col}`;
     // 同名列がある場合は連番を振って区別する
     while (usedNames.has(name)) {
@@ -76,25 +83,47 @@ export async function parseExcelWorkbook(
     columns.push(name);
   }
 
-  const rows: Record<string, string>[] = [];
+  // 見出し語（1列目）を除いた列名一覧
+  const senseColumns = columns.slice(1);
+  const rows: CardData[] = [];
+  // 見出し語（1列目）ごとにカードをまとめるためのインデックス。
+  // 同じ見出し語の行を1つのカードにまとめるため、「見出し語→配列内でのインデックス」を記録するMap
+  const groupIndexByHead = new Map<string, number>();
+  let blankHeadCount = 0;
+
   for (let r = 2; r <= worksheet.rowCount; r += 1) {
     const row = worksheet.getRow(r);
     if (row.actualCellCount === 0) {
       continue;
     }
 
-    const data: Record<string, string> = {};
-    let hasValue = false;
-    columns.forEach((name, index) => {
-      const text = cellToText(row.getCell(index + 1).value);
-      if (text) {
-        hasValue = true;
-      }
-      data[name] = text;
+    // cellValues：各列のセル値を文字化した配列
+    const cellValues = columns.map((_, index) => cellToText(row.getCell(index + 1).value));
+    const hasValue = cellValues.some((text) => text !== "");
+    if (!hasValue) {
+      continue;
+    }
+
+    // head：1列目の値（見出し語）
+    const head = cellValues[0];
+    // sense：2列目以降の、その列名をキーとするオブジェクト
+    const sense: Record<string, string> = {};
+    senseColumns.forEach((name, index) => {
+      sense[name] = cellValues[index + 1];
     });
 
-    if (hasValue) {
-      rows.push(data);
+    const groupKey = head !== "" ? `h:${head}` : `b:${blankHeadCount++}`;
+    let groupIndex = groupIndexByHead.get(groupKey);
+    // 初出のグループなら新規カードを作成
+    if (groupIndex === undefined) {
+      groupIndex = rows.length;
+      groupIndexByHead.set(groupKey, groupIndex);
+      rows.push({ head, senses: [] });
+    }
+
+    // 既出のグループなら既存カードに追記
+    if (senseColumns.length > 0 && Object.values(sense).some((value) => value !== "")) {
+      rows[groupIndex].senses.push(sense);
     }
   }
 
