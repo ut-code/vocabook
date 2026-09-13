@@ -11,7 +11,7 @@ export default async function SharedStudyPage(
 ) {
   const { notebookId } = await props.params;
 
-  const notebook = await prisma.notebook.findFirst({
+  const notebook = await prisma.notebook.findUnique({
     where: { id: notebookId, isPublic: true },
     include: { cards: { orderBy: { position: "asc" } } },
   });

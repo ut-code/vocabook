@@ -12,7 +12,7 @@ export default async function SharedNotebookPage(props: PageProps<"/share/[noteb
   const { notebookId } = await props.params;
 
   // isPublicな単語帳のみ取得する。非公開・存在しないIDの場合は404にする
-  const notebook = await prisma.notebook.findFirst({
+  const notebook = await prisma.notebook.findUnique({
     where: { id: notebookId, isPublic: true },
     include: { cards: { orderBy: { position: "asc" } } },
   });
