@@ -6,9 +6,7 @@ import type { CardData } from "@/lib/card-data";
 
 export const dynamic = "force-dynamic";
 
-export default async function SharedStudyPage(
-  props: PageProps<"/share/[notebookId]/study">,
-) {
+export default async function SharedStudyPage(props: PageProps<"/share/[notebookId]/study">) {
   const { notebookId } = await props.params;
 
   const notebook = await prisma.notebook.findUnique({
@@ -31,9 +29,7 @@ export default async function SharedStudyPage(
       <h1 className="text-2xl font-semibold tracking-tight text-black dark:text-zinc-50">
         {notebook.title}
       </h1>
-      <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-500">
-        暗記学習モード（閲覧専用）
-      </p>
+      <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-500">暗記学習モード（閲覧専用）</p>
 
       <div className="mt-8 w-full">
         <PublicStudyDeck notebookId={notebook.id} columns={columns} cards={cards} />
