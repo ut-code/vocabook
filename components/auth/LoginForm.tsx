@@ -5,15 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 import { authClient } from "@/lib/auth-client";
-
-// 外部URL（"https://..."）やプロトコル相対URL（"//evil.com"）へのオープンリダイレクトを防ぐため、
-// アプリ内の絶対パスのみを許可する
-function safeRedirectPath(target: string | null): string {
-  if (!target || !target.startsWith("/") || target.startsWith("//") || target.startsWith("/\\")) {
-    return "/my-notebooks";
-  }
-  return target;
-}
+import { safeRedirectPath } from "@/lib/auth-redirect";
 
 export default function LoginForm() {
   const router = useRouter();

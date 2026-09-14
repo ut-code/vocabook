@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import SignupForm from "@/components/auth/SignupForm";
 
@@ -13,7 +14,10 @@ export default function SignupPage() {
         <h1 className="mb-8 text-center text-3xl font-semibold tracking-tight text-black dark:text-zinc-50">
           新規登録
         </h1>
-        <SignupForm />
+        {/* SignupForm内のuseSearchParams()が静的プリレンダリングをブロックしないようSuspenseで囲む */}
+        <Suspense>
+          <SignupForm />
+        </Suspense>
       </div>
     </main>
   );
