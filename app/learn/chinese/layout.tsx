@@ -1,4 +1,5 @@
 import { getLanguage } from "@/app/learn/languages";
+import { SectionReviewControls } from "@/components/learn/SectionReviewControls";
 
 const language = getLanguage("chinese");
 
@@ -6,7 +7,10 @@ const language = getLanguage("chinese");
 export default function ChineseSectionLayout({ children }: { children: React.ReactNode }) {
   return (
     <main className="flex flex-1 flex-col items-center px-6 py-16">
-      <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">{language?.label}</p>
+      <div className="flex w-full max-w-3xl items-center justify-between">
+        <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">{language?.label}</p>
+        <SectionReviewControls />
+      </div>
       <div className="chinese-content mt-8 w-full max-w-3xl text-left">{children}</div>
     </main>
   );

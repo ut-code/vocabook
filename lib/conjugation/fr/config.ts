@@ -16,6 +16,7 @@ const ACCENT_CYCLES: string[][] = [
 const TOOLBAR_CHARS = ["é", "è", "ê", "ë", "à", "â", "î", "ï", "ô", "ù", "û", "ç"];
 
 export const frenchConjugationConfig: ConjugationLanguageConfig<VerbEntry, ConjugationTable> = {
+  languageSlug: "french",
   persons: PERSONS,
   tenseOptions: TENSE_OPTIONS,
   buildConjugation,

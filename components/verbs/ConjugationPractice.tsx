@@ -2,11 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { tenseKey, type SixForms, type TenseOption, type VerbLike } from "@/lib/conjugation/shared";
+import { recordSectionQuizAnswer } from "@/lib/learn/actions";
 import { AccentInput } from "@/components/verbs/AccentInput";
 
 // 言語ごとに異なる部分（人称・時制・活用エンジン・発音・アクセント入力）をまとめた設定。
 // 新しい言語を追加するときは、この形にそって lib/conjugation/<lang>/config.ts を作る
 export interface ConjugationLanguageConfig<V extends VerbLike, T> {
+  // セクション単位の苦手管理（lib/learn/actions.ts）で使う言語スラッグ。省略した言語では進捗を記録しない
+  languageSlug?: string;
   persons: readonly string[];
   tenseOptions: TenseOption[];
   buildConjugation: (verb: V) => T;
@@ -35,11 +38,14 @@ function normalize(str: string): string {
 interface ConjugationPracticeProps<V extends VerbLike, T> {
   verbs: V[];
   language: ConjugationLanguageConfig<V, T>;
+  // このドリルが属するセクションスラッグ（例: "01"）。省略すると進捗を記録しない
+  sectionSlug?: string;
 }
 
 export function ConjugationPractice<V extends VerbLike, T>({
   verbs,
   language,
+  sectionSlug,
 }: ConjugationPracticeProps<V, T>) {
   const {
     persons,
@@ -174,6 +180,11 @@ export function ConjugationPractice<V extends VerbLike, T>({
       setSubmitted(true);
       setScore((prev) => ({ correct: prev.correct + (correct ? 1 : 0), total: prev.total + 1 }));
       if (audioEnabled) speakAnswer();
+
+      // セクション単位の苦手管理: 1問答えるたびに反映する（未ログインならサーバー側で何もしない）
+      if (sectionSlug && language.languageSlug) {
+        recordSectionQuizAnswer(language.languageSlug, sectionSlug, correct).catch(() => {});
+      }
     } else {
       generateQuestion();
     }

@@ -51,22 +51,55 @@ model Card {
 }
 
 model User {
-  id              String     @id
+  id              String            @id
   name            String
   email           String
-  emailVerified   Boolean    @default(false)
+  emailVerified   Boolean           @default(false)
   username        String?
   displayUsername String?
   image           String?
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
   sessions        Session[]
   accounts        Account[]
   notebooks       Notebook[]
+  sectionProgress SectionProgress[]
 
   @@unique([email])
   @@unique([username])
   @@map("user")
+}
+
+// 学習教材（/learn/[language]/[sectionSlug]）における、ユーザーごと・セクションごとの学習進捗。
+// 「動詞の活用が苦手」「冠詞の一覧と縮約形が苦手」のように、セクション単位で苦手管理・復習日の提案を行う
+
+model SectionProgress {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // 言語スラッグ（例: "french"）
+  language String
+  // セクションのスラッグ（例: "01"）。app/learn/[language]/[sectionSlug] に対応する
+  sectionSlug String
+
+  // クイズ形式のセクション（例: 動詞活用ドリル）でのみ増える。読み物セクションでは常に0のまま
+  attemptCount Int @default(0)
+  correctCount Int @default(0)
+  // Leitner式の箱番号（0〜6）。「正解」または「復習済みにする」操作のたび+1、誤答で0に戻る
+  box Int @default(0)
+  // クイズでの誤答による自動タグ。読み物セクションでは（誤答が存在しないため）常にfalseのまま
+  autoTagged Boolean @default(false)
+  // ユーザーが手動で付けたタグ。読み物セクションはこちらのみで苦手管理する
+  manuallyTagged Boolean @default(false)
+  // 復習が必要かどうか（autoTagged・manuallyTaggedのいずれかがtrueならtrue）。一覧表示・絞り込みに使う
+  needsReview    Boolean   @default(false)
+  nextReviewAt   DateTime  @default(now())
+  lastReviewedAt DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@unique([userId, language, sectionSlug])
+  @@index([userId, language, needsReview])
 }
 
 model Session {
