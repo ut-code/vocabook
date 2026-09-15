@@ -76,7 +76,11 @@ export async function getSectionProgress(
 
 // クイズ形式のセクション（動詞活用ドリルなど）で1問答えるたびに呼ぶ。未ログインなら何もしない
 // （練習自体はログイン無しでも続けられるよう、エラーやリダイレクトは起こさない）
-export async function recordSectionQuizAnswer(language: string, sectionSlug: string, correct: boolean) {
+export async function recordSectionQuizAnswer(
+  language: string,
+  sectionSlug: string,
+  correct: boolean,
+) {
   const user = await getCurrentUser();
   if (!user) return;
 
