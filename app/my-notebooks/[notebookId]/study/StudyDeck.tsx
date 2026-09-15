@@ -9,7 +9,7 @@ import StarCountEditor from "@/components/StarCountEditor";
 import { useStarColors } from "@/components/UseStarColors";
 import { starColorFor } from "@/lib/star-colors";
 import type { CardData } from "@/lib/card-data";
-import  MultiElementCard from "@/components/my-notebooks/MultiElement"; //三次元用の三角柱UIを導入
+import MultiElementCard from "@/components/my-notebooks/MultiElement"; //三次元用の三角柱UIを導入
 
 type Card = {
   id: string;
@@ -64,8 +64,8 @@ export default function StudyDeck({
 
   // 選択された frontColumn が先頭（1面目）に来るように並び替える
   const activeColumns = rawActiveColumns.includes(frontColumn)
-  ? [frontColumn, ...rawActiveColumns.filter((col) => col !== frontColumn)]
-  : rawActiveColumns;
+    ? [frontColumn, ...rawActiveColumns.filter((col) => col !== frontColumn)]
+    : rawActiveColumns;
 
   const senseColumns = activeColumns.slice(1);
 
@@ -78,17 +78,9 @@ export default function StudyDeck({
     const isHead = colName === columns[0];
     const value = isHead ? current?.data.head : primarySense[colName];
 
-    return (
-      <CardFace
-        key={colName}
-        colName={colName}
-        value={value || "—"}
-        isHead={isHead}
-      />
-    );
+    return <CardFace key={colName} colName={colName} value={value || "—"} isHead={isHead} />;
   });
 
-  
   // toggleStarの結果（サーバーの往復）を待たず、クリックした瞬間に★・回数・色を切り替えるためのUI
   // idも保持し、往復の間にカードを送り進めても別カードへ誤って適用されないようにする
   const [optimisticStar, setOptimisticStar] = useOptimistic(
@@ -317,17 +309,7 @@ export default function StudyDeck({
   );
 }
 
-
-
-function CardFace({
-  colName,
-  value,
-  isHead,
-}: {
-  colName: string;
-  value: string;
-  isHead: boolean;
-}) {
+function CardFace({ colName, value, isHead }: { colName: string; value: string; isHead: boolean }) {
   return (
     <div className="flex flex-col items-center gap-2 text-center">
       <span className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
