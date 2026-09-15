@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 import { authClient } from "@/lib/auth-client";
+import { safeRedirectPath } from "@/lib/auth-redirect";
 
 function syntheticEmail(username: string): string {
   return `${username}@vocabook.local`;
@@ -12,6 +13,7 @@ function syntheticEmail(username: string): string {
 
 export default function SignupForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -43,7 +45,7 @@ export default function SignupForm() {
       return;
     }
 
-    router.push("/my-notebooks");
+    router.push(safeRedirectPath(searchParams.get("redirect")));
     router.refresh();
   }
 

@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/session";
+import { SectionCard } from "@/components/learn/SectionCard";
 import { getLanguage, LANGUAGES } from "../languages";
 import { getSections } from "../content";
 
@@ -25,6 +28,14 @@ export default async function LearnLanguagePage(
   }
 
   const sections = await getSections(language.languageSlug);
+
+  const user = await getCurrentUser();
+  const progressRows = user
+    ? await prisma.sectionProgress.findMany({
+        where: { userId: user.id, language: language.languageSlug },
+      })
+    : [];
+  const progressBySlug = new Map(progressRows.map((row) => [row.sectionSlug, row]));
 
   return (
     <main className="flex flex-1 flex-col items-center px-6 py-16 sm:py-24">
@@ -56,31 +67,21 @@ export default async function LearnLanguagePage(
       </div>
 
       <div className="mt-10 grid w-full max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
-        {sections.map((section, index) => (
-          <Link
-            key={section.sectionSlug}
-            href={`/learn/${language.languageSlug}/${section.sectionSlug}`}
-            className="group flex items-center justify-between rounded-2xl border border-black/[.08] bg-white p-5 text-left transition-all hover:border-tealblue-400/60 hover:shadow-sm dark:border-white/[.145] dark:bg-zinc-950 dark:hover:border-tealblue-600/60"
-          >
-            <div className="flex flex-col gap-1">
-              <span className="text-xs font-semibold uppercase tracking-wider text-tealblue-600 dark:text-tealblue-400">
-                Section {index + 1}
-              </span>
-              <span className="font-medium text-zinc-900 dark:text-zinc-50">{section.title}</span>
-            </div>
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-400 transition-colors group-hover:bg-tealblue-50 group-hover:text-tealblue-600 dark:bg-zinc-900 dark:text-zinc-500 dark:group-hover:bg-tealblue-950/60 dark:group-hover:text-tealblue-400">
-              <svg
-                className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-              </svg>
-            </div>
-          </Link>
-        ))}
+        {sections.map((section, index) => {
+          const progress = progressBySlug.get(section.sectionSlug);
+          return (
+            <SectionCard
+              key={section.sectionSlug}
+              href={`/learn/${language.languageSlug}/${section.sectionSlug}`}
+              index={index}
+              title={section.title}
+              language={language.languageSlug}
+              sectionSlug={section.sectionSlug}
+              isLoggedIn={!!user}
+              manuallyTagged={progress?.manuallyTagged ?? false}
+            />
+          );
+        })}
       </div>
     </main>
   );
