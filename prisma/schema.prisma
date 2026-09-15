@@ -51,19 +51,20 @@ model Card {
 }
 
 model User {
-  id              String            @id
-  name            String
-  email           String
-  emailVerified   Boolean           @default(false)
-  username        String?
-  displayUsername String?
-  image           String?
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  sessions        Session[]
-  accounts        Account[]
-  notebooks       Notebook[]
-  sectionProgress SectionProgress[]
+  id               String            @id
+  name             String
+  email            String
+  emailVerified    Boolean           @default(false)
+  username         String?
+  displayUsername  String?
+  image            String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  sessions         Session[]
+  accounts         Account[]
+  notebooks        Notebook[]
+  sectionProgress  SectionProgress[]
+  essaySubmissions EssaySubmission[]
 
   @@unique([email])
   @@unique([username])
@@ -100,6 +101,35 @@ model SectionProgress {
 
   @@unique([userId, language, sectionSlug])
   @@index([userId, language, needsReview])
+}
+
+// 作文セクション（/learn/essay/[language]）での1回分の提出・AI添削結果
+model EssaySubmission {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // 言語スラッグ（例: "french"）
+  language String
+
+  // お題の種類。"preset"ならlib/essay/topics.tsの事前用意お題、"custom"ならユーザー自身が指定したお題
+  topicSource String
+  // プリセットお題を選んだ場合の、lib/essay/topics.ts内での識別子。カスタムお題ではnull
+  topicId String?
+  // 実際に使われたお題文（プリセットの複製、またはユーザーが入力したお題）。
+  // プリセット内容が将来変わっても過去の提出時点の文言を保てるよう複製して保持する
+  topicPrompt     String
+  targetWordCount Int
+  content         String
+
+  // AIによる採点・添削結果。
+  // { vocabulary: {max,score,comment}, grammar: {...}, structure: {...}, content: {...}, overallComment }
+  feedback Json
+  // 採点に使ったOpenRouterのモデルID（監査・不具合調査用）
+  model String
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, language, createdAt])
 }
 
 model Session {
