@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 
 //カードに使うデータ型の設定
-interface TriangularCardProps {
+interface MultiElementCardProps {
   faces: React.ReactNode[];
   columnNames?: string[];
   width?: number;
@@ -11,7 +11,7 @@ interface TriangularCardProps {
 }
 
 //以下多要素単語帳のカード
-export const TriangularCard: React.FC<TriangularCardProps> = ({
+const MultiElementCard: React.FC<MultiElementCardProps> = ({
   faces,
   columnNames = [],
   width = 340,
@@ -122,3 +122,5 @@ export const TriangularCard: React.FC<TriangularCardProps> = ({
     </div>
   );
 };
+
+export default MultiElementCard;

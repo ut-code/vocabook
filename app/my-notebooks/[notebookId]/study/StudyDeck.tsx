@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useOptimistic, useRef, useState, useMemo } from "react";
+import { useEffect, useOptimistic, useRef, useState } from "react";
 import Link from "next/link";
 
 import { incrementViewCount, toggleStar } from "../../actions";
@@ -9,7 +9,7 @@ import StarCountEditor from "@/components/StarCountEditor";
 import { useStarColors } from "@/components/UseStarColors";
 import { starColorFor } from "@/lib/star-colors";
 import type { CardData } from "@/lib/card-data";
-import { TriangularCard } from "@/components/my-notebooks/MultiElement"; //三次元用の三角柱UIを導入
+import  MultiElementCard from "@/components/my-notebooks/MultiElement"; //三次元用の三角柱UIを導入
 
 type Card = {
   id: string;
@@ -63,10 +63,9 @@ export default function StudyDeck({
   });
 
   // 選択された frontColumn が先頭（1面目）に来るように並び替える
-  const activeColumns = useMemo(() => {
-    if (!rawActiveColumns.includes(frontColumn)) return rawActiveColumns;
-    return [frontColumn, ...rawActiveColumns.filter((col) => col !== frontColumn)];
-  }, [rawActiveColumns, frontColumn]);
+  const activeColumns = rawActiveColumns.includes(frontColumn)
+  ? [frontColumn, ...rawActiveColumns.filter((col) => col !== frontColumn)]
+  : rawActiveColumns;
 
   const senseColumns = activeColumns.slice(1);
 
@@ -76,27 +75,20 @@ export default function StudyDeck({
   // 3D多角柱のそれぞれの面に入れるコンテンツの準備
 
   const faces = activeColumns.map((colName) => {
-    // その列が見出し語（1列目）のデータか、それ以外の意味のデータかを判定
     const isHead = colName === columns[0];
     const value = isHead ? current?.data.head : primarySense[colName];
 
     return (
-      <div key={colName} className="flex flex-col items-center gap-2 text-center">
-        <span className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
-          {colName}
-        </span>
-        <span
-          className={
-            isHead
-              ? "text-2xl font-semibold text-black dark:text-zinc-50"
-              : "text-lg text-zinc-800 dark:text-zinc-200"
-          }
-        >
-          {value || "—"}
-        </span>
-      </div>
+      <CardFace
+        key={colName}
+        colName={colName}
+        value={value || "—"}
+        isHead={isHead}
+      />
     );
   });
+
+  
   // toggleStarの結果（サーバーの往復）を待たず、クリックした瞬間に★・回数・色を切り替えるためのUI
   // idも保持し、往復の間にカードを送り進めても別カードへ誤って適用されないようにする
   const [optimisticStar, setOptimisticStar] = useOptimistic(
@@ -183,7 +175,7 @@ export default function StudyDeck({
         {is3DMode ? (
           /* 3つの要素があるときは三角柱 */
           <div className="my-2 flex flex-col items-center gap-2">
-            <TriangularCard
+            <MultiElementCard
               key={current.id}
               faces={faces}
               columnNames={activeColumns}
@@ -321,6 +313,35 @@ export default function StudyDeck({
       >
         ← 単語帳に戻る
       </Link>
+    </div>
+  );
+}
+
+
+
+function CardFace({
+  colName,
+  value,
+  isHead,
+}: {
+  colName: string;
+  value: string;
+  isHead: boolean;
+}) {
+  return (
+    <div className="flex flex-col items-center gap-2 text-center">
+      <span className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
+        {colName}
+      </span>
+      <span
+        className={
+          isHead
+            ? "text-2xl font-semibold text-black dark:text-zinc-50"
+            : "text-lg text-zinc-800 dark:text-zinc-200"
+        }
+      >
+        {value}
+      </span>
     </div>
   );
 }
