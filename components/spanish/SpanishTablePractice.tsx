@@ -1,11 +1,16 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 // 文法表データの型定義
 export type GrammarTableRow = {
   label: string;
-  cells: string[];
+  cells: GrammarTableCell[];
+};
+
+export type GrammarTableCell = {
+  value: string;
+  colSpan: number;
 };
 
 export type GrammarTableData = {
@@ -13,15 +18,6 @@ export type GrammarTableData = {
   categoryTitle: string;
   headers: string[];
   rows: GrammarTableRow[];
-};
-
-// 単一セル問の型定義（カード出題モード用）
-export type SingleQuestionItem = {
-  id: string;
-  categoryTitle: string;
-  rowLabel: string;
-  colHeader: string;
-  answer: string;
 };
 
 // アルファベット基本文字とアクセント付き特殊文字の対応マップ
@@ -66,9 +62,17 @@ function cycleChar(char: string, direction: "up" | "down"): string {
 
 const SPECIAL_KEYS = ["á", "é", "í", "ó", "ú", "ñ", "ü", "¿", "¡"];
 
+// 空欄割合の選択肢 (パーセント)
+export type BlankRatioOption = "25" | "50" | "75" | "100";
+
 export default function SpanishTablePractice({ tables }: { tables: GrammarTableData[] }) {
   // カテゴリ選択状態（"all" または 各カテゴリのタイトル）
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  // 空欄の指定割合（25%, 50%, 75%, 100%）
+  const [blankRatio, setBlankRatio] = useState<BlankRatioOption>("50");
+
+  // 空欄対象セルのマスクマップ: key = `${tableIndex}-${rowIndex}-${colIndex}` -> boolean
+  const [blankMask, setBlankMask] = useState<Record<string, boolean>>({});
 
   // 入力グリッドの回答データ保持: key = `${tableIndex}-${rowIndex}-${colIndex}` -> value
   const [gridAnswers, setGridAnswers] = useState<Record<string, string>>({});
@@ -80,10 +84,74 @@ export default function SpanishTablePractice({ tables }: { tables: GrammarTableD
   // 各入力欄への参照を保持するMap
   const inputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
 
+  // 初回マウント参照
+  const isMountedRef = useRef(false);
+
   // 選択フィルタリング後のテーブル一覧
   const filteredTables = tables.filter(
     (t) => selectedCategory === "all" || t.categoryTitle === selectedCategory,
   );
+
+  /**
+   * 選択された割合に応じて、空欄にするセルをランダムに選出するマスク作成関数
+   */
+  const generateBlankMask = useCallback(
+    (targetTables: GrammarTableData[], ratioStr: BlankRatioOption) => {
+      const ratio = parseInt(ratioStr, 10) / 100;
+      const mask: Record<string, boolean> = {};
+
+      const allKeys: string[] = [];
+      targetTables.forEach((table, tIdx) => {
+        table.rows.forEach((row, rIdx) => {
+          row.cells.forEach((_, cIdx) => {
+            allKeys.push(`${tIdx}-${rIdx}-${cIdx}`);
+          });
+        });
+      });
+
+      if (ratioStr === "100") {
+        allKeys.forEach((k) => {
+          mask[k] = true;
+        });
+      } else {
+        // 対象のキーをランダムにシャッフルし、指定割合分を true（空欄）に設定
+        const keysCopy = [...allKeys];
+        for (let i = keysCopy.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [keysCopy[i], keysCopy[j]] = [keysCopy[j], keysCopy[i]];
+        }
+        const blankCount = Math.max(1, Math.round(allKeys.length * ratio));
+        keysCopy.slice(0, blankCount).forEach((k) => {
+          mask[k] = true;
+        });
+      }
+
+      return mask;
+    },
+    [],
+  );
+
+  /**
+   * 演習のリセット処理
+   */
+  const resetPractice = useCallback(
+    (cat: string, ratio: BlankRatioOption = blankRatio) => {
+      const tList = tables.filter((t) => cat === "all" || t.categoryTitle === cat);
+      const newMask = generateBlankMask(tList, ratio);
+      setBlankMask(newMask);
+      setGridAnswers({});
+      setIsChecked(false);
+    },
+    [tables, blankRatio, generateBlankMask],
+  );
+
+  // マウント時にランダム空欄マスクを生成
+  useEffect(() => {
+    if (!isMountedRef.current && tables.length > 0) {
+      isMountedRef.current = true;
+      resetPractice("all", "50");
+    }
+  }, [tables, resetPractice]);
 
   /**
    * セルに入力があったときの更新処理
@@ -103,29 +171,31 @@ export default function SpanishTablePractice({ tables }: { tables: GrammarTableD
   };
 
   /**
-   * 演習のリセット処理
-   */
-  const handleReset = useCallback(() => {
-    setGridAnswers({});
-    setIsChecked(false);
-  }, []);
-
-  /**
    * カテゴリ切替処理
    */
   const handleCategoryChange = (cat: string) => {
     setSelectedCategory(cat);
-    handleReset();
+    resetPractice(cat, blankRatio);
   };
 
   /**
-   * 入力キーボードイベント（↑ / ↓ 矢印キーでアクセント変換）
+   * 空欄割合変更処理
+   */
+  const handleBlankRatioChange = (ratio: BlankRatioOption) => {
+    setBlankRatio(ratio);
+    resetPractice(selectedCategory, ratio);
+  };
+
+  /**
+   * 入力キーボードイベント（↑ / ↓ 矢印キーでアクセント変換、Enterキーで答え合わせ送信または再挑戦）
    */
   const handleKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
     cellKey: string,
     currentValue: string,
   ) => {
+    if (e.nativeEvent.isComposing) return;
+
     if (e.key === "ArrowUp" || e.key === "ArrowDown") {
       e.preventDefault();
       const input = inputRefs.current.get(cellKey);
@@ -165,8 +235,31 @@ export default function SpanishTablePractice({ tables }: { tables: GrammarTableD
           }
         });
       }
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!isChecked) {
+        handleCheckAnswers();
+      } else {
+        resetPractice(selectedCategory, blankRatio);
+      }
     }
   };
+
+  // 答え合わせ状態でのEnterキーサポート
+  useEffect(() => {
+    if (!isChecked) return;
+
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Enter") {
+        if (e.isComposing) return;
+        e.preventDefault();
+        resetPractice(selectedCategory, blankRatio);
+      }
+    };
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+  }, [isChecked, resetPractice, selectedCategory, blankRatio]);
 
   /**
    * 特殊文字ボタンクリックでアクティブな入力欄へ文字挿入
@@ -192,47 +285,50 @@ export default function SpanishTablePractice({ tables }: { tables: GrammarTableD
 
   if (!tables || tables.length === 0) {
     return (
-      <div className="my-6 rounded-2xl border border-dashed border-zinc-300 p-6 text-center dark:border-zinc-700">
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+      <div className="my-6 rounded-2xl border border-dashed border-zinc-300 p-8 text-center dark:border-zinc-700">
+        <p className="text-base text-zinc-500 dark:text-zinc-400">
           文法表データが見つかりませんでした。
         </p>
       </div>
     );
   }
 
-  // 正解数の計算
-  let totalCells = 0;
+  // 正解数の計算 (空欄対象に指定されたセルのみを計算)
+  let totalBlankCells = 0;
   let correctCount = 0;
   filteredTables.forEach((table, tIdx) => {
     table.rows.forEach((row, rIdx) => {
-      row.cells.forEach((expected, cIdx) => {
-        totalCells += 1;
+      row.cells.forEach((cell, cIdx) => {
         const key = `${tIdx}-${rIdx}-${cIdx}`;
-        const userVal = (gridAnswers[key] || "").trim().toLowerCase();
-        if (userVal === expected.trim().toLowerCase()) {
-          correctCount += 1;
+        if (blankMask[key]) {
+          totalBlankCells += 1;
+          const userVal = (gridAnswers[key] || "").trim().toLowerCase();
+          if (userVal === cell.value.trim().toLowerCase()) {
+            correctCount += 1;
+          }
         }
       });
     });
   });
 
   return (
-    <div className="my-6 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+    <div className="my-8 rounded-2xl border border-zinc-200 bg-white p-6 md:p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
       {/* 設定・カテゴリ選択パネル */}
-      <div className="mb-6 rounded-xl border border-zinc-100 bg-zinc-50/80 p-4 dark:border-zinc-800/80 dark:bg-zinc-900/60">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center">
-            <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
-              カテゴリ選択:
+      <div className="mb-8 rounded-xl border border-zinc-100 bg-zinc-50/90 p-5 dark:border-zinc-800/80 dark:bg-zinc-900/60">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+          {/* カテゴリ選択 */}
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">
+              カテゴリ:
             </span>
-            <div className="flex flex-wrap gap-1">
+            <div className="flex flex-wrap gap-1.5">
               <button
                 type="button"
                 onClick={() => handleCategoryChange("all")}
-                className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-colors ${
+                className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors ${
                   selectedCategory === "all"
-                    ? "bg-teal-600 text-white dark:bg-teal-500"
-                    : "bg-white text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                    ? "bg-teal-600 text-white shadow-sm dark:bg-teal-500"
+                    : "bg-white text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
                 }`}
               >
                 全カテゴリ
@@ -242,13 +338,41 @@ export default function SpanishTablePractice({ tables }: { tables: GrammarTableD
                   key={t.categoryTitle}
                   type="button"
                   onClick={() => handleCategoryChange(t.categoryTitle)}
-                  className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-colors ${
+                  className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors ${
                     selectedCategory === t.categoryTitle
-                      ? "bg-teal-600 text-white dark:bg-teal-500"
-                      : "bg-white text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                      ? "bg-teal-600 text-white shadow-sm dark:bg-teal-500"
+                      : "bg-white text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
                   }`}
                 >
                   {t.categoryTitle}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 空欄割合選択 */}
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">
+              空欄の割合:
+            </span>
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                { label: "25%", value: "25" },
+                { label: "50%", value: "50" },
+                { label: "75%", value: "75" },
+                { label: "100%", value: "100" },
+              ].map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => handleBlankRatioChange(opt.value as BlankRatioOption)}
+                  className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors ${
+                    blankRatio === opt.value
+                      ? "bg-teal-600 text-white shadow-sm dark:bg-teal-500"
+                      : "bg-white text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+                  }`}
+                >
+                  {opt.label}
                 </button>
               ))}
             </div>
@@ -257,42 +381,42 @@ export default function SpanishTablePractice({ tables }: { tables: GrammarTableD
       </div>
 
       {/* 特殊文字ボタンパレット */}
-      <div className="mb-6 rounded-xl border border-zinc-200/80 bg-zinc-50/50 p-3 text-center dark:border-zinc-800/80 dark:bg-zinc-900/40">
-        <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
-          特殊文字入力 (フォーカス中のセルに挿入)
+      <div className="mb-8 rounded-xl border border-zinc-200/80 bg-zinc-50/50 p-4 text-center dark:border-zinc-800/80 dark:bg-zinc-900/40">
+        <span className="text-sm font-bold text-zinc-700 dark:text-zinc-300">
+          特殊文字入力パレット (選択中セルへ挿入)
         </span>
-        <div className="mt-2 flex flex-wrap items-center justify-center gap-1.5">
+        <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
           {SPECIAL_KEYS.map((char) => (
             <button
               key={char}
               type="button"
               onClick={() => handleInsertSpecialChar(char)}
-              className="h-8 w-8 rounded-lg border border-zinc-200 bg-white text-xs font-semibold text-zinc-700 transition-colors hover:bg-zinc-100 active:bg-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+              className="h-11 w-11 rounded-xl border border-zinc-300 bg-white text-lg font-bold text-zinc-800 shadow-sm transition-transform active:scale-95 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700"
             >
               {char}
             </button>
           ))}
         </div>
-        <p className="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+        <p className="mt-2.5 text-xs md:text-sm text-zinc-500 dark:text-zinc-400">
           💡 入力セルで <strong>↑ / ↓ 矢印キー</strong> を押してもアクセント記号（á, é, í, ó, ú, ñ
-          など）へ変換できます。
+          など）へ切り替えられます。
         </p>
       </div>
 
       {/* 文法表完成グリッド */}
-      <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-10">
         {filteredTables.map((table, tIdx) => (
           <div key={table.categoryTitle} className="overflow-x-auto">
-            <h3 className="mb-3 text-base font-bold text-zinc-900 dark:text-zinc-50">
+            <h3 className="mb-4 text-lg font-extrabold text-zinc-900 dark:text-zinc-50">
               【{table.categoryTitle}】
             </h3>
-            <table className="w-full border-collapse rounded-xl border border-zinc-200 text-left text-sm dark:border-zinc-800">
+            <table className="w-full border-collapse rounded-2xl border border-zinc-200 text-left text-base dark:border-zinc-800">
               <thead>
-                <tr className="bg-zinc-100 dark:bg-zinc-900">
+                <tr className="bg-zinc-100/80 dark:bg-zinc-900">
                   {table.headers.map((h, hIdx) => (
                     <th
                       key={hIdx}
-                      className="border border-zinc-200 p-2.5 font-semibold text-zinc-700 dark:border-zinc-800 dark:text-zinc-300"
+                      className="border border-zinc-200 p-3.5 font-bold text-zinc-800 dark:border-zinc-800 dark:text-zinc-200"
                     >
                       {h}
                     </th>
@@ -302,45 +426,56 @@ export default function SpanishTablePractice({ tables }: { tables: GrammarTableD
               <tbody>
                 {table.rows.map((row, rIdx) => (
                   <tr key={rIdx} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50">
-                    <td className="border border-zinc-200 p-2.5 font-medium text-zinc-800 dark:border-zinc-800 dark:text-zinc-200">
+                    <td className="border border-zinc-200 p-3.5 font-bold text-zinc-900 dark:border-zinc-800 dark:text-zinc-100 bg-zinc-50/30 dark:bg-zinc-900/30">
                       {row.label}
                     </td>
-                    {row.cells.map((expected, cIdx) => {
+                    {row.cells.map((cell, cIdx) => {
                       const key = `${tIdx}-${rIdx}-${cIdx}`;
+                      const isBlankTarget = blankMask[key];
                       const val = gridAnswers[key] || "";
                       const isCellCorrect =
-                        isChecked && val.trim().toLowerCase() === expected.trim().toLowerCase();
-                      const isCellWrong = isChecked && !isCellCorrect;
+                        isChecked && val.trim().toLowerCase() === cell.value.trim().toLowerCase();
+                      const isCellWrong = isChecked && isBlankTarget && !isCellCorrect;
 
                       return (
-                        <td key={cIdx} className="border border-zinc-200 p-2 dark:border-zinc-800">
-                          <div className="flex flex-col gap-1">
-                            <input
-                              ref={(el) => {
-                                if (el) inputRefs.current.set(key, el);
-                                else inputRefs.current.delete(key);
-                              }}
-                              type="text"
-                              value={val}
-                              disabled={isChecked}
-                              onFocus={() => setActiveInputKey(key)}
-                              onChange={(e) => handleCellChange(key, e.target.value)}
-                              onKeyDown={(e) => handleKeyDown(e, key, val)}
-                              placeholder="..."
-                              className={`w-full rounded-lg border px-2.5 py-1.5 text-sm font-medium outline-none transition-colors dark:bg-zinc-900 dark:text-zinc-50 ${
-                                isChecked
-                                  ? isCellCorrect
-                                    ? "border-emerald-500 bg-emerald-50 text-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-300"
-                                    : "border-rose-500 bg-rose-50 text-rose-900 dark:bg-rose-950/60 dark:text-rose-300"
-                                  : "border-zinc-300 bg-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500 dark:border-zinc-700 dark:focus:border-teal-400"
-                              }`}
-                            />
-                            {isCellWrong && (
-                              <span className="text-xs font-semibold text-rose-600 dark:text-rose-400">
-                                正解: {expected}
-                              </span>
-                            )}
-                          </div>
+                        <td
+                          key={cIdx}
+                          colSpan={cell.colSpan}
+                          className="border border-zinc-200 p-2.5 dark:border-zinc-800"
+                        >
+                          {isBlankTarget ? (
+                            <div className="flex flex-col gap-1">
+                              <input
+                                ref={(el) => {
+                                  if (el) inputRefs.current.set(key, el);
+                                  else inputRefs.current.delete(key);
+                                }}
+                                type="text"
+                                value={val}
+                                disabled={isChecked}
+                                onFocus={() => setActiveInputKey(key)}
+                                onChange={(e) => handleCellChange(key, e.target.value)}
+                                onKeyDown={(e) => handleKeyDown(e, key, val)}
+                                placeholder="..."
+                                className={`w-full rounded-xl border-2 px-3 py-2 text-base font-semibold outline-none transition-colors dark:bg-zinc-900 dark:text-zinc-50 ${
+                                  isChecked
+                                    ? isCellCorrect
+                                      ? "border-emerald-500 bg-emerald-50 text-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-300"
+                                      : "border-rose-500 bg-rose-50 text-rose-900 dark:bg-rose-950/60 dark:text-rose-300"
+                                    : "border-zinc-300 bg-white focus:border-teal-500 focus:ring-4 focus:ring-teal-500/20 dark:border-zinc-700 dark:focus:border-teal-400"
+                                }`}
+                              />
+                              {isCellWrong && (
+                                <span className="text-xs font-bold text-rose-600 dark:text-rose-400">
+                                  正解: {cell.value}
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="px-3 py-2 block font-semibold text-zinc-800 dark:text-zinc-200">
+                              {cell.value}
+                            </span>
+                          )}
                         </td>
                       );
                     })}
@@ -352,41 +487,43 @@ export default function SpanishTablePractice({ tables }: { tables: GrammarTableD
         ))}
       </div>
 
-      {/* スコア・操作ボタンエリア */}
-      <div className="mt-8 flex flex-col items-center gap-4">
+      {/* スコア・結果表示バッジ & 操作ボタンエリア */}
+      <div className="mt-10 flex flex-col items-center gap-6">
         {isChecked && (
-          <div className="text-center">
-            <p className="text-lg font-bold text-zinc-900 dark:text-zinc-50">
+          <div className="w-full max-w-xl rounded-2xl border border-emerald-200 bg-emerald-50 p-6 text-center font-medium text-emerald-900 shadow-sm dark:border-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-200">
+            <p className="text-2xl font-extrabold text-zinc-900 dark:text-zinc-50">
               答え合わせ結果:{" "}
-              <span className="text-teal-600 dark:text-teal-400">{correctCount}</span> /{" "}
-              {totalCells} 正解 (
-              {totalCells > 0 ? Math.round((correctCount / totalCells) * 100) : 0}%)
+              <span className="text-teal-600 dark:text-teal-400 text-3xl font-black">
+                {correctCount}
+              </span>{" "}
+              / {totalBlankCells} 空欄正解 (
+              {totalBlankCells > 0 ? Math.round((correctCount / totalBlankCells) * 100) : 0}%)
             </p>
           </div>
         )}
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           {!isChecked ? (
             <button
               type="button"
               onClick={handleCheckAnswers}
-              className="rounded-xl bg-teal-600 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-600"
+              className="rounded-2xl bg-teal-600 px-8 py-3.5 text-base font-bold text-white shadow-md transition-colors hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-600"
             >
               答え合わせ
             </button>
           ) : (
             <button
               type="button"
-              onClick={handleReset}
-              className="rounded-xl bg-teal-600 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-600"
+              onClick={() => resetPractice(selectedCategory, blankRatio)}
+              className="rounded-2xl bg-teal-600 px-8 py-3.5 text-base font-bold text-white shadow-md transition-colors hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-600"
             >
               もう一度挑戦する
             </button>
           )}
           <button
             type="button"
-            onClick={handleReset}
-            className="rounded-xl border border-zinc-200 px-4 py-2.5 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
+            onClick={() => resetPractice(selectedCategory, blankRatio)}
+            className="rounded-2xl border-2 border-zinc-200 px-6 py-3.5 text-base font-semibold text-zinc-600 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
           >
             リセット
           </button>

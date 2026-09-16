@@ -1,9 +1,25 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import SpanishTablePractice, {
+  type GrammarTableCell,
   type GrammarTableData,
   type GrammarTableRow,
 } from "./SpanishTablePractice";
+
+function mergeAdjacentCells(cells: string[]): GrammarTableCell[] {
+  const mergedCells: GrammarTableCell[] = [];
+
+  for (const value of cells) {
+    const previousCell = mergedCells.at(-1);
+    if (previousCell?.value === value) {
+      previousCell.colSpan += 1;
+    } else {
+      mergedCells.push({ value, colSpan: 1 });
+    }
+  }
+
+  return mergedCells;
+}
 
 /**
  * MDX教材ファイル（app/learn/spanish/03/page.mdx）から
@@ -55,7 +71,7 @@ async function getGrammarTablesFromMdx(): Promise<GrammarTableData[]> {
             currentHeaders = cells;
           } else {
             const label = cells[0];
-            const rowCells = cells.slice(1);
+            const rowCells = mergeAdjacentCells(cells.slice(1));
             currentRows.push({ label, cells: rowCells });
           }
         }
