@@ -166,10 +166,16 @@ export default function SpanishNumberPractice({ items }: { items: SpanishNumberI
       setIsAnswered(false);
       setIsCorrect(null);
       setIsTimeOut(false);
+      if (selectedTimer !== "off") {
+        setTimeLeft(parseInt(selectedTimer, 10));
+      } else {
+        setTimeLeft(null);
+      }
     } else {
       setIsFinished(true);
+      setTimeLeft(null);
     }
-  }, [currentIndex, questions.length]);
+  }, [currentIndex, questions.length, selectedTimer]);
 
   // タイムアウト時の自動解答処理
   const handleTimeOut = useCallback(() => {
@@ -182,12 +188,8 @@ export default function SpanishNumberPractice({ items }: { items: SpanishNumberI
   // 各問題の開始時、またはタイマー設定に応じたカウントダウン制御
   useEffect(() => {
     if (isFinished || isAnswered || selectedTimer === "off" || questions.length === 0) {
-      setTimeLeft(null);
       return;
     }
-
-    const initialTime = parseInt(selectedTimer, 10);
-    setTimeLeft(initialTime);
 
     const timerId = setInterval(() => {
       setTimeLeft((prev) => {
@@ -426,7 +428,9 @@ export default function SpanishNumberPractice({ items }: { items: SpanishNumberI
 
           {/* 制限時間選択 */}
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">制限時間:</span>
+            <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">
+              制限時間:
+            </span>
             <div className="flex flex-wrap gap-1.5">
               {[
                 { label: "なし", value: "off" },
@@ -457,8 +461,9 @@ export default function SpanishNumberPractice({ items }: { items: SpanishNumberI
         <div className="py-10 text-center">
           <h3 className="text-3xl font-extrabold text-zinc-900 dark:text-zinc-50">演習終了！</h3>
           <p className="mt-4 text-xl text-zinc-700 dark:text-zinc-300">
-            スコア: <span className="font-bold text-teal-600 dark:text-teal-400 text-2xl">{score}</span>{" "}
-            / {questions.length} (
+            スコア:{" "}
+            <span className="font-bold text-teal-600 dark:text-teal-400 text-2xl">{score}</span> /{" "}
+            {questions.length} (
             {questions.length > 0 ? Math.round((score / questions.length) * 100) : 0}%)
           </p>
           <button
@@ -475,7 +480,11 @@ export default function SpanishNumberPractice({ items }: { items: SpanishNumberI
           {/* 進捗・現在スコア・タイマー表示 */}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between text-sm font-bold text-zinc-600 dark:text-zinc-400">
             <span>
-              問題 <strong className="text-base text-zinc-900 dark:text-zinc-100">{currentIndex + 1}</strong> / {questions.length}
+              問題{" "}
+              <strong className="text-base text-zinc-900 dark:text-zinc-100">
+                {currentIndex + 1}
+              </strong>{" "}
+              / {questions.length}
             </span>
 
             {/* 制限時間カウントダウンバッジ */}
@@ -494,7 +503,10 @@ export default function SpanishNumberPractice({ items }: { items: SpanishNumberI
               </div>
             )}
 
-            <span>正解数: <strong className="text-base text-teal-600 dark:text-teal-400">{score}</strong></span>
+            <span>
+              正解数:{" "}
+              <strong className="text-base text-teal-600 dark:text-teal-400">{score}</strong>
+            </span>
           </div>
 
           {/* 制限時間のプログレスバー */}
@@ -565,7 +577,9 @@ export default function SpanishNumberPractice({ items }: { items: SpanishNumberI
               >
                 {isCorrect ? (
                   <div>
-                    <p className="text-xl font-black text-emerald-600 dark:text-emerald-400">✨ 正解です！</p>
+                    <p className="text-xl font-black text-emerald-600 dark:text-emerald-400">
+                      ✨ 正解です！
+                    </p>
                   </div>
                 ) : (
                   <div>
@@ -573,7 +587,10 @@ export default function SpanishNumberPractice({ items }: { items: SpanishNumberI
                       {isTimeOut ? "⏰ 時間切れです！" : "❌ 不正解です"}
                     </p>
                     <p className="mt-2 text-base font-semibold">
-                      正解: <span className="font-bold underline underline-offset-4 decoration-rose-400">{currentQuestion?.spanish}</span>
+                      正解:{" "}
+                      <span className="font-bold underline underline-offset-4 decoration-rose-400">
+                        {currentQuestion?.spanish}
+                      </span>
                     </p>
                   </div>
                 )}
