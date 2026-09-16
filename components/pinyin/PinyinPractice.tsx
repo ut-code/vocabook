@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { AccentInput } from "@/components/verbs/AccentInput";
 import { speak } from "@/lib/speech";
-import type { HanziEntry } from "@/app/learn/chinese/01/characters";
+import type { HanziEntry } from "@/app/learn/chinese/02/characters";
 
 // 母音ごとの声調サイクル。母音を入力した直後に ↑/↓ キーで
 // 第1声→第2声→第3声→第4声（→軽声）と切り替えられる。

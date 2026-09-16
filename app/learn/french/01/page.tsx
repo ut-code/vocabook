@@ -1,18 +1,16 @@
 "use client";
 
-import { ConjugationPractice } from "@/components/verbs/ConjugationPractice";
-import { frenchConjugationConfig } from "@/lib/conjugation/fr/config";
-import { verbs } from "./verbs";
+import { EssayPractice } from "@/components/essay/EssayPractice";
 
-export const title = "動詞の活用";
+export const title = "作文";
 
-export default function FrenchVerbConjugationPage() {
+export default function FrenchEssayPage() {
   return (
     <div>
-      <h1>動詞の活用</h1>
-      <p>動詞・時制・法を選んで、活用形を入力しながら覚えましょう。</p>
+      <h1>作文</h1>
+      <p>お題を選んでフランス語で作文を書き、AIに添削してもらいましょう。</p>
       <div className="mt-8">
-        <ConjugationPractice verbs={verbs} language={frenchConjugationConfig} sectionSlug="01" />
+        <EssayPractice languageSlug="french" languageLabel="フランス語" />
       </div>
     </div>
   );
