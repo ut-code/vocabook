@@ -47,6 +47,7 @@ async function getFillInQuestionsFromMdx(): Promise<FillInQuestionItem[]> {
             sentence: cells[0],
             translation: cells[1],
             answer: cells[2],
+            explanation: cells[3] || undefined,
           });
         }
       }

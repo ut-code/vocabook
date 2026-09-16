@@ -9,6 +9,7 @@ export type FillInQuestionItem = {
   sentence: string;
   translation: string;
   answer: string;
+  explanation?: string;
 };
 
 // アルファベット基本文字とアクセント付き特殊文字の対応マップ
@@ -53,7 +54,11 @@ function cycleChar(char: string, direction: "up" | "down"): string {
 
 const SPECIAL_KEYS = ["á", "é", "í", "ó", "ú", "ñ", "ü", "¿", "¡"];
 
+// 出題数の選択肢型定義
 export type CountOption = "5" | "10" | "20" | "all";
+
+// 制限時間の選択肢型定義（秒単位、"off"は無制限）
+export type TimerOption = "off" | "15" | "30" | "45";
 
 function filterItemsByCategory(
   items: FillInQuestionItem[],
@@ -73,8 +78,13 @@ function shuffleArray<T>(array: T[]): T[] {
 }
 
 export default function SpanishFillInPractice({ items }: { items: FillInQuestionItem[] }) {
+  // ユーザーが選択した設定状態（カテゴリ・問題数・制限時間）
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedCount, setSelectedCount] = useState<CountOption>("10");
+  const [selectedTimer, setSelectedTimer] = useState<TimerOption>("15");
+
+  // タイマー用の残り時間（秒）
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
 
   // カテゴリ一覧の取得
   const categories = Array.from(new Set(items.map((item) => item.categoryTitle)));
@@ -90,25 +100,47 @@ export default function SpanishFillInPractice({ items }: { items: FillInQuestion
     [],
   );
 
-  // 初期化時に items から直ちに問題セットを生成（useEffect内でのsetState呼び出しによるカスケードレンダリングを回避）
-  const [questions, setQuestions] = useState<FillInQuestionItem[]>(() =>
-    buildQuestions(items, "all", "10"),
-  );
+  // 初回マウントフラグ
+  const isMountedRef = useRef(false);
 
+  // クライアントハイドレーション一致のための問題状態
+  const [questions, setQuestions] = useState<FillInQuestionItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [userAnswer, setUserAnswer] = useState("");
   const [isAnswered, setIsAnswered] = useState(false);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+  const [isTimeOut, setIsTimeOut] = useState(false);
   const [score, setScore] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
 
   /**
-   * 範囲選択や出題数が変更された際、または再挑戦時に問題をリセットする処理
+   * 次の問題に進むか、全問題終了画面へ移行する処理
+   */
+  const goNext = useCallback(() => {
+    if (currentIndex + 1 < questions.length) {
+      setCurrentIndex((i) => i + 1);
+      setUserAnswer("");
+      setIsAnswered(false);
+      setIsCorrect(null);
+      setIsTimeOut(false);
+      if (selectedTimer !== "off") {
+        setTimeLeft(parseInt(selectedTimer, 10));
+      } else {
+        setTimeLeft(null);
+      }
+    } else {
+      setIsFinished(true);
+      setTimeLeft(null);
+    }
+  }, [currentIndex, questions.length, selectedTimer]);
+
+  /**
+   * 範囲選択や出題数・タイマー設定が変更された際、または再挑戦時に問題をリセットする処理
    */
   const resetQuiz = useCallback(
-    (cat: string, count: CountOption) => {
+    (cat: string, count: CountOption, timer: TimerOption = selectedTimer) => {
       const newQuestions = buildQuestions(items, cat, count);
       setQuestions(newQuestions);
       setCurrentIndex(0);
@@ -117,33 +149,80 @@ export default function SpanishFillInPractice({ items }: { items: FillInQuestion
       setIsAnswered(false);
       setUserAnswer("");
       setIsCorrect(null);
+      setIsTimeOut(false);
+      if (timer !== "off") {
+        setTimeLeft(parseInt(timer, 10));
+      } else {
+        setTimeLeft(null);
+      }
     },
-    [items, buildQuestions],
+    [items, buildQuestions, selectedTimer],
   );
+
+  // クライアントサイドでのマウント時に初回問題を生成
+  useEffect(() => {
+    if (!isMountedRef.current) {
+      isMountedRef.current = true;
+      resetQuiz("all", "10", "15");
+    }
+  }, [resetQuiz]);
+
+  // タイムアウト時の自動解答処理
+  const handleTimeOut = useCallback(() => {
+    if (isAnswered || isFinished) return;
+    setIsTimeOut(true);
+    setIsCorrect(false);
+    setIsAnswered(true);
+  }, [isAnswered, isFinished]);
+
+  // 各問題の開始時、またはタイマー設定に応じたカウントダウン制御
+  useEffect(() => {
+    if (isFinished || isAnswered || selectedTimer === "off" || questions.length === 0) {
+      return;
+    }
+
+    const timerId = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev === null || prev <= 1) {
+          clearInterval(timerId);
+          handleTimeOut();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timerId);
+  }, [currentIndex, isAnswered, isFinished, selectedTimer, questions.length, handleTimeOut]);
 
   // 新しい問題が表示された際、入力欄へ自動フォーカスをあてる
   useEffect(() => {
-    if (!isFinished && !isAnswered) {
+    if (!isFinished && !isAnswered && questions.length > 0) {
       inputRef.current?.focus();
     }
-  }, [currentIndex, isFinished, isAnswered]);
+  }, [currentIndex, isFinished, isAnswered, questions.length]);
 
   const currentQuestion = questions[currentIndex];
 
   const handleCategoryChange = (cat: string) => {
     setSelectedCategory(cat);
-    resetQuiz(cat, selectedCount);
+    resetQuiz(cat, selectedCount, selectedTimer);
   };
 
   const handleCountChange = (count: CountOption) => {
     setSelectedCount(count);
-    resetQuiz(selectedCategory, count);
+    resetQuiz(selectedCategory, count, selectedTimer);
+  };
+
+  const handleTimerChange = (timer: TimerOption) => {
+    setSelectedTimer(timer);
+    resetQuiz(selectedCategory, selectedCount, timer);
   };
 
   /**
    * 解答の送信および次問題への遷移処理
    */
-  const handleSubmit = () => {
+  const handleSubmit = useCallback(() => {
     if (isAnswered) {
       goNext();
       return;
@@ -160,31 +239,35 @@ export default function SpanishFillInPractice({ items }: { items: FillInQuestion
     if (correct) {
       setScore((s) => s + 1);
     }
-  };
+  }, [isAnswered, goNext, userAnswer, currentQuestion]);
 
-  /**
-   * 次の問題に進むか、全問題終了画面へ移行する処理
-   */
-  const goNext = () => {
-    if (currentIndex + 1 < questions.length) {
-      setCurrentIndex((i) => i + 1);
-      setUserAnswer("");
-      setIsAnswered(false);
-      setIsCorrect(null);
-    } else {
-      setIsFinished(true);
-    }
-  };
+  // 結果表示状態でフォーカスが外れていてもEnterキーを押せば次へ進むキーボードリスナー
+  useEffect(() => {
+    if (!isAnswered || isFinished) return;
+
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Enter") {
+        if (e.isComposing) return;
+        e.preventDefault();
+        goNext();
+      }
+    };
+
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+  }, [isAnswered, isFinished, goNext]);
 
   const handleSkip = () => {
     goNext();
   };
 
   /**
-   * キーボード入力ハンドラ。
+   * 入力欄でのキーボード入力ハンドラ。
    * ↑ / ↓ 矢印キーで文字のアクセント記号切り替えを行い、Enterキーで解答送信する。
    */
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.nativeEvent.isComposing) return;
+
     if (e.key === "ArrowUp" || e.key === "ArrowDown") {
       e.preventDefault();
       const input = inputRef.current;
@@ -223,6 +306,7 @@ export default function SpanishFillInPractice({ items }: { items: FillInQuestion
       }
     } else if (e.key === "Enter") {
       e.preventDefault();
+      e.stopPropagation();
       handleSubmit();
     }
   };
@@ -249,32 +333,39 @@ export default function SpanishFillInPractice({ items }: { items: FillInQuestion
 
   if (!items || items.length === 0) {
     return (
-      <div className="my-6 rounded-2xl border border-dashed border-zinc-300 p-6 text-center dark:border-zinc-700">
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+      <div className="my-6 rounded-2xl border border-dashed border-zinc-300 p-8 text-center dark:border-zinc-700">
+        <p className="text-base text-zinc-500 dark:text-zinc-400">
           出題データが見つかりませんでした。
         </p>
       </div>
     );
   }
 
+  // 制限時間バーの計算
+  const maxTimerSeconds = selectedTimer !== "off" ? parseInt(selectedTimer, 10) : 1;
+  const timerPercentage =
+    timeLeft !== null && selectedTimer !== "off"
+      ? Math.max(0, Math.min(100, (timeLeft / maxTimerSeconds) * 100))
+      : 100;
+
   return (
-    <div className="my-6 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-      {/* 設定パネル（カテゴリ選択 ＆ 出題数） */}
-      <div className="mb-6 rounded-xl border border-zinc-100 bg-zinc-50/80 p-4 dark:border-zinc-800/80 dark:bg-zinc-900/60">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="my-8 rounded-2xl border border-zinc-200 bg-white p-6 md:p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+      {/* 設定パネル（カテゴリ選択・出題数・制限時間） */}
+      <div className="mb-8 rounded-xl border border-zinc-100 bg-zinc-50/90 p-5 dark:border-zinc-800/80 dark:bg-zinc-900/60">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           {/* カテゴリ選択 */}
-          <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center">
-            <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">
               カテゴリ:
             </span>
-            <div className="flex flex-wrap gap-1">
+            <div className="flex flex-wrap gap-1.5">
               <button
                 type="button"
                 onClick={() => handleCategoryChange("all")}
-                className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-colors ${
+                className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors ${
                   selectedCategory === "all"
-                    ? "bg-teal-600 text-white dark:bg-teal-500"
-                    : "bg-white text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                    ? "bg-teal-600 text-white shadow-sm dark:bg-teal-500"
+                    : "bg-white text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
                 }`}
               >
                 全問題
@@ -284,10 +375,10 @@ export default function SpanishFillInPractice({ items }: { items: FillInQuestion
                   key={cat}
                   type="button"
                   onClick={() => handleCategoryChange(cat)}
-                  className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-colors ${
+                  className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors ${
                     selectedCategory === cat
-                      ? "bg-teal-600 text-white dark:bg-teal-500"
-                      : "bg-white text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                      ? "bg-teal-600 text-white shadow-sm dark:bg-teal-500"
+                      : "bg-white text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
                   }`}
                 >
                   {cat}
@@ -297,9 +388,9 @@ export default function SpanishFillInPractice({ items }: { items: FillInQuestion
           </div>
 
           {/* 出題数選択 */}
-          <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center">
-            <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">出題数:</span>
-            <div className="flex flex-wrap gap-1">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">出題数:</span>
+            <div className="flex flex-wrap gap-1.5">
               {[
                 { label: "5問", value: "5" },
                 { label: "10問", value: "10" },
@@ -310,10 +401,38 @@ export default function SpanishFillInPractice({ items }: { items: FillInQuestion
                   key={opt.value}
                   type="button"
                   onClick={() => handleCountChange(opt.value as CountOption)}
-                  className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-colors ${
+                  className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors ${
                     selectedCount === opt.value
-                      ? "bg-teal-600 text-white dark:bg-teal-500"
-                      : "bg-white text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                      ? "bg-teal-600 text-white shadow-sm dark:bg-teal-500"
+                      : "bg-white text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 制限時間選択（ゲーム要素: 15秒, 30秒, 45秒） */}
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">
+              制限時間:
+            </span>
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                { label: "なし", value: "off" },
+                { label: "15秒", value: "15" },
+                { label: "30秒", value: "30" },
+                { label: "45秒", value: "45" },
+              ].map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => handleTimerChange(opt.value as TimerOption)}
+                  className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors ${
+                    selectedTimer === opt.value
+                      ? "bg-teal-600 text-white shadow-sm dark:bg-teal-500"
+                      : "bg-white text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
                   }`}
                 >
                   {opt.label}
@@ -326,17 +445,18 @@ export default function SpanishFillInPractice({ items }: { items: FillInQuestion
 
       {isFinished ? (
         /* 全問題完了時のスコア結果画面 */
-        <div className="py-8 text-center">
-          <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">演習終了！</h3>
-          <p className="mt-3 text-lg text-zinc-700 dark:text-zinc-300">
-            スコア: <span className="font-semibold text-teal-600 dark:text-teal-400">{score}</span>{" "}
-            / {questions.length} (
+        <div className="py-10 text-center">
+          <h3 className="text-3xl font-extrabold text-zinc-900 dark:text-zinc-50">演習終了！</h3>
+          <p className="mt-4 text-xl text-zinc-700 dark:text-zinc-300">
+            スコア:{" "}
+            <span className="font-bold text-teal-600 dark:text-teal-400 text-2xl">{score}</span> /{" "}
+            {questions.length} (
             {questions.length > 0 ? Math.round((score / questions.length) * 100) : 0}%)
           </p>
           <button
             type="button"
-            onClick={() => resetQuiz(selectedCategory, selectedCount)}
-            className="mt-6 inline-flex items-center rounded-xl bg-teal-600 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-600"
+            onClick={() => resetQuiz(selectedCategory, selectedCount, selectedTimer)}
+            className="mt-8 inline-flex items-center rounded-xl bg-teal-600 px-8 py-3.5 text-base font-bold text-white shadow-md transition-colors hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-600"
           >
             もう一度挑戦する
           </button>
@@ -344,30 +464,66 @@ export default function SpanishFillInPractice({ items }: { items: FillInQuestion
       ) : (
         /* 演習中画面 */
         <>
-          {/* 進捗と現在スコア表示 */}
-          <div className="flex items-center justify-between text-xs font-semibold text-zinc-500 dark:text-zinc-400">
+          {/* 進捗・現在スコア・タイマー表示 */}
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between text-sm font-bold text-zinc-600 dark:text-zinc-400">
             <span>
-              問題 {currentIndex + 1} / {questions.length}
+              問題{" "}
+              <strong className="text-base text-zinc-900 dark:text-zinc-100">
+                {currentIndex + 1}
+              </strong>{" "}
+              / {questions.length}
             </span>
-            <span>正解数: {score}</span>
+
+            {/* 制限時間カウントダウンバッジ */}
+            {selectedTimer !== "off" && (
+              <div className="flex items-center gap-2">
+                <span>⏱️ 残り時間:</span>
+                <span
+                  className={`text-base font-extrabold px-2.5 py-0.5 rounded-md ${
+                    timeLeft !== null && timeLeft <= 5
+                      ? "bg-rose-100 text-rose-600 dark:bg-rose-950 dark:text-rose-400 animate-pulse"
+                      : "bg-teal-50 text-teal-700 dark:bg-teal-950 dark:text-teal-300"
+                  }`}
+                >
+                  {timeLeft !== null ? `${timeLeft}秒` : "-"}
+                </span>
+              </div>
+            )}
+
+            <span>
+              正解数:{" "}
+              <strong className="text-base text-teal-600 dark:text-teal-400">{score}</strong>
+            </span>
           </div>
 
+          {/* 制限時間のプログレスバー */}
+          {selectedTimer !== "off" && (
+            <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+              <div
+                className={`h-full transition-all duration-1000 ease-linear ${
+                  timeLeft !== null && timeLeft <= 5 ? "bg-rose-500" : "bg-teal-500"
+                }`}
+                style={{ width: `${timerPercentage}%` }}
+              />
+            </div>
+          )}
+
           {/* 出題カード表示 */}
-          <div className="mt-6 text-center">
-            <span className="inline-block rounded-full bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-600 dark:bg-teal-950/60 dark:text-teal-400">
+          <div className="mt-8 text-center">
+            <span className="inline-block rounded-full bg-teal-50 px-4 py-1.5 text-sm font-bold text-teal-700 dark:bg-teal-950/70 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
               {currentQuestion?.categoryTitle}
             </span>
-            <div className="mt-4 text-2xl font-extrabold tracking-tight text-zinc-900 sm:text-3xl dark:text-zinc-50">
+            <div className="mt-5 text-3xl md:text-4xl font-black tracking-tight text-zinc-900 dark:text-zinc-50 leading-snug">
               {currentQuestion?.sentence}
             </div>
-            <div className="mt-2 text-sm font-medium text-zinc-500 dark:text-zinc-400">
+            <div className="mt-3 text-base md:text-lg font-medium text-zinc-600 dark:text-zinc-400">
               {currentQuestion?.translation}
             </div>
           </div>
 
           {/* 解答入力エリア */}
-          <div className="mt-6 flex flex-col items-center">
-            <div className="w-full max-w-md">
+          <div className="mt-8 flex flex-col items-center">
+            <div className="w-full max-w-lg">
               <input
                 ref={inputRef}
                 type="text"
@@ -376,25 +532,25 @@ export default function SpanishFillInPractice({ items }: { items: FillInQuestion
                 onChange={(e) => setUserAnswer(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="空欄に入る適切な語形を入力..."
-                className="w-full rounded-xl border border-zinc-300 bg-white px-4 py-3 text-center text-lg font-medium text-zinc-900 outline-none transition-colors focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 disabled:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:focus:border-teal-400 dark:disabled:bg-zinc-800"
+                className="w-full rounded-2xl border-2 border-zinc-300 bg-white px-5 py-4 text-center text-2xl font-semibold text-zinc-900 outline-none transition-colors focus:border-teal-500 focus:ring-4 focus:ring-teal-500/20 disabled:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:focus:border-teal-400 dark:disabled:bg-zinc-800"
               />
 
               {/* 特殊文字ボタンキーボード */}
-              <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5">
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
                 {SPECIAL_KEYS.map((char) => (
                   <button
                     key={char}
                     type="button"
                     onClick={() => handleInsertSpecialChar(char)}
                     disabled={isAnswered}
-                    className="h-9 w-9 rounded-lg border border-zinc-200 bg-zinc-50 text-sm font-semibold text-zinc-700 transition-colors hover:bg-zinc-100 active:bg-zinc-200 disabled:opacity-40 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+                    className="h-11 w-11 rounded-xl border border-zinc-300 bg-zinc-50 text-lg font-bold text-zinc-800 shadow-sm transition-transform active:scale-95 hover:bg-zinc-100 disabled:opacity-40 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700"
                   >
                     {char}
                   </button>
                 ))}
               </div>
 
-              <p className="mt-2 text-center text-xs text-zinc-500 dark:text-zinc-400">
+              <p className="mt-3 text-center text-xs md:text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">
                 💡 <strong>↑ / ↓ 矢印キー</strong> で文字にアクセント記号（á, é, í, ó, ú, ñ
                 など）を付与・切替できます。
               </p>
@@ -403,32 +559,51 @@ export default function SpanishFillInPractice({ items }: { items: FillInQuestion
             {/* 判定結果バッジ */}
             {isAnswered && (
               <div
-                className={`mt-4 w-full max-w-md rounded-xl p-4 text-center font-medium ${
+                className={`mt-6 w-full max-w-lg rounded-2xl p-5 text-center font-medium shadow-sm transition-all ${
                   isCorrect
-                    ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
-                    : "bg-rose-50 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300"
+                    ? "bg-emerald-50 text-emerald-900 dark:bg-emerald-950/70 dark:text-emerald-200 border border-emerald-200 dark:border-emerald-800"
+                    : "bg-rose-50 text-rose-900 dark:bg-rose-950/70 dark:text-rose-200 border border-rose-200 dark:border-rose-800"
                 }`}
               >
                 {isCorrect ? (
-                  <p className="text-base font-bold">正解です！</p>
+                  <div>
+                    <p className="text-xl font-black text-emerald-600 dark:text-emerald-400">
+                      ✨ 正解です！
+                    </p>
+                    {currentQuestion?.explanation && (
+                      <p className="mt-2 text-sm text-emerald-800 dark:text-emerald-200">
+                        💡 <strong>解説:</strong> {currentQuestion.explanation}
+                      </p>
+                    )}
+                  </div>
                 ) : (
                   <div>
-                    <p className="text-base font-bold">不正解です</p>
-                    <p className="mt-1 text-sm">
-                      正解: <span className="font-semibold">{currentQuestion?.answer}</span>
+                    <p className="text-xl font-black text-rose-600 dark:text-rose-400">
+                      {isTimeOut ? "⏰ 時間切れです！" : "❌ 不正解です"}
                     </p>
+                    <p className="mt-2 text-base font-semibold">
+                      正解:{" "}
+                      <span className="font-bold underline underline-offset-4 decoration-rose-400">
+                        {currentQuestion?.answer}
+                      </span>
+                    </p>
+                    {currentQuestion?.explanation && (
+                      <p className="mt-3 text-sm text-rose-800 dark:text-rose-200 border-t border-rose-200/60 dark:border-rose-800/60 pt-2 text-left">
+                        💡 <strong>解説:</strong> {currentQuestion.explanation}
+                      </p>
+                    )}
                   </div>
                 )}
               </div>
             )}
 
             {/* 操作ボタン */}
-            <div className="mt-6 flex items-center gap-3">
+            <div className="mt-8 flex items-center gap-4">
               {isAnswered ? (
                 <button
                   type="button"
                   onClick={goNext}
-                  className="rounded-xl bg-teal-600 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-600"
+                  className="rounded-2xl bg-teal-600 px-8 py-3.5 text-base font-bold text-white shadow-md transition-colors hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-600"
                 >
                   {currentIndex + 1 < questions.length ? "次の問題へ" : "結果を見る"}
                 </button>
@@ -437,14 +612,14 @@ export default function SpanishFillInPractice({ items }: { items: FillInQuestion
                   <button
                     type="button"
                     onClick={handleSubmit}
-                    className="rounded-xl bg-teal-600 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-600"
+                    className="rounded-2xl bg-teal-600 px-8 py-3.5 text-base font-bold text-white shadow-md transition-colors hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-600"
                   >
                     回答する
                   </button>
                   <button
                     type="button"
                     onClick={handleSkip}
-                    className="rounded-xl border border-zinc-200 px-4 py-2.5 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                    className="rounded-2xl border-2 border-zinc-200 px-6 py-3.5 text-base font-semibold text-zinc-600 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
                   >
                     パス
                   </button>
