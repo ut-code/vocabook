@@ -280,7 +280,9 @@ export function TranslationPractice({ languageSlug, languageLabel }: Translation
               <div className="space-y-2 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900/50">
                 <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-200">
                   原文（
-                  {direction === "fromJapanese" ? "日本語で入力してください" : `${languageLabel}で入力してください`}
+                  {direction === "fromJapanese"
+                    ? "日本語で入力してください"
+                    : `${languageLabel}で入力してください`}
                   ）
                 </label>
                 <textarea
