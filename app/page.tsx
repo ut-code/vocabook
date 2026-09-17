@@ -62,7 +62,11 @@ export default function Home() {
 
       <section className="grid w-full max-w-5xl grid-cols-1 gap-8 px-6 pb-28 sm:grid-cols-2">
         <div className="group relative flex flex-col gap-6 rounded-3xl border border-coral-200 bg-white p-8 text-left transition-all hover:-translate-y-1 hover:border-coral-300 hover:shadow-xl hover:shadow-coral-100 sm:p-9 dark:border-coral-900/40 dark:bg-zinc-950 dark:hover:border-coral-700/60 dark:hover:shadow-none">
-          <Link href="/my-notebooks" className="absolute inset-0 z-0 rounded-3xl" aria-label="単語帳を作ってみる" />
+          <Link
+            href="/my-notebooks"
+            className="absolute inset-0 z-0 rounded-3xl"
+            aria-label="単語帳を作ってみる"
+          />
 
           <div className="pointer-events-none relative z-10">
             <h2 className="text-2xl font-bold text-coral-900 dark:text-coral-100">My単語帳</h2>
@@ -121,7 +125,11 @@ export default function Home() {
         </div>
 
         <div className="group relative flex flex-col gap-6 rounded-3xl border border-tealblue-200 bg-white p-8 text-left transition-all hover:-translate-y-1 hover:border-tealblue-300 hover:shadow-xl hover:shadow-tealblue-100 sm:p-9 dark:border-tealblue-900/40 dark:bg-zinc-950 dark:hover:border-tealblue-700/60 dark:hover:shadow-none">
-          <Link href="/learn" className="absolute inset-0 z-0 rounded-3xl" aria-label="学習教材を見てみる" />
+          <Link
+            href="/learn"
+            className="absolute inset-0 z-0 rounded-3xl"
+            aria-label="学習教材を見てみる"
+          />
 
           <div className="pointer-events-none relative z-10">
             <h2 className="text-2xl font-bold text-tealblue-900 dark:text-tealblue-100">

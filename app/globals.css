@@ -237,51 +237,135 @@ VOCABOOKと同じvw単位で揃えることで、画面の縦横比によらず�
 （このvw値とbackground.tsxのVERTEX_OFFSET_VWは連動しているため、フォントサイズや
 文字の高さの比率を変えたら両方を再計算すること） */
 @keyframes vb-wave-dip {
-  0% { transform: translate(-50%, -50%) translate(62vw, 0vw) rotate(-14.12deg); }
-  5% { transform: translate(-50%, -50%) translate(55.8vw, 2.56vw) rotate(-12.76deg); }
-  10% { transform: translate(-50%, -50%) translate(49.6vw, 4.85vw) rotate(-11.38deg); }
-  15% { transform: translate(-50%, -50%) translate(43.4vw, 6.87vw) rotate(-9.99deg); }
-  20% { transform: translate(-50%, -50%) translate(37.2vw, 8.62vw) rotate(-8.58deg); }
-  25% { transform: translate(-50%, -50%) translate(31vw, 10.10vw) rotate(-7.17deg); }
-  30% { transform: translate(-50%, -50%) translate(24.8vw, 11.31vw) rotate(-5.75deg); }
-  35% { transform: translate(-50%, -50%) translate(18.6vw, 12.25vw) rotate(-4.32deg); }
-  40% { transform: translate(-50%, -50%) translate(12.4vw, 12.93vw) rotate(-2.88deg); }
-  45% { transform: translate(-50%, -50%) translate(6.2vw, 13.33vw) rotate(-1.44deg); }
-  50% { transform: translate(-50%, -50%) translate(0vw, 13.46vw) rotate(0deg); }
-  55% { transform: translate(-50%, -50%) translate(-6.2vw, 13.33vw) rotate(1.44deg); }
-  60% { transform: translate(-50%, -50%) translate(-12.4vw, 12.93vw) rotate(2.88deg); }
-  65% { transform: translate(-50%, -50%) translate(-18.6vw, 12.25vw) rotate(4.32deg); }
-  70% { transform: translate(-50%, -50%) translate(-24.8vw, 11.31vw) rotate(5.75deg); }
-  75% { transform: translate(-50%, -50%) translate(-31vw, 10.10vw) rotate(7.17deg); }
-  80% { transform: translate(-50%, -50%) translate(-37.2vw, 8.62vw) rotate(8.58deg); }
-  85% { transform: translate(-50%, -50%) translate(-43.4vw, 6.87vw) rotate(9.99deg); }
-  90% { transform: translate(-50%, -50%) translate(-49.6vw, 4.85vw) rotate(11.38deg); }
-  95% { transform: translate(-50%, -50%) translate(-55.8vw, 2.56vw) rotate(12.76deg); }
-  100% { transform: translate(-50%, -50%) translate(-62vw, 0vw) rotate(14.12deg); }
+  0% {
+    transform: translate(-50%, -50%) translate(62vw, 0vw) rotate(-14.12deg);
+  }
+  5% {
+    transform: translate(-50%, -50%) translate(55.8vw, 2.56vw) rotate(-12.76deg);
+  }
+  10% {
+    transform: translate(-50%, -50%) translate(49.6vw, 4.85vw) rotate(-11.38deg);
+  }
+  15% {
+    transform: translate(-50%, -50%) translate(43.4vw, 6.87vw) rotate(-9.99deg);
+  }
+  20% {
+    transform: translate(-50%, -50%) translate(37.2vw, 8.62vw) rotate(-8.58deg);
+  }
+  25% {
+    transform: translate(-50%, -50%) translate(31vw, 10.1vw) rotate(-7.17deg);
+  }
+  30% {
+    transform: translate(-50%, -50%) translate(24.8vw, 11.31vw) rotate(-5.75deg);
+  }
+  35% {
+    transform: translate(-50%, -50%) translate(18.6vw, 12.25vw) rotate(-4.32deg);
+  }
+  40% {
+    transform: translate(-50%, -50%) translate(12.4vw, 12.93vw) rotate(-2.88deg);
+  }
+  45% {
+    transform: translate(-50%, -50%) translate(6.2vw, 13.33vw) rotate(-1.44deg);
+  }
+  50% {
+    transform: translate(-50%, -50%) translate(0vw, 13.46vw) rotate(0deg);
+  }
+  55% {
+    transform: translate(-50%, -50%) translate(-6.2vw, 13.33vw) rotate(1.44deg);
+  }
+  60% {
+    transform: translate(-50%, -50%) translate(-12.4vw, 12.93vw) rotate(2.88deg);
+  }
+  65% {
+    transform: translate(-50%, -50%) translate(-18.6vw, 12.25vw) rotate(4.32deg);
+  }
+  70% {
+    transform: translate(-50%, -50%) translate(-24.8vw, 11.31vw) rotate(5.75deg);
+  }
+  75% {
+    transform: translate(-50%, -50%) translate(-31vw, 10.1vw) rotate(7.17deg);
+  }
+  80% {
+    transform: translate(-50%, -50%) translate(-37.2vw, 8.62vw) rotate(8.58deg);
+  }
+  85% {
+    transform: translate(-50%, -50%) translate(-43.4vw, 6.87vw) rotate(9.99deg);
+  }
+  90% {
+    transform: translate(-50%, -50%) translate(-49.6vw, 4.85vw) rotate(11.38deg);
+  }
+  95% {
+    transform: translate(-50%, -50%) translate(-55.8vw, 2.56vw) rotate(12.76deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) translate(-62vw, 0vw) rotate(14.12deg);
+  }
 }
 
 @keyframes vb-wave-peak {
-  0% { transform: translate(-50%, -50%) translate(62vw, 0vw) rotate(14.12deg); }
-  5% { transform: translate(-50%, -50%) translate(55.8vw, -2.56vw) rotate(12.76deg); }
-  10% { transform: translate(-50%, -50%) translate(49.6vw, -4.85vw) rotate(11.38deg); }
-  15% { transform: translate(-50%, -50%) translate(43.4vw, -6.87vw) rotate(9.99deg); }
-  20% { transform: translate(-50%, -50%) translate(37.2vw, -8.62vw) rotate(8.58deg); }
-  25% { transform: translate(-50%, -50%) translate(31vw, -10.10vw) rotate(7.17deg); }
-  30% { transform: translate(-50%, -50%) translate(24.8vw, -11.31vw) rotate(5.75deg); }
-  35% { transform: translate(-50%, -50%) translate(18.6vw, -12.25vw) rotate(4.32deg); }
-  40% { transform: translate(-50%, -50%) translate(12.4vw, -12.93vw) rotate(2.88deg); }
-  45% { transform: translate(-50%, -50%) translate(6.2vw, -13.33vw) rotate(1.44deg); }
-  50% { transform: translate(-50%, -50%) translate(0vw, -13.46vw) rotate(0deg); }
-  55% { transform: translate(-50%, -50%) translate(-6.2vw, -13.33vw) rotate(-1.44deg); }
-  60% { transform: translate(-50%, -50%) translate(-12.4vw, -12.93vw) rotate(-2.88deg); }
-  65% { transform: translate(-50%, -50%) translate(-18.6vw, -12.25vw) rotate(-4.32deg); }
-  70% { transform: translate(-50%, -50%) translate(-24.8vw, -11.31vw) rotate(-5.75deg); }
-  75% { transform: translate(-50%, -50%) translate(-31vw, -10.10vw) rotate(-7.17deg); }
-  80% { transform: translate(-50%, -50%) translate(-37.2vw, -8.62vw) rotate(-8.58deg); }
-  85% { transform: translate(-50%, -50%) translate(-43.4vw, -6.87vw) rotate(-9.99deg); }
-  90% { transform: translate(-50%, -50%) translate(-49.6vw, -4.85vw) rotate(-11.38deg); }
-  95% { transform: translate(-50%, -50%) translate(-55.8vw, -2.56vw) rotate(-12.76deg); }
-  100% { transform: translate(-50%, -50%) translate(-62vw, 0vw) rotate(-14.12deg); }
+  0% {
+    transform: translate(-50%, -50%) translate(62vw, 0vw) rotate(14.12deg);
+  }
+  5% {
+    transform: translate(-50%, -50%) translate(55.8vw, -2.56vw) rotate(12.76deg);
+  }
+  10% {
+    transform: translate(-50%, -50%) translate(49.6vw, -4.85vw) rotate(11.38deg);
+  }
+  15% {
+    transform: translate(-50%, -50%) translate(43.4vw, -6.87vw) rotate(9.99deg);
+  }
+  20% {
+    transform: translate(-50%, -50%) translate(37.2vw, -8.62vw) rotate(8.58deg);
+  }
+  25% {
+    transform: translate(-50%, -50%) translate(31vw, -10.1vw) rotate(7.17deg);
+  }
+  30% {
+    transform: translate(-50%, -50%) translate(24.8vw, -11.31vw) rotate(5.75deg);
+  }
+  35% {
+    transform: translate(-50%, -50%) translate(18.6vw, -12.25vw) rotate(4.32deg);
+  }
+  40% {
+    transform: translate(-50%, -50%) translate(12.4vw, -12.93vw) rotate(2.88deg);
+  }
+  45% {
+    transform: translate(-50%, -50%) translate(6.2vw, -13.33vw) rotate(1.44deg);
+  }
+  50% {
+    transform: translate(-50%, -50%) translate(0vw, -13.46vw) rotate(0deg);
+  }
+  55% {
+    transform: translate(-50%, -50%) translate(-6.2vw, -13.33vw) rotate(-1.44deg);
+  }
+  60% {
+    transform: translate(-50%, -50%) translate(-12.4vw, -12.93vw) rotate(-2.88deg);
+  }
+  65% {
+    transform: translate(-50%, -50%) translate(-18.6vw, -12.25vw) rotate(-4.32deg);
+  }
+  70% {
+    transform: translate(-50%, -50%) translate(-24.8vw, -11.31vw) rotate(-5.75deg);
+  }
+  75% {
+    transform: translate(-50%, -50%) translate(-31vw, -10.1vw) rotate(-7.17deg);
+  }
+  80% {
+    transform: translate(-50%, -50%) translate(-37.2vw, -8.62vw) rotate(-8.58deg);
+  }
+  85% {
+    transform: translate(-50%, -50%) translate(-43.4vw, -6.87vw) rotate(-9.99deg);
+  }
+  90% {
+    transform: translate(-50%, -50%) translate(-49.6vw, -4.85vw) rotate(-11.38deg);
+  }
+  95% {
+    transform: translate(-50%, -50%) translate(-55.8vw, -2.56vw) rotate(-12.76deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) translate(-62vw, 0vw) rotate(-14.12deg);
+  }
 }
 
 .vb-wave-item {
