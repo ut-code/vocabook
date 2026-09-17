@@ -22,12 +22,12 @@ function mergeAdjacentCells(cells: string[]): GrammarTableCell[] {
 }
 
 /**
- * MDX教材ファイル（app/learn/spanish/03/page.mdx）から
+ * MDX教材ファイル（app/learn/spanish/04/page.mdx）から
  * 人称代名詞・冠詞・指示詞の各文法表データを動的に抽出する関数。
  * データのベタ打ちを排除し、教材ファイルを唯一のデータソースとして使用する。
  */
 async function getGrammarTablesFromMdx(): Promise<GrammarTableData[]> {
-  const filePath = path.join(process.cwd(), "app", "learn", "spanish", "03", "page.mdx");
+  const filePath = path.join(process.cwd(), "app", "learn", "spanish", "04", "page.mdx");
   const tables: GrammarTableData[] = [];
 
   try {

@@ -51,20 +51,21 @@ model Card {
 }
 
 model User {
-  id               String            @id
-  name             String
-  email            String
-  emailVerified    Boolean           @default(false)
-  username         String?
-  displayUsername  String?
-  image            String?
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  sessions         Session[]
-  accounts         Account[]
-  notebooks        Notebook[]
-  sectionProgress  SectionProgress[]
-  essaySubmissions EssaySubmission[]
+  id                     String                  @id
+  name                   String
+  email                  String
+  emailVerified          Boolean                 @default(false)
+  username               String?
+  displayUsername        String?
+  image                  String?
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  sessions               Session[]
+  accounts               Account[]
+  notebooks              Notebook[]
+  sectionProgress        SectionProgress[]
+  essaySubmissions       EssaySubmission[]
+  translationSubmissions TranslationSubmission[]
 
   @@unique([email])
   @@unique([username])
@@ -75,23 +76,23 @@ model User {
 // 「動詞の活用が苦手」「冠詞の一覧と縮約形が苦手」のように、セクション単位で苦手管理・復習日の提案を行う
 
 model SectionProgress {
-  id     String @id @default(cuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          String @id @default(cuid())
+  userId      String
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   // 言語スラッグ（例: "french"）
-  language String
+  language    String
   // セクションのスラッグ（例: "01"）。app/learn/[language]/[sectionSlug] に対応する
   sectionSlug String
 
   // クイズ形式のセクション（例: 動詞活用ドリル）でのみ増える。読み物セクションでは常に0のまま
-  attemptCount Int @default(0)
-  correctCount Int @default(0)
+  attemptCount   Int       @default(0)
+  correctCount   Int       @default(0)
   // Leitner式の箱番号（0〜6）。「正解」または「復習済みにする」操作のたび+1、誤答で0に戻る
-  box Int @default(0)
+  box            Int       @default(0)
   // クイズでの誤答による自動タグ。読み物セクションでは（誤答が存在しないため）常にfalseのまま
-  autoTagged Boolean @default(false)
+  autoTagged     Boolean   @default(false)
   // ユーザーが手動で付けたタグ。読み物セクションはこちらのみで苦手管理する
-  manuallyTagged Boolean @default(false)
+  manuallyTagged Boolean   @default(false)
   // 復習が必要かどうか（autoTagged・manuallyTaggedのいずれかがtrueならtrue）。一覧表示・絞り込みに使う
   needsReview    Boolean   @default(false)
   nextReviewAt   DateTime  @default(now())
@@ -105,16 +106,16 @@ model SectionProgress {
 
 // 作文セクション（/learn/essay/[language]）での1回分の提出・AI添削結果
 model EssaySubmission {
-  id     String @id @default(cuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id       String @id @default(cuid())
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   // 言語スラッグ（例: "french"）
   language String
 
   // お題の種類。"preset"ならlib/essay/topics.tsの事前用意お題、"custom"ならユーザー自身が指定したお題
-  topicSource String
+  topicSource     String
   // プリセットお題を選んだ場合の、lib/essay/topics.ts内での識別子。カスタムお題ではnull
-  topicId String?
+  topicId         String?
   // 実際に使われたお題文（プリセットの複製、またはユーザーが入力したお題）。
   // プリセット内容が将来変わっても過去の提出時点の文言を保てるよう複製して保持する
   topicPrompt     String
@@ -125,7 +126,40 @@ model EssaySubmission {
   // { vocabulary: {max,score,comment}, grammar: {...}, structure: {...}, content: {...}, overallComment }
   feedback Json
   // 採点に使ったOpenRouterのモデルID（監査・不具合調査用）
-  model String
+  model    String
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, language, createdAt])
+}
+
+// 翻訳セクション（/learn/[language]/02）での1回分の提出・AI添削結果
+model TranslationSubmission {
+  id       String @id @default(cuid())
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // 言語スラッグ（例: "french"）
+  language String
+
+  // 題材の種類。"preset"ならlib/translation/problems.tsの事前用意問題、"custom"ならユーザー自身が用意した原文
+  problemSource        String  @default("preset")
+  // 訳す方向。"fromJapanese"（和文→外国語）または"toJapanese"（外国語→和文）
+  direction            String
+  // プリセット問題を選んだ場合の、lib/translation/problems.ts内での識別子。カスタム題材ではnull
+  problemId            String?
+  // 出題時点の検定級（例: "仏検5級"）。プリセット内容が将来変わっても過去の提出時点の文言を保てるよう複製して保持する
+  level                String
+  // 出題時点の原文（同上の理由で複製して保持する）。カスタム題材ではユーザーが入力した原文
+  sourceText           String
+  // プリセット問題の模範解答（同上の理由で複製して保持する）。カスタム題材には模範解答が無いためnull
+  referenceTranslation String?
+  content              String
+
+  // AIによる採点・添削結果。項目分けせず、総合点1つで採点する（作文セクションと異なる点）
+  // { max, score, comment }
+  feedback Json
+  // 採点に使ったOpenRouterのモデルID（監査・不具合調査用）
+  model    String
 
   createdAt DateTime @default(now())
 

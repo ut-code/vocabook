@@ -1,44 +1,67 @@
-import SpanishFillInPracticeLoader from "@/components/spanish/SpanishFillInPracticeLoader";
+import SpanishTablePracticeLoader from "@/components/spanish/SpanishTablePracticeLoader";
 
-{/* セクションタイトルの定義（サイドバーや一覧ページで自動取得・表示される） */}
-export const title = "紛らわしい文法（ser/estar・点過去/線過去）穴埋め演習";
+export const title = "人称代名詞・冠詞・指示詞の表完成演習";
 
-# 紛らわしい文法（ser/estar・点過去/線過去）穴埋め演習
+# 人称代名詞・冠詞・指示詞の表完成演習
 
-{/* 穴埋め演習用コンポーネントの読み込み */}
+<SpanishTablePracticeLoader />
 
-<SpanishFillInPracticeLoader />
+{/* 出題データ定義テーブル (display:none) */}
 
 <div className="hidden" style={{ display: "none" }} aria-hidden="true">
 
-### ser と estar の使い分け
+### 人称代名詞 (主格・目的格・強勢形)
 
-| 例文 (問題文)             | 日本語訳・ヒント                 | 正解    | 解説                                                               |
-| ------------------------- | -------------------------------- | ------- | ------------------------------------------------------------------ |
-| Ella \_ profesora.        | 彼女は教員です。                 | es      | 職業・身分を表すため ser（三名単: es）を使用します。               |
-| Hoy \_ nublado.           | 今日は曇っています。             | está    | 一時的な天候・状態を表すため estar（三名単: está）を使用します。   |
-| Nosotros \_ en el parque. | 私たちは公園にいます。           | estamos | 居場所・所在を表すため estar（一人複: estamos）を使用します。      |
-| Juan \_ alto y simpático. | フアンは背が高くて親切です。     | es      | 性質・特徴を表すため ser（三名単: es）を使用します。               |
-| La sopa \_ muy fría.      | スープがとても冷えています。     | está    | 一時的な状態（温度）を表すため estar（三名単: está）を使用します。 |
-| Madrid \_ en España.      | マドリードはスペインにあります。 | está    | 位置・所在を表すため estar（三名単: está）を使用します。           |
-| Mis padres \_ abogados.   | 私の両親は弁護士です。           | son     | 職業・身分を表すため ser（三人複: son）を使用します。              |
-| ¿Dónde \_ las llaves?     | 鍵はどこにありますか？           | están   | 物の所在を表すため estar（三人複: están）を使用します。            |
-| Mañana \_ domingo.        | 明日は日曜日です。               | es      | 日時・曜日を表すため ser（三名単: es）を使用します。               |
-| El café \_ muy caliente.  | コーヒーがとても熱いです。       | está    | 一時的な状態（温度）を表すため estar（三名単: está）を使用します。 |
+| 人称・性数    | 主格 (〜は) | 直接目的格 (〜を) | 間接目的格 (〜に) | 強勢形 (前置詞の後) | 再帰代名詞 (自分を/に) |
+| ------------- | ----------- | ----------------- | ----------------- | ------------------- | ---------------------- |
+| 1人称単数     | yo          | me                | me                | mí                  | me                     |
+| 2人称単数     | tú          | te                | te                | ti                  | te                     |
+| 3人称単数男性 | él          | lo                | le                | él                  | se                     |
+| 3人称単数女性 | ella        | la                | le                | ella                | se                     |
+| 3人称単数敬称 | usted       | lo                | le                | usted               | se                     |
+| 1人称複数男性 | nosotros    | nos               | nos               | nosotros            | nos                    |
+| 1人称複数女性 | nosotras    | nos               | nos               | nosotras            | nos                    |
+| 2人称複数男性 | vosotros    | os                | os                | vosotros            | os                     |
+| 2人称複数女性 | vosotras    | os                | os                | vosotras            | os                     |
+| 3人称複数男性 | ellos       | los               | les               | ellos               | se                     |
+| 3人称複数女性 | ellas       | las               | les               | ellas               | se                     |
+| 3人称複数敬称 | ustedes     | los               | les               | ustedes             | se                     |
 
-### 線過去 と 点過去 の使い分け
+### 所有形容詞 (前置形: 名詞の前)
 
-| 例文 (問題文)                       | 日本語訳・ヒント                                    | 正解   | 解説                                                                       |
-| ----------------------------------- | --------------------------------------------------- | ------ | -------------------------------------------------------------------------- |
-| Yo \_ con María ayer.               | 私は昨日マリアと話した（hablar）。                  | hablé  | 「昨日（ayer）」完了した特定の過去の動作のため点過去を使用します。         |
-| Cuando yo \_ niño, vivía en Madrid. | 私が子供だったとき（ser）、マドリードに住んでいた。 | era    | 過去の継続的な状態（子供時代）を表すため線過去を使用します。               |
-| Ayer \_ un día maravilloso.         | 昨日は素晴らしい一日だった（ser）。                 | fue    | 「昨日（ayer）」という完了した期間の事実のため点過去を使用します。         |
-| Mientras yo estudiaba, él \_.       | 私は勉強していた間、彼は寝ていた（dormir）。        | dormía | 並行して続いていた過去の動作を表すため線過去を使用します。                 |
-| Todos los días yo \_ al parque.     | 毎日私は公園に行っていた（ir）。                    | iba    | 「毎日（Todos los días）」繰り返された過去の習慣のため線過去を使用します。 |
-| De repente, \_ a llover.            | 突然、雨が降り始めた（empezar）。                   | empezó | 「突然（De repente）」発生した過去の出来事・起点の文脈のため点過去を使用。 |
-| Cuando la vi, ella \_ 10 años.      | 私が彼女に会ったとき、彼女は10歳だった（tener）。   | tenía  | 過去の年齢・状態の背景描写のため線過去を使用します。                       |
-| El año pasado \_ a España.          | 去年、スペインへ旅行した（viajar）。                | viajé  | 「去年（El año pasado）」完了した過去の出来事のため点過去を使用します。    |
-| Siempre \_ en la calle.             | いつも通りで遊んでいた（jugar）。                   | jugaba | 「いつも（Siempre）」行っていた過去の習慣・反復動作のため線過去を使用。    |
-| Ayer \_ mucho frío.                 | 昨日はとても寒かった（hacer）。                     | hizo   | 「昨日（ayer）」完了した過去の特定の天候・気候状態のため点過去を使用。     |
+| 人称・所有者                                   | 男性単数名詞を修飾 | 女性単数名詞を修飾 | 男性複数名詞を修飾 | 女性複数名詞を修飾 |
+| ---------------------------------------------- | ------------------ | ------------------ | ------------------ | ------------------ |
+| 1人称単数 (私の)                               | mi                 | mi                 | mis                | mis                |
+| 2人称単数 (君の)                               | tu                 | tu                 | tus                | tus                |
+| 3人称単数・敬称 (彼の/彼女の/あなたの)         | su                 | su                 | sus                | sus                |
+| 1人称複数男性 (私たちの)                       | nuestro            | nuestra            | nuestros           | nuestras           |
+| 2人称複数男性 (君たちの)                       | vuestro            | vuestra            | vuestros           | vuestras           |
+| 3人称複数・敬称 (彼らの/彼女らの/あなたがたの) | su                 | su                 | sus                | sus                |
+
+### 所有代名詞 (〜のもの)
+
+| 人称・所有者                               | 男性単数 (〜の者/物) | 女性単数 | 男性複数 | 女性複数 |
+| ------------------------------------------ | -------------------- | -------- | -------- | -------- |
+| 1人称単数 (私のもの)                       | mío                  | mía      | míos     | mías     |
+| 2人称単数 (君のもの)                       | tuyo                 | tuya     | tuyos    | tuyas    |
+| 3人称単数・敬称 (彼の/彼女の/あなたのもの) | suyo                 | suya     | suyos    | suyas    |
+| 1人称複数 (私たちのもの)                   | nuestro              | nuestra  | nuestros | nuestras |
+| 2人称複数 (君たちのもの)                   | vuestro              | vuestra  | vuestros | vuestras |
+| 3人称複数 (彼らの/あなたがたのもの)        | suyo                 | suya     | suyos    | suyas    |
+
+### 冠詞 (定冠詞・不定冠詞)
+
+| 冠詞の種類                 | 男性単数 | 女性単数 | 男性複数 | 女性複数 |
+| -------------------------- | -------- | -------- | -------- | -------- |
+| 定冠詞 (その)              | el       | la       | los      | las      |
+| 不定冠詞 (ある/いくつかの) | un       | una      | unos     | unas     |
+
+### 指示詞 (指示形容詞・指示代名詞)
+
+| 位置・距離         | 男性単数 | 女性単数 | 男性複数 | 女性複数 | 中性    |
+| ------------------ | -------- | -------- | -------- | -------- | ------- |
+| これ / この (近称) | este     | esta     | estos    | estas    | esto    |
+| それ / その (中称) | ese      | esa      | esos     | esas     | eso     |
+| あれ / あの (遠称) | aquel    | aquella  | aquellos | aquellas | aquello |
 
 </div>
