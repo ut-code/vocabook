@@ -1,20 +1,18 @@
 "use client";
 
-import { PinyinPractice } from "@/components/pinyin/PinyinPractice";
-import { characters } from "./characters";
+import { EssayPractice } from "@/components/essay/EssayPractice";
 
-export const title = "漢字からピンイン";
+export const title = "作文";
 
-export default function ChinesePinyinPage() {
+export default function ChineseEssayPage() {
   return (
     <div>
-      <h1 className="text-2xl font-bold text-zinc-800 dark:text-zinc-100">漢字からピンイン</h1>
+      <h1 className="text-2xl font-bold text-zinc-800 dark:text-zinc-100">作文</h1>
       <p className="mt-2 text-zinc-600 dark:text-zinc-400">
-        基本的な漢字を1字ずつ見て、ピンインを入力しましょう。四声は母音を入力した直後に
-        ↑／↓キーで選べます。
+        お題を選んで中国語で作文を書き、AIに添削してもらいましょう。
       </p>
       <div className="mt-8">
-        <PinyinPractice characters={characters} />
+        <EssayPractice languageSlug="chinese" languageLabel="中国語" />
       </div>
     </div>
   );
