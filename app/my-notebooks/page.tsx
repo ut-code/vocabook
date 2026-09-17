@@ -55,7 +55,7 @@ export default async function MyNotebooksPage() {
             {notebooks.map((notebook) => (
               <li
                 key={notebook.id}
-                className="flex items-center justify-between gap-4 rounded-2xl border border-black/[.08] bg-white p-5 transition-colors hover:border-black/[.15] dark:border-white/[.145] dark:bg-zinc-950 dark:hover:border-white/[.25]"
+                className="flex items-center justify-between gap-4 rounded-2xl border border-coral-200 bg-white p-5 transition-all hover:-translate-y-1 hover:border-coral-300 hover:shadow-xl hover:shadow-coral-100 dark:border-coral-900/40 dark:bg-zinc-950 dark:hover:border-coral-700/60 dark:hover:shadow-none"
               >
                 <Link href={`/my-notebooks/${notebook.id}`} className="flex-1 text-left">
                   <p className="font-medium text-black dark:text-zinc-50">{notebook.title}</p>

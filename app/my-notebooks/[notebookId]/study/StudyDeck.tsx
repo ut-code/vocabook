@@ -153,7 +153,7 @@ export default function StudyDeck({
         >
           {columns.map((col) => (
             <option key={col} value={col}>
-              表: {col}
+              おもて: {col}
             </option>
           ))}
         </select>
@@ -285,7 +285,7 @@ export default function StudyDeck({
         <button
           type="button"
           onClick={shuffle}
-          className="rounded-full border border-black/[.08] px-4 py-2 text-sm transition-colors hover:border-black/[.15] dark:border-white/[.145] dark:hover:border-white/[.25]"
+          className="rounded-full border border-coral-300 px-4 py-2 text-sm text-coral-700 transition-colors hover:border-coral-500 hover:text-coral-800 dark:border-coral-900/50 dark:text-coral-300 dark:hover:border-coral-600 dark:hover:text-coral-200"
         >
           シャッフル
         </button>
@@ -293,7 +293,7 @@ export default function StudyDeck({
           type="button"
           onClick={goNext}
           disabled={index === order.length - 1}
-          className="rounded-full bg-black px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-40 dark:bg-zinc-50 dark:text-black dark:hover:bg-zinc-200"
+          className="rounded-full bg-coral-500 px-4 py-2 text-sm font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-coral-600 hover:shadow-lg hover:shadow-coral-200 disabled:opacity-40 dark:hover:shadow-none"
         >
           次へ
         </button>

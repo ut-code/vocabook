@@ -67,7 +67,7 @@ export default function CardFieldsForm({
                 type="button"
                 onClick={() => removeSense(sense.key)}
                 disabled={senses.length <= 1}
-                className="text-xs text-zinc-500 transition-colors hover:underline disabled:opacity-30 dark:text-zinc-500"
+                className="text-xs text-coral-600 transition-all hover:-translate-y-0.5 hover:text-coral-800 hover:underline disabled:opacity-30 dark:text-coral-400 dark:hover:text-coral-200"
               >
                 この意味を削除
               </button>
@@ -76,7 +76,7 @@ export default function CardFieldsForm({
           <button
             type="button"
             onClick={addSense}
-            className="self-start text-xs text-zinc-600 transition-colors hover:underline dark:text-zinc-400"
+            className="self-start text-xs text-coral-600 transition-all hover:-translate-y-0.5 hover:text-coral-800 hover:underline dark:text-coral-400 dark:hover:text-coral-200"
           >
             ＋ 意味を追加
           </button>

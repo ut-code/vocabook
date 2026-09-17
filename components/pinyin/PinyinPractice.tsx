@@ -314,7 +314,7 @@ export function PinyinPractice({ characters }: PinyinPracticeProps) {
         </span>
       </div>
 
-      <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-900/50">
+      <div className="rounded-2xl bg-white p-6 shadow-sm dark:bg-zinc-900/50">
         <div className="mb-2 text-center text-xs font-medium text-zinc-400 dark:text-zinc-500">
           この漢字のピンインは？
         </div>

@@ -27,7 +27,7 @@ export default async function LearnPage() {
             <Link
               key={language.languageSlug}
               href={`/learn/${language.languageSlug}`}
-              className="group flex items-center justify-between rounded-2xl border border-black/[.08] bg-white p-6 transition-all hover:border-tealblue-400/60 hover:shadow-sm dark:border-white/[.145] dark:bg-zinc-950 dark:hover:border-tealblue-600/60"
+              className="group flex items-center justify-between rounded-2xl border border-tealblue-200 bg-white p-6 transition-all hover:-translate-y-1 hover:border-tealblue-300 hover:shadow-xl hover:shadow-tealblue-100 dark:border-tealblue-900/40 dark:bg-zinc-950 dark:hover:border-tealblue-700/60 dark:hover:shadow-none"
             >
               <div className="flex flex-col gap-1 text-left">
                 <span className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">

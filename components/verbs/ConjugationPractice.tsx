@@ -359,7 +359,7 @@ export function ConjugationPractice<V extends VerbLike, T>({
         </span>
       </div>
 
-      <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-900/50">
+      <div className="rounded-2xl bg-white p-6 shadow-sm dark:bg-zinc-900/50">
         <div className="mb-4 flex items-center justify-center gap-2">
           <span className="rounded-full bg-tealblue-50 px-3 py-1 text-xs font-bold text-tealblue-700 dark:bg-tealblue-900/30 dark:text-tealblue-300">
             {question.tenseLabel}

@@ -8,6 +8,7 @@ interface MultiElementCardProps {
   columnNames?: string[];
   width?: number;
   height?: number;
+  showHint?: boolean;
 }
 
 //以下多要素単語帳のカード
@@ -16,6 +17,7 @@ const MultiElementCard: React.FC<MultiElementCardProps> = ({
   columnNames = [],
   width = 340,
   height = 220,
+  showHint = true,
 }) => {
   //回転回数の記録
   const [rotationStep, setRotationStep] = useState(0);
@@ -26,6 +28,10 @@ const MultiElementCard: React.FC<MultiElementCardProps> = ({
 
   // 正多角形の重心から面までの距離（奥行き押し出し量）
   const tz = Math.round(width / (2 * Math.tan(Math.PI / numFaces)));
+
+  // 視点を上に持ち上げて見下ろす量。カードの高さに比例させることで、
+  // サイズを変えても常に同じ見下ろし角度・全体像が収まるようにする
+  const perspectiveOriginY = Math.round(height * -0.73);
 
   // クリック位置（左側か右側か）に応じて回転方向を分岐
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -61,7 +67,7 @@ const MultiElementCard: React.FC<MultiElementCardProps> = ({
           width: `${width}px`,
           height: `${height}px`,
           perspective: "1000px",
-          perspectiveOrigin: "50% -160px", //  視点を上に持ち上げて見下ろす
+          perspectiveOrigin: `50% ${perspectiveOriginY}px`, //  視点を上に持ち上げて見下ろす
           cursor: "pointer",
           userSelect: "none",
         }}
@@ -114,11 +120,13 @@ const MultiElementCard: React.FC<MultiElementCardProps> = ({
       </div>
 
       {/* 操作ガイド */}
-      <div className="flex items-center gap-4 text-xs text-zinc-400 dark:text-zinc-500">
-        <span>◀ 左: 戻る</span>
-        <span>|</span>
-        <span>右: 進む ▶</span>
-      </div>
+      {showHint && (
+        <div className="flex items-center gap-4 text-xs text-zinc-400 dark:text-zinc-500">
+          <span>◀ 左: 戻る</span>
+          <span>|</span>
+          <span>右: 進む ▶</span>
+        </div>
+      )}
     </div>
   );
 };

@@ -26,7 +26,7 @@ export function SectionCard({
   manuallyTagged,
 }: SectionCardProps) {
   return (
-    <div className="group relative flex items-center justify-between rounded-2xl border border-black/[.08] bg-white p-5 text-left transition-all hover:border-tealblue-400/60 hover:shadow-sm dark:border-white/[.145] dark:bg-zinc-950 dark:hover:border-tealblue-600/60">
+    <div className="group relative flex items-center justify-between rounded-2xl border border-tealblue-200 bg-white p-5 text-left transition-all hover:-translate-y-1 hover:border-tealblue-300 hover:shadow-xl hover:shadow-tealblue-100 dark:border-tealblue-900/40 dark:bg-zinc-950 dark:hover:border-tealblue-700/60 dark:hover:shadow-none">
       <Link href={href} aria-label={title} className="absolute inset-0 rounded-2xl" />
       <div className="pointer-events-none flex flex-col gap-1">
         <span className="text-xs font-semibold uppercase tracking-wider text-tealblue-600 dark:text-tealblue-400">

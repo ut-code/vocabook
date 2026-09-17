@@ -83,7 +83,7 @@ export default function LoginForm() {
 
       <p className="text-center text-sm text-zinc-500 dark:text-zinc-500">
         アカウントをお持ちでない場合は{" "}
-        <Link href="/signup" className="text-emerald-600 hover:underline dark:text-emerald-400">
+        <Link href="/signup" className="text-[#FF7F50] hover:underline dark:text-[#FF7F50]">
           新規登録
         </Link>
       </p>

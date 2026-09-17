@@ -38,7 +38,7 @@ export default function ShareNotebookButton({
         type="button"
         onClick={handleToggle}
         disabled={isPending}
-        className="rounded-full border border-black/[.08] px-5 py-2 text-sm font-medium transition-colors hover:border-black/[.15] disabled:opacity-50 dark:border-white/[.145] dark:hover:border-white/[.25]"
+        className="rounded-full border border-coral-300 px-5 py-2 text-sm font-medium text-coral-700 transition-all hover:-translate-y-0.5 hover:border-coral-500 hover:bg-coral-50 hover:text-coral-800 hover:shadow-md hover:shadow-coral-100 disabled:opacity-50 dark:border-coral-900/50 dark:text-coral-300 dark:hover:border-coral-600 dark:hover:bg-coral-950/20 dark:hover:text-coral-200 dark:hover:shadow-none"
       >
         {optimisticPublic ? "公開中（クリックで非公開に）" : "リンクで共有する"}
       </button>
@@ -54,7 +54,7 @@ export default function ShareNotebookButton({
           <button
             type="button"
             onClick={handleCopy}
-            className="rounded-full border border-black/[.08] px-4 py-2 text-xs font-medium transition-colors hover:border-black/[.15] dark:border-white/[.145] dark:hover:border-white/[.25]"
+            className="rounded-full border border-coral-300 px-4 py-2 text-xs font-medium text-coral-700 transition-all hover:-translate-y-0.5 hover:border-coral-500 hover:bg-coral-50 hover:text-coral-800 hover:shadow-md hover:shadow-coral-100 dark:border-coral-900/50 dark:text-coral-300 dark:hover:border-coral-600 dark:hover:bg-coral-950/20 dark:hover:text-coral-200 dark:hover:shadow-none"
           >
             {copied ? "コピーしました" : "コピー"}
           </button>
