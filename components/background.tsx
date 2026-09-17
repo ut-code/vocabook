@@ -15,11 +15,12 @@ function isCJK(word: string) {
   return /[\u4E00-\u9FFF]/.test(word);
 }
 
-// 単語ごとの見た目上の横幅を文字数から概算（1文字あたりのem係数。CJKは全角なので広めに見積もる）
+// 単語ごとの見た目上の横幅を文字数から概算（1文字あたりのem係数。
+// CJKは全角文字なので、フォントによらず送り幅がちょうど1emになる）
 function estimateWidthEm(word: string) {
   let width = 0;
   for (const ch of word) {
-    width += /[\u4E00-\u9FFF]/.test(ch) ? 1.3 : 0.72;
+    width += /[\u4E00-\u9FFF]/.test(ch) ? 1 : 0.72;
   }
   return width;
 }
@@ -120,9 +121,14 @@ function buildChain(words: string[], curve: Curve) {
   // 画面外の待機列も含めて、移動距離全体が単語で埋まるまで並べる
   while (cumulativeVw < curve.travelVw) {
     const word = words[i % words.length];
+    const widthVw = estimateWidthEm(word) * stepVw;
     chainWords.push(word);
-    offsetsVw.push(cumulativeVw);
-    cumulativeVw += (estimateWidthEm(word) + curve.gapEm) * stepVw;
+    // 各単語はtranslate(-50%, -50%)で「その位置」を中心にレンダリングされるため、
+    // 枠の開始位置ではなく枠の中心（開始位置 + 単語幅の半分）をオフセットにする。
+    // 開始位置をそのまま使うと、単語ごとに幅が違う分だけ隣の単語との間隔が
+    // 均等にならない（幅が広い単語ほど左にずれて詰まって見える）
+    offsetsVw.push(cumulativeVw + widthVw / 2);
+    cumulativeVw += widthVw + curve.gapEm * stepVw;
     i++;
   }
 
