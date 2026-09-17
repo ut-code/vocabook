@@ -3,12 +3,12 @@ import path from "node:path";
 import SpanishFillInPractice, { type FillInQuestionItem } from "./SpanishFillInPractice";
 
 /**
- * MDX教材ファイル（app/learn/spanish/04/page.mdx）から
+ * MDX教材ファイル（app/learn/spanish/05/page.mdx）から
  * 穴埋め文法問題データを動的に抽出する関数。
  * データのベタ打ちを排除し、教材ファイルを唯一のデータソースとして使用する。
  */
 async function getFillInQuestionsFromMdx(): Promise<FillInQuestionItem[]> {
-  const filePath = path.join(process.cwd(), "app", "learn", "spanish", "04", "page.mdx");
+  const filePath = path.join(process.cwd(), "app", "learn", "spanish", "05", "page.mdx");
   const items: FillInQuestionItem[] = [];
 
   try {
