@@ -22,18 +22,20 @@ export type GrammarTableData = {
 
 // アルファベット基本文字とアクセント付き特殊文字の対応マップ
 const ACCENT_MAP: Record<string, string[]> = {
-  a: ["a", "á"],
-  e: ["e", "é"],
-  i: ["i", "í"],
-  o: ["o", "ó"],
-  u: ["u", "ú", "ü"],
-  n: ["n", "ñ"],
-  A: ["A", "Á"],
-  E: ["E", "É"],
-  I: ["I", "Í"],
-  O: ["O", "Ó"],
-  U: ["U", "Ú", "Ü"],
-  N: ["N", "Ñ"],
+  a: ["a", "à", "â"],
+  e: ["e", "é", "è", "ê", "ë"],
+  i: ["i", "î", "ï"],
+  o: ["o", "ô"],
+  u: ["u", "ù", "û", "ü"],
+  y: ["y", "ÿ"],
+  c: ["c", "ç"],
+  A: ["A", "À", "Â"],
+  E: ["E", "É", "È", "Ê", "Ë"],
+  I: ["I", "Î", "Ï"],
+  O: ["O", "Ô"],
+  U: ["U", "Ù", "Û", "Ü"],
+  Y: ["Y", "Ÿ"],
+  C: ["C", "Ç"],
 };
 
 // 逆引きルックアップ用マップ
@@ -60,12 +62,12 @@ function cycleChar(char: string, direction: "up" | "down"): string {
   return list[nextIndex];
 }
 
-const SPECIAL_KEYS = ["á", "é", "í", "ó", "ú", "ñ", "ü", "¿", "¡"];
+const SPECIAL_KEYS = ["à", "â", "é", "è", "ê", "ë", "î", "ï", "ô", "ù", "û", "ü", "ç", "œ"];
 
 // 空欄割合の選択肢 (パーセント)
 export type BlankRatioOption = "25" | "50" | "75" | "100";
 
-export default function SpanishTablePractice({ tables }: { tables: GrammarTableData[] }) {
+export default function FrenchTablePractice({ tables }: { tables: GrammarTableData[] }) {
   // カテゴリ選択状態（"all" または 各カテゴリのタイトル）
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   // 空欄の指定割合（25%, 50%, 75%, 100%）
@@ -415,7 +417,7 @@ export default function SpanishTablePractice({ tables }: { tables: GrammarTableD
           ))}
         </div>
         <p className="mt-2.5 text-xs md:text-sm text-zinc-500 dark:text-zinc-400">
-          💡 入力セルで <strong>↑ / ↓ 矢印キー</strong> を押してもアクセント記号（á, é, í, ó, ú, ñ
+          💡 入力セルで <strong>↑ / ↓ 矢印キー</strong> を押してもアクセント記号（é, è, ê, à, ç, œ
           など）へ切り替えられます。
         </p>
       </div>

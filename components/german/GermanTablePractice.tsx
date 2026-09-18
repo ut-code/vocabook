@@ -20,20 +20,15 @@ export type GrammarTableData = {
   rows: GrammarTableRow[];
 };
 
-// アルファベット基本文字とアクセント付き特殊文字の対応マップ
+// アルファベット基本文字とウムラウト・エスツェットの対応マップ
 const ACCENT_MAP: Record<string, string[]> = {
-  a: ["a", "á"],
-  e: ["e", "é"],
-  i: ["i", "í"],
-  o: ["o", "ó"],
-  u: ["u", "ú", "ü"],
-  n: ["n", "ñ"],
-  A: ["A", "Á"],
-  E: ["E", "É"],
-  I: ["I", "Í"],
-  O: ["O", "Ó"],
-  U: ["U", "Ú", "Ü"],
-  N: ["N", "Ñ"],
+  a: ["a", "ä"],
+  o: ["o", "ö"],
+  u: ["u", "ü"],
+  s: ["s", "ß"],
+  A: ["A", "Ä"],
+  O: ["O", "Ö"],
+  U: ["U", "Ü"],
 };
 
 // 逆引きルックアップ用マップ
@@ -45,7 +40,7 @@ for (const [base, list] of Object.entries(ACCENT_MAP)) {
 }
 
 /**
- * 矢印キー操作によりアクセント記号を順次切り替える関数
+ * 矢印キー操作によりウムラウト・エスツェットを順次切り替える関数
  */
 function cycleChar(char: string, direction: "up" | "down"): string {
   const groupKey = ACCENT_GROUP_KEY[char];
@@ -60,12 +55,12 @@ function cycleChar(char: string, direction: "up" | "down"): string {
   return list[nextIndex];
 }
 
-const SPECIAL_KEYS = ["á", "é", "í", "ó", "ú", "ñ", "ü", "¿", "¡"];
+const SPECIAL_KEYS = ["ä", "ö", "ü", "ß", "Ä", "Ö", "Ü"];
 
 // 空欄割合の選択肢 (パーセント)
 export type BlankRatioOption = "25" | "50" | "75" | "100";
 
-export default function SpanishTablePractice({ tables }: { tables: GrammarTableData[] }) {
+export default function GermanTablePractice({ tables }: { tables: GrammarTableData[] }) {
   // カテゴリ選択状態（"all" または 各カテゴリのタイトル）
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   // 空欄の指定割合（25%, 50%, 75%, 100%）
@@ -187,7 +182,7 @@ export default function SpanishTablePractice({ tables }: { tables: GrammarTableD
   };
 
   /**
-   * 入力キーボードイベント（↑ / ↓ 矢印キーでアクセント変換、Enterキーで次の空欄へ移動または再挑戦）
+   * 入力キーボードイベント（↑ / ↓ 矢印キーでウムラウト変換、Enterキーで次の空欄へ移動または再挑戦）
    */
   const handleKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
@@ -415,8 +410,8 @@ export default function SpanishTablePractice({ tables }: { tables: GrammarTableD
           ))}
         </div>
         <p className="mt-2.5 text-xs md:text-sm text-zinc-500 dark:text-zinc-400">
-          💡 入力セルで <strong>↑ / ↓ 矢印キー</strong> を押してもアクセント記号（á, é, í, ó, ú, ñ
-          など）へ切り替えられます。
+          💡 入力セルで <strong>↑ / ↓ 矢印キー</strong> を押してもウムラウト・エスツェット（ä, ö, ü,
+          ß など）へ切り替えられます。
         </p>
       </div>
 
