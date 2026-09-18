@@ -1,8 +1,3 @@
--- DropTable
-PRAGMA foreign_keys=off;
-DROP TABLE "ConjugationProgress";
-PRAGMA foreign_keys=on;
-
 -- CreateTable
 CREATE TABLE "SectionProgress" (
     "id" TEXT NOT NULL PRIMARY KEY,
