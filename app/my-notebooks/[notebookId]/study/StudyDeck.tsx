@@ -50,35 +50,39 @@ export default function StudyDeck({
   // flipped: 今のカードが表（見出し語）か裏（意味）のどちらを向いているか
   const [flipped, setFlipped] = useState(false);
 
-  const [frontColumn, setFrontColumn] = useState<string>(columns[0]);
+  const [frontColumn, setFrontColumn] = useState<string>(columns[0] ?? "");
 
   // 現在表示すべきカードは、order[index]（実際のcardsインデックス）から引く
   const current = cards[order[index]];
-  const primarySense = current?.data.senses[0] || {};
+
+  // 指定した列の値のリストを取得する。見出し語列はdata.head（1件）、
+  // それ以外はdata.cells[列名]（0〜複数件、列ごとに独立）
+  function valuesFor(column: string, isHead: boolean): string[] {
+    if (isHead) return current?.data.head ? [current.data.head] : [];
+    return current?.data.cells[column] ?? [];
+  }
 
   // 今のカードでデータが存在する列一覧
-  const rawActiveColumns = columns.filter((col, idx) => {
-    if (idx === 0) return Boolean(current?.data.head);
-    return Boolean(primarySense[col]);
-  });
+  const rawActiveColumns = columns.filter((col, idx) => valuesFor(col, idx === 0).length > 0);
 
   // 選択された frontColumn が先頭（1面目）に来るように並び替える
   const activeColumns = rawActiveColumns.includes(frontColumn)
     ? [frontColumn, ...rawActiveColumns.filter((col) => col !== frontColumn)]
     : rawActiveColumns;
 
-  const senseColumns = activeColumns.slice(1);
+  const bodyColumns = activeColumns.slice(1);
 
   // 表示しようとしているカードの要素数が3個以上の時だけ3Dモードにする判定
   const is3DMode = activeColumns.length >= 3;
 
-  // 3D多角柱のそれぞれの面に入れるコンテンツの準備
-
+  // 3D多角柱のそれぞれの面に入れるコンテンツの準備。
+  // 面のスペースは限られるため、複数値の列は「/」でつないでコンパクトに表示する
   const faces = activeColumns.map((colName) => {
     const isHead = colName === columns[0];
-    const value = isHead ? current?.data.head : primarySense[colName];
-
-    return <CardFace key={colName} colName={colName} value={value || "—"} isHead={isHead} />;
+    const values = valuesFor(colName, isHead);
+    return (
+      <CardFace key={colName} colName={colName} value={values.join(" / ") || "—"} isHead={isHead} />
+    );
   });
 
   // toggleStarの結果（サーバーの往復）を待たず、クリックした瞬間に★・回数・色を切り替えるためのUI
@@ -195,31 +199,34 @@ export default function StudyDeck({
                   {current.data.head || "—"}
                 </span>
               </>
-            ) : senseColumns.length > 0 && current.data.senses.length > 0 ? (
-              // 裏面: 意味が1件以上あれば、多義語すべてを「意味1」「意味2」…として順番に表示する
+            ) : bodyColumns.length > 0 ? (
+              // 裏面: 列ごとに値を表示する。値が複数あれば番号付きリストで積んで表示する
               <div className="flex flex-col gap-4">
-                {current.data.senses.map((sense, senseIndex) => (
-                  <div key={senseIndex} className="flex flex-col gap-3">
-                    {current.data.senses.length > 1 && (
-                      <p className="text-xs font-semibold text-zinc-400 dark:text-zinc-600">
-                        意味 {senseIndex + 1}
+                {bodyColumns.map((column) => {
+                  const values = current.data.cells[column] ?? [];
+                  if (values.length === 0) return null;
+                  return (
+                    <div key={column}>
+                      <p className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
+                        {column}
                       </p>
-                    )}
-                    {senseColumns.map((column) => (
-                      <div key={column}>
-                        <p className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
-                          {column}
-                        </p>
-                        <p className="text-lg text-black dark:text-zinc-50">
-                          {sense[column] || "—"}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                ))}
+                      {values.length === 1 ? (
+                        <p className="text-lg text-black dark:text-zinc-50">{values[0]}</p>
+                      ) : (
+                        <ol className="mt-1 list-decimal space-y-1 pl-5 text-left">
+                          {values.map((value, i) => (
+                            <li key={i} className="text-lg text-black dark:text-zinc-50">
+                              {value}
+                            </li>
+                          ))}
+                        </ol>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             ) : (
-              // 意味の列自体が無い、またはこのカードに意味が1件も登録されていない場合のフォールバック表示
+              // 意味の列自体が無い、またはこのカードに項目が1件も登録されていない場合のフォールバック表示
               <p className="text-sm text-zinc-500 dark:text-zinc-500">他に項目がありません</p>
             )}
             <span className="mt-2 text-xs text-zinc-400 dark:text-zinc-600">

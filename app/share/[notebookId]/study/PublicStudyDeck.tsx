@@ -33,11 +33,16 @@ export default function PublicStudyDeck({
   const [flipped, setFlipped] = useState(false);
 
   const current = cards[order[index]];
-  const frontColumn = columns[0];
-  const senseColumns = columns.slice(1);
+  const frontColumn = columns[0] ?? "";
+  const bodyColumns = columns.slice(1);
   const is3DMode = columns.length === 3;
 
-  const primarySense = current?.data.senses[0] || {};
+  // 指定した列（見出し語を除く）の値のリスト。3D面では省スペースのため「/」でつなぐ
+  function bodyValuesFor(column: string | undefined): string[] {
+    if (!column) return [];
+    return current?.data.cells[column] ?? [];
+  }
+
   const faces: [React.ReactNode, React.ReactNode, React.ReactNode] = [
     <div key="face1" className="flex flex-col items-center gap-2 text-center">
       <span className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
@@ -52,7 +57,7 @@ export default function PublicStudyDeck({
         {columns[1]}
       </span>
       <span className="text-xl font-medium text-black dark:text-zinc-50">
-        {primarySense[columns[1]] || "—"}
+        {bodyValuesFor(columns[1]).join(" / ") || "—"}
       </span>
     </div>,
     <div key="face3" className="flex flex-col items-center gap-2 text-center">
@@ -60,7 +65,7 @@ export default function PublicStudyDeck({
         {columns[2]}
       </span>
       <span className="text-base text-zinc-700 dark:text-zinc-300">
-        {primarySense[columns[2]] || "—"}
+        {bodyValuesFor(columns[2]).join(" / ") || "—"}
       </span>
     </div>,
   ];
@@ -116,27 +121,30 @@ export default function PublicStudyDeck({
                   {current.data.head || "—"}
                 </span>
               </>
-            ) : senseColumns.length > 0 && current.data.senses.length > 0 ? (
+            ) : bodyColumns.length > 0 ? (
               <div className="flex flex-col gap-4">
-                {current.data.senses.map((sense, senseIndex) => (
-                  <div key={senseIndex} className="flex flex-col gap-3">
-                    {current.data.senses.length > 1 && (
-                      <p className="text-xs font-semibold text-zinc-400 dark:text-zinc-600">
-                        意味 {senseIndex + 1}
+                {bodyColumns.map((column) => {
+                  const values = current.data.cells[column] ?? [];
+                  if (values.length === 0) return null;
+                  return (
+                    <div key={column}>
+                      <p className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
+                        {column}
                       </p>
-                    )}
-                    {senseColumns.map((column) => (
-                      <div key={column}>
-                        <p className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
-                          {column}
-                        </p>
-                        <p className="text-lg text-black dark:text-zinc-50">
-                          {sense[column] || "—"}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                ))}
+                      {values.length === 1 ? (
+                        <p className="text-lg text-black dark:text-zinc-50">{values[0]}</p>
+                      ) : (
+                        <ol className="mt-1 list-decimal space-y-1 pl-5 text-left">
+                          {values.map((value, i) => (
+                            <li key={i} className="text-lg text-black dark:text-zinc-50">
+                              {value}
+                            </li>
+                          ))}
+                        </ol>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             ) : (
               <p className="text-sm text-zinc-500 dark:text-zinc-500">他に項目がありません</p>

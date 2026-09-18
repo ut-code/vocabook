@@ -92,7 +92,7 @@ export async function parseExcelWorkbook(buffer: ArrayBuffer): Promise<ParsedNot
   }
 
   // 見出し語（1列目）を除いた列名一覧
-  const senseColumns = columns.slice(1);
+  const bodyColumns = columns.slice(1);
   const rows: CardData[] = [];
   // 見出し語（1列目）ごとにカードをまとめるためのインデックス。
   // 同じ見出し語の行を1つのカードにまとめるため、「見出し語→配列内でのインデックス」を記録するMap
@@ -114,11 +114,6 @@ export async function parseExcelWorkbook(buffer: ArrayBuffer): Promise<ParsedNot
 
     // head：1列目の値（見出し語）
     const head = cellValues[0];
-    // sense：2列目以降の、その列名をキーとするオブジェクト
-    const sense: Record<string, string> = {};
-    senseColumns.forEach((name, index) => {
-      sense[name] = cellValues[index + 1];
-    });
 
     const groupKey = head !== "" ? `h:${head}` : `b:${blankHeadCount++}`;
     let groupIndex = groupIndexByHead.get(groupKey);
@@ -126,13 +121,18 @@ export async function parseExcelWorkbook(buffer: ArrayBuffer): Promise<ParsedNot
     if (groupIndex === undefined) {
       groupIndex = rows.length;
       groupIndexByHead.set(groupKey, groupIndex);
-      rows.push({ head, senses: [] });
+      rows.push({ head, cells: {} });
     }
 
-    // 既出のグループなら既存カードに追記
-    if (senseColumns.length > 0 && Object.values(sense).some((value) => value !== "")) {
-      rows[groupIndex].senses.push(sense);
-    }
+    // 同じ見出し語の行から、列ごとに値を集めて追記していく（空文字は追加しない）。
+    // これにより、値が1行にしか無い列は自然と1件だけ、複数行にまたがる列は
+    // 複数件のリストになる（列ごとの単値/多値を事前に決める必要が無い）
+    const cells = rows[groupIndex].cells;
+    bodyColumns.forEach((name, index) => {
+      const value = cellValues[index + 1];
+      if (value === "") return;
+      (cells[name] ??= []).push(value);
+    });
   }
 
   if (rows.length === 0) {

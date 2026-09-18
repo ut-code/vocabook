@@ -1,9 +1,9 @@
-import { Fragment } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { prisma } from "@/lib/prisma";
-import type { CardData } from "@/lib/card-data";
+import { normalizeCardData } from "@/lib/card-data";
+import { normalizeColumns } from "@/lib/notebook-columns";
 
 // 公開中の単語帳をログイン無しで閲覧できるページ。公開状態はDBの最新値を都度見る必要があるため静的化しない
 export const dynamic = "force-dynamic";
@@ -21,9 +21,9 @@ export default async function SharedNotebookPage(props: PageProps<"/share/[noteb
     notFound();
   }
 
-  const columns = notebook.columns as string[];
-  const senseColumns = columns.slice(1);
-  const cards = notebook.cards.map((card) => ({ id: card.id, data: card.data as CardData }));
+  const columns = normalizeColumns(notebook.columns);
+  const bodyColumns = columns.slice(1);
+  const cards = notebook.cards.map((card) => ({ id: card.id, data: normalizeCardData(card.data) }));
 
   return (
     <main className="flex flex-1 flex-col items-center px-6 py-16">
@@ -72,40 +72,32 @@ export default async function SharedNotebookPage(props: PageProps<"/share/[noteb
                   </td>
                 </tr>
               ) : (
-                cards.map((card) => {
-                  const senses = card.data.senses.length > 0 ? card.data.senses : [{}];
-                  return (
-                    <Fragment key={card.id}>
-                      {senses.map((sense, index) => (
-                        <tr
-                          key={`${card.id}-${index}`}
-                          className={
-                            index === 0
-                              ? "border-t border-black/[.06] dark:border-white/[.1]"
-                              : "border-t border-dashed border-black/[.06] dark:border-white/[.1]"
-                          }
+                cards.map((card) => (
+                  <tr key={card.id} className="border-t border-black/[.06] dark:border-white/[.1]">
+                    <td className="px-4 py-3 align-top text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                      {card.data.head}
+                    </td>
+                    {bodyColumns.map((column) => {
+                      const values = card.data.cells[column] ?? [];
+                      return (
+                        <td
+                          key={column}
+                          className="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300"
                         >
-                          {index === 0 && (
-                            <td
-                              rowSpan={senses.length}
-                              className="px-4 py-3 align-top text-sm font-medium text-zinc-900 dark:text-zinc-100"
-                            >
-                              {card.data.head}
-                            </td>
+                          {values.length <= 1 ? (
+                            (values[0] ?? "")
+                          ) : (
+                            <ol className="list-decimal space-y-0.5 pl-4">
+                              {values.map((value, i) => (
+                                <li key={i}>{value}</li>
+                              ))}
+                            </ol>
                           )}
-                          {senseColumns.map((column) => (
-                            <td
-                              key={column}
-                              className="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300"
-                            >
-                              {sense[column] ?? ""}
-                            </td>
-                          ))}
-                        </tr>
-                      ))}
-                    </Fragment>
-                  );
-                })
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))
               )}
             </tbody>
           </table>
