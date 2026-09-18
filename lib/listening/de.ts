@@ -1,4 +1,4 @@
-import type { ListeningLanguageConfig, ListeningWordEntry } from "./types";
+import type { ListeningClozeEntry, ListeningLanguageConfig, ListeningWordEntry } from "./types";
 
 const ACCENT_CYCLES: string[][] = [
   ["a", "ä"],
@@ -76,4 +76,65 @@ export const germanListeningWords: ListeningWordEntry[] = [
     meaning: "通り（名詞、長母音+ß）",
   },
   { id: "de-s-4", categoryTitle: "s / ss / ß の書き分け", answer: "muss", meaning: "〜ねばならない（müssen の現在形）" },
+];
+
+// ドイツ語の「長文の穴埋め」出題データ
+// 文の発音全体を聞いて、空欄（"___"）に入る語を答える
+export const germanListeningClozeItems: ListeningClozeEntry[] = [
+  {
+    id: "de-cloze-1",
+    categoryTitle: "紛らわしい綴りを文脈で聞き分ける",
+    sentence: "Ich trinke gern ein Glas ___.",
+    spokenText: "Ich trinke gern ein Glas Wein.",
+    answer: "Wein",
+    translation: "私はワインを一杯飲むのが好きです。",
+  },
+  {
+    id: "de-cloze-2",
+    categoryTitle: "紛らわしい綴りを文脈で聞き分ける",
+    sentence: "Er fährt jeden Tag mit dem ___ zur Arbeit.",
+    spokenText: "Er fährt jeden Tag mit dem Rad zur Arbeit.",
+    answer: "Rad",
+    translation: "彼は毎日自転車で仕事に行きます。",
+  },
+  {
+    id: "de-cloze-3",
+    categoryTitle: "紛らわしい綴りを文脈で聞き分ける",
+    sentence: "Mein Bruder hat mir einen guten ___ gegeben.",
+    spokenText: "Mein Bruder hat mir einen guten Rat gegeben.",
+    answer: "Rat",
+    translation: "兄は私に良い助言をくれました。",
+  },
+  {
+    id: "de-cloze-4",
+    categoryTitle: "紛らわしい綴りを文脈で聞き分ける",
+    sentence: "Das Kleid ist sehr ___.",
+    spokenText: "Das Kleid ist sehr schön.",
+    answer: "schön",
+    translation: "そのドレスはとても美しいです。",
+  },
+  {
+    id: "de-cloze-5",
+    categoryTitle: "紛らわしい綴りを文脈で聞き分ける",
+    sentence: "Ich habe das Buch ___ gelesen.",
+    spokenText: "Ich habe das Buch schon gelesen.",
+    answer: "schon",
+    translation: "私はその本をすでに読みました。",
+  },
+  {
+    id: "de-cloze-6",
+    categoryTitle: "紛らわしい綴りを文脈で聞き分ける",
+    sentence: "Ich ___ jetzt gehen.",
+    spokenText: "Ich muss jetzt gehen.",
+    answer: "muss",
+    translation: "私は今行かなければなりません。",
+  },
+  {
+    id: "de-cloze-7",
+    categoryTitle: "紛らわしい綴りを文脈で聞き分ける",
+    sentence: "Die ___ ist heute sehr belebt.",
+    spokenText: "Die Straße ist heute sehr belebt.",
+    answer: "Straße",
+    translation: "その通りは今日とても賑わっています。",
+  },
 ];

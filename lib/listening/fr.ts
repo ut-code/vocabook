@@ -1,4 +1,4 @@
-import type { ListeningLanguageConfig, ListeningWordEntry } from "./types";
+import type { ListeningClozeEntry, ListeningLanguageConfig, ListeningWordEntry } from "./types";
 
 const ACCENT_CYCLES: string[][] = [
   ["e", "é", "è", "ê", "ë"],
@@ -66,5 +66,74 @@ export const frenchListeningWords: ListeningWordEntry[] = [
     categoryTitle: "動詞語尾の同音異綴語 (/ɛ/)",
     answer: "aient",
     meaning: "〜だった（半過去の3人称複数語尾）",
+  },
+];
+
+// フランス語の「長文の穴埋め」出題データ
+// 文の発音全体を聞いて、空欄（"___"）に入る語を答える
+export const frenchListeningClozeItems: ListeningClozeEntry[] = [
+  {
+    id: "fr-cloze-1",
+    categoryTitle: "同音異綴語を文脈で聞き分ける",
+    sentence: "Le feu est passé au ___.",
+    spokenText: "Le feu est passé au vert.",
+    answer: "vert",
+    translation: "信号が青（緑）になりました。",
+  },
+  {
+    id: "fr-cloze-2",
+    categoryTitle: "同音異綴語を文脈で聞き分ける",
+    sentence: "Nous marchons ___ la gare.",
+    spokenText: "Nous marchons vers la gare.",
+    answer: "vers",
+    translation: "私たちは駅の方へ歩いています。",
+  },
+  {
+    id: "fr-cloze-3",
+    categoryTitle: "同音異綴語を文脈で聞き分ける",
+    sentence: "Il y a un ___ dans la pomme.",
+    spokenText: "Il y a un ver dans la pomme.",
+    answer: "ver",
+    translation: "リンゴの中に虫がいます。",
+  },
+  {
+    id: "fr-cloze-4",
+    categoryTitle: "同音異綴語を文脈で聞き分ける",
+    sentence: "Il y a ___ personnes dans la salle.",
+    spokenText: "Il y a cent personnes dans la salle.",
+    answer: "cent",
+    translation: "部屋には100人がいます。",
+  },
+  {
+    id: "fr-cloze-5",
+    categoryTitle: "同音異綴語を文脈で聞き分ける",
+    sentence: "Le médecin a vu du ___ sur le pansement.",
+    spokenText: "Le médecin a vu du sang sur le pansement.",
+    answer: "sang",
+    translation: "医者は包帯に血がついているのを見ました。",
+  },
+  {
+    id: "fr-cloze-6",
+    categoryTitle: "同音異綴語を文脈で聞き分ける",
+    sentence: "Elle est sortie ___ parapluie sous la pluie.",
+    spokenText: "Elle est sortie sans parapluie sous la pluie.",
+    answer: "sans",
+    translation: "彼女は雨の中、傘なしで出かけました。",
+  },
+  {
+    id: "fr-cloze-7",
+    categoryTitle: "同音異綴語を文脈で聞き分ける",
+    sentence: "Boire de l'alcool n'est pas ___ pour la santé.",
+    spokenText: "Boire de l'alcool n'est pas sain pour la santé.",
+    answer: "sain",
+    translation: "お酒を飲むことは健康に良くありません。",
+  },
+  {
+    id: "fr-cloze-8",
+    categoryTitle: "動詞語尾を文脈で聞き分ける",
+    sentence: "Ils ___ déjà mangé quand je suis arrivé.",
+    spokenText: "Ils avaient déjà mangé quand je suis arrivé.",
+    answer: "avaient",
+    translation: "私が着いたとき、彼らはすでに食べ終えていました。",
   },
 ];

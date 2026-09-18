@@ -1,4 +1,4 @@
-import type { ListeningLanguageConfig, ListeningWordEntry } from "./types";
+import type { ListeningClozeEntry, ListeningLanguageConfig, ListeningWordEntry } from "./types";
 
 const ACCENT_CYCLES: string[][] = [
   ["a", "á"],
@@ -86,4 +86,73 @@ export const spanishListeningWords: ListeningWordEntry[] = [
   { id: "es-acc-6", categoryTitle: "アクセント位置の聞き分け（強勢の有無）", answer: "sí", meaning: "はい（副詞）" },
   { id: "es-acc-7", categoryTitle: "アクセント位置の聞き分け（強勢の有無）", answer: "tu", meaning: "君の（所有形容詞）" },
   { id: "es-acc-8", categoryTitle: "アクセント位置の聞き分け（強勢の有無）", answer: "tú", meaning: "君（人称代名詞）" },
+];
+
+// スペイン語の「長文の穴埋め」出題データ
+// 文の発音全体を聞いて、空欄（"___"）に入る語を答える
+export const spanishListeningClozeItems: ListeningClozeEntry[] = [
+  {
+    id: "es-cloze-1",
+    categoryTitle: "b/v・yeísmoを文脈で聞き分ける",
+    sentence: "Ella ___ un problema con el coche.",
+    spokenText: "Ella tuvo un problema con el coche.",
+    answer: "tuvo",
+    translation: "彼女は車に問題がありました。",
+  },
+  {
+    id: "es-cloze-2",
+    categoryTitle: "b/v・yeísmoを文脈で聞き分ける",
+    sentence: "Necesito un ___ para el jardín.",
+    spokenText: "Necesito un tubo para el jardín.",
+    answer: "tubo",
+    translation: "庭に管（パイプ）が必要です。",
+  },
+  {
+    id: "es-cloze-3",
+    categoryTitle: "b/v・yeísmoを文脈で聞き分ける",
+    sentence: "Vamos a ___ en las próximas elecciones.",
+    spokenText: "Vamos a votar en las próximas elecciones.",
+    answer: "votar",
+    translation: "私たちは次の選挙で投票します。",
+  },
+  {
+    id: "es-cloze-4",
+    categoryTitle: "b/v・yeísmoを文脈で聞き分ける",
+    sentence: "Compramos carne de ___ para la cena.",
+    spokenText: "Compramos carne de vaca para la cena.",
+    answer: "vaca",
+    translation: "夕食用に牛肉を買いました。",
+  },
+  {
+    id: "es-cloze-5",
+    categoryTitle: "b/v・yeísmoを文脈で聞き分ける",
+    sentence: "La taza se ___ al suelo y se rompió.",
+    spokenText: "La taza se cayó al suelo y se rompió.",
+    answer: "cayó",
+    translation: "カップが床に落ちて割れました。",
+  },
+  {
+    id: "es-cloze-6",
+    categoryTitle: "b/v・yeísmoを文脈で聞き分ける",
+    sentence: "El niño se ___ al ver a su madre.",
+    spokenText: "El niño se calló al ver a su madre.",
+    answer: "calló",
+    translation: "その子は母親を見て黙りました。",
+  },
+  {
+    id: "es-cloze-7",
+    categoryTitle: "アクセント位置を文脈で聞き分ける",
+    sentence: "___ silla es muy cómoda.",
+    spokenText: "Esta silla es muy cómoda.",
+    answer: "Esta",
+    translation: "この椅子はとても快適です。",
+  },
+  {
+    id: "es-cloze-8",
+    categoryTitle: "アクセント位置を文脈で聞き分ける",
+    sentence: "Ella ___ en casa ahora.",
+    spokenText: "Ella está en casa ahora.",
+    answer: "está",
+    translation: "彼女は今家にいます。",
+  },
 ];

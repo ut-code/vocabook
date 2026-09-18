@@ -3,13 +3,36 @@
 import { ACCENT_FONT_STYLE, AccentInput } from "@/components/verbs/AccentInput";
 import type { CountOption } from "@/components/listening/useListeningQuiz";
 import { useListeningQuiz } from "@/components/listening/useListeningQuiz";
-import type { ListeningLanguageConfig, ListeningWordEntry } from "@/lib/listening/types";
+import type { ListeningClozeEntry, ListeningLanguageConfig } from "@/lib/listening/types";
 
-export function ListeningPractice({
-  words,
+/**
+ * 文中の "___" を空欄表示に置き換える。プレースホルダーが無い場合はそのまま返す
+ */
+function renderSentenceWithBlank(sentence: string, filled: string | null) {
+  const parts = sentence.split("___");
+  if (parts.length < 2) return sentence;
+
+  return (
+    <>
+      {parts[0]}
+      <span
+        className={`mx-1 inline-block min-w-16 border-b-2 px-1 font-black ${
+          filled ? "border-teal-500 text-teal-700 dark:border-teal-400 dark:text-teal-300" : "border-zinc-400 dark:border-zinc-600"
+        }`}
+        style={filled ? ACCENT_FONT_STYLE : undefined}
+      >
+        {filled ?? "    "}
+      </span>
+      {parts.slice(1).join("___")}
+    </>
+  );
+}
+
+export function ListeningClozePractice({
+  items,
   language,
 }: {
-  words: ListeningWordEntry[];
+  items: ListeningClozeEntry[];
   language: ListeningLanguageConfig;
 }) {
   const {
@@ -33,9 +56,9 @@ export function ListeningPractice({
     goNext,
     handleSkip,
     resetQuiz,
-  } = useListeningQuiz(words, language);
+  } = useListeningQuiz(items, language);
 
-  if (!words || words.length === 0) {
+  if (!items || items.length === 0) {
     return (
       <div className="my-6 rounded-2xl border border-dashed border-zinc-300 p-8 text-center dark:border-zinc-700">
         <p className="text-base text-zinc-500 dark:text-zinc-400">
@@ -163,12 +186,22 @@ export function ListeningPractice({
               >
                 {speaking ? "🔊 再生中…" : "🔁 もう一度聞く"}
               </button>
-              {currentQuestion?.meaning && (
-                <p className="text-base font-medium text-zinc-600 dark:text-zinc-400">
-                  ヒント: {currentQuestion.meaning}
-                </p>
-              )}
             </div>
+
+            {/* 空欄付きの文表示 */}
+            {currentQuestion && (
+              <p className="mt-6 text-xl md:text-2xl font-bold leading-relaxed text-zinc-900 dark:text-zinc-50">
+                {renderSentenceWithBlank(
+                  currentQuestion.sentence,
+                  isAnswered ? currentQuestion.answer : null,
+                )}
+              </p>
+            )}
+            {currentQuestion?.translation && (
+              <p className="mt-3 text-base font-medium text-zinc-600 dark:text-zinc-400">
+                ヒント: {currentQuestion.translation}
+              </p>
+            )}
           </div>
 
           {/* 解答入力エリア */}
@@ -180,7 +213,7 @@ export function ListeningPractice({
                 onSubmit={handleSubmit}
                 disabled={isAnswered}
                 autoFocus
-                placeholder="聞こえた発音の綴りを入力..."
+                placeholder="空欄に入る語を、発音を聞いて入力..."
                 accentCycles={language.accentCycles}
                 toolbarChars={language.toolbarChars}
                 className="w-full rounded-2xl border-2 border-zinc-300 bg-white px-5 py-4 text-center text-2xl font-semibold text-zinc-900 outline-none transition-colors focus:border-teal-500 focus:ring-4 focus:ring-teal-500/20 disabled:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:focus:border-teal-400 dark:disabled:bg-zinc-800"
@@ -215,11 +248,6 @@ export function ListeningPractice({
                       </span>
                     </p>
                   </div>
-                )}
-                {currentQuestion?.note && (
-                  <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-                    {currentQuestion.note}
-                  </p>
                 )}
               </div>
             )}

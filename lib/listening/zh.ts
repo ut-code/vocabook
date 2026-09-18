@@ -1,5 +1,5 @@
 import { canonicalPinyin, TONE_CYCLES, TOOLBAR_CHARS } from "@/lib/pinyin";
-import type { ListeningLanguageConfig, ListeningWordEntry } from "./types";
+import type { ListeningClozeEntry, ListeningLanguageConfig, ListeningWordEntry } from "./types";
 
 export const chineseListeningConfig: ListeningLanguageConfig = {
   langTag: "zh-CN",
@@ -160,5 +160,59 @@ export const chineseListeningWords: ListeningWordEntry[] = [
     meaning: "「セット・かぶせる」という意味の語",
     spokenText: "套",
     note: "漢字表記: 套",
+  },
+];
+
+// 中国語の「長文の穴埋め」出題データ。
+// 文全体（spokenText）の発音を聞いて、空欄（"___"）に入る語のピンインを答える。
+// 表示文（sentence）は漢字のまま、空欄部分だけを隠す（ピンインは答え合わせ前には表示しない）
+export const chineseListeningClozeItems: ListeningClozeEntry[] = [
+  {
+    id: "zh-cloze-1",
+    categoryTitle: "文中の語を聞き取る",
+    sentence: "我___学生。",
+    spokenText: "我是学生。",
+    answer: "shì",
+    translation: "私は学生です。",
+  },
+  {
+    id: "zh-cloze-2",
+    categoryTitle: "文中の語を聞き取る",
+    sentence: "他很___。",
+    spokenText: "他很高。",
+    answer: "gāo",
+    translation: "彼は背が高いです。",
+  },
+  {
+    id: "zh-cloze-3",
+    categoryTitle: "文中の語を聞き取る",
+    sentence: "这是___的书。",
+    spokenText: "这是我的书。",
+    answer: "wǒ",
+    translation: "これは私の本です。",
+  },
+  {
+    id: "zh-cloze-4",
+    categoryTitle: "文中の語を聞き取る",
+    sentence: "他在___。",
+    spokenText: "他在中国。",
+    answer: "Zhōngguó",
+    translation: "彼は中国にいます。",
+  },
+  {
+    id: "zh-cloze-5",
+    categoryTitle: "文中の語を聞き取る",
+    sentence: "今天天气很___。",
+    spokenText: "今天天气很好。",
+    answer: "hǎo",
+    translation: "今日は天気がとても良いです。",
+  },
+  {
+    id: "zh-cloze-6",
+    categoryTitle: "文中の語を聞き取る",
+    sentence: "我有___个苹果。",
+    spokenText: "我有三个苹果。",
+    answer: "sān",
+    translation: "私はリンゴを3つ持っています。",
   },
 ];
