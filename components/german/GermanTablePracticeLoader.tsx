@@ -23,7 +23,7 @@ function mergeAdjacentCells(cells: string[]): GrammarTableCell[] {
 
 /**
  * MDX教材ファイル（app/learn/german/04/page.mdx）から
- * 人称代名詞・冠詞・指示詞の各文法表データを動的に抽出する関数。
+ * 人称代名詞・所有冠詞・冠詞・指示詞の各文法表データを動的に抽出する関数。
  * データのベタ打ちを排除し、教材ファイルを唯一のデータソースとして使用する。
  */
 async function getGrammarTablesFromMdx(): Promise<GrammarTableData[]> {

@@ -187,7 +187,7 @@ export default function SpanishTablePractice({ tables }: { tables: GrammarTableD
   };
 
   /**
-   * 入力キーボードイベント（↑ / ↓ 矢印キーでアクセント変換、Enterキーで答え合わせ送信または再挑戦）
+   * 入力キーボードイベント（↑ / ↓ 矢印キーでアクセント変換、Enterキーで次の空欄へ移動または再挑戦）
    */
   const handleKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
@@ -239,7 +239,13 @@ export default function SpanishTablePractice({ tables }: { tables: GrammarTableD
       e.preventDefault();
       e.stopPropagation();
       if (!isChecked) {
-        handleCheckAnswers();
+        const idx = orderedBlankKeys.indexOf(cellKey);
+        const nextKey = idx !== -1 ? orderedBlankKeys[idx + 1] : undefined;
+        if (nextKey) {
+          inputRefs.current.get(nextKey)?.focus();
+        } else {
+          inputRefs.current.get(cellKey)?.blur();
+        }
       } else {
         resetPractice(selectedCategory, blankRatio);
       }
@@ -292,6 +298,17 @@ export default function SpanishTablePractice({ tables }: { tables: GrammarTableD
       </div>
     );
   }
+
+  // Enterキーでの次項目移動用: 空欄対象セルキーを表示順に並べたリスト
+  const orderedBlankKeys: string[] = [];
+  filteredTables.forEach((table, tIdx) => {
+    table.rows.forEach((row, rIdx) => {
+      row.cells.forEach((_, cIdx) => {
+        const key = `${tIdx}-${rIdx}-${cIdx}`;
+        if (blankMask[key]) orderedBlankKeys.push(key);
+      });
+    });
+  });
 
   // 正解数の計算 (空欄対象に指定されたセルのみを計算)
   let totalBlankCells = 0;

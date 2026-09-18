@@ -10,59 +10,68 @@ export const title = "人称代名詞・所有冠詞・冠詞・指示代名詞�
 
 <div className="hidden" style={{ display: "none" }} aria-hidden="true">
 
-### 人称代名詞 (主格・4格・3格)
+### 人称代名詞の格変化 (1格〜4格)
 
-| 人称        | Nominativ (〜は) | Akkusativ (〜を) | Dativ (〜に) |
-| ----------- | ----------------- | ------------------ | -------------- |
-| ich (私)    | ich                | mich                | mir            |
-| du (君)     | du                 | dich                | dir            |
-| er (彼)     | er                 | ihn                 | ihm            |
-| sie (彼女)  | sie                | sie                 | ihr            |
-| es (それ)   | es                 | es                  | ihm            |
-| wir (私たち) | wir               | uns                 | uns            |
-| ihr (君たち) | ihr               | euch                | euch           |
-| sie (彼ら)  | sie                | sie                 | ihnen          |
-| Sie (敬称)  | Sie                | Sie                 | Ihnen          |
+| 人称・性数      | 1格 Nominativ (〜は) | 2格 Genitiv (〜の) | 3格 Dativ (〜に) | 4格 Akkusativ (〜を) |
+| ---------------- | ---------------------- | --------------------- | -------------------- | ----------------------- |
+| 1人称単数        | ich                     | meiner                 | mir                   | mich                     |
+| 2人称単数        | du                      | deiner                 | dir                   | dich                     |
+| 3人称単数男性    | er                      | seiner                 | ihm                   | ihn                      |
+| 3人称単数女性    | sie                     | ihrer                  | ihr                   | sie                      |
+| 3人称単数中性    | es                      | seiner                 | ihm                   | es                       |
+| 1人称複数        | wir                     | unser                  | uns                   | uns                      |
+| 2人称複数        | ihr                     | euer                   | euch                  | euch                     |
+| 3人称複数        | sie                     | ihrer                  | ihnen                 | sie                      |
+| 敬称 (Sie)       | Sie                     | Ihrer                  | Ihnen                 | Sie                      |
 
-### 所有冠詞 (Nominativ・被所有物の性数に一致)
+### 所有冠詞の語幹 (人称ごと)
 
-| 所有者                | 男性名詞 (der) | 女性名詞 (die) | 中性名詞 (das) | 複数名詞 |
-| ---------------------- | --------------- | --------------- | --------------- | -------- |
-| ich (私の)             | mein            | meine           | mein            | meine    |
-| du (君の)              | dein            | deine           | dein            | deine    |
-| er (彼の)              | sein            | seine           | sein            | seine    |
-| sie (彼女の)           | ihr             | ihre            | ihr             | ihre     |
-| es (それの)            | sein            | seine           | sein            | seine    |
-| wir (私たちの)         | unser           | unsere          | unser           | unsere   |
-| ihr (君たちの)         | euer            | eure            | euer            | eure     |
-| sie (彼らの)           | ihr             | ihre            | ihr             | ihre     |
-| Sie (あなたの・敬称)   | Ihr             | Ihre            | Ihr             | Ihre     |
+| 人称                  | 語幹  |
+| ---------------------- | ----- |
+| ich (私の)             | mein  |
+| du (君の)              | dein  |
+| er (彼の)              | sein  |
+| sie (彼女の)           | ihr   |
+| es (それの)            | sein  |
+| wir (私たちの)         | unser |
+| ihr (君たちの)         | euer  |
+| sie (彼らの)           | ihr   |
+| Sie (あなたの・敬称)   | Ihr   |
 
-### 定冠詞の格変化 (der/die/das)
+### 所有冠詞の語尾変化 (1格〜4格・ein型共通)
 
-| 格         | 男性 | 女性 | 中性 | 複数 |
-| ---------- | ---- | ---- | ---- | ---- |
-| Nominativ  | der  | die  | das  | die  |
-| Akkusativ  | den  | die  | das  | die  |
-| Dativ      | dem  | der  | dem  | den  |
-| Genitiv    | des  | der  | des  | der  |
+| 格               | 男性語尾 | 女性語尾 | 中性語尾 | 複数語尾 |
+| ----------------- | -------- | -------- | -------- | -------- |
+| 1格 (Nominativ)  | (なし)   | e        | (なし)   | e        |
+| 2格 (Genitiv)    | es       | er       | es       | er       |
+| 3格 (Dativ)      | em       | er       | em       | en       |
+| 4格 (Akkusativ)  | en       | e        | (なし)   | e        |
 
-### 不定冠詞・否定冠詞の格変化 (ein/keine)
+### 定冠詞の格変化 (1格〜4格: der/die/das)
 
-| 格         | 男性 (ein) | 女性 (eine) | 中性 (ein) | 複数 (keine) |
-| ---------- | ---------- | ----------- | ---------- | ------------- |
-| Nominativ  | ein        | eine        | ein        | keine         |
-| Akkusativ  | einen      | eine        | ein        | keine         |
-| Dativ      | einem      | einer       | einem      | keinen        |
-| Genitiv    | eines      | einer       | eines      | keiner        |
+| 格               | 男性 | 女性 | 中性 | 複数 |
+| ----------------- | ---- | ---- | ---- | ---- |
+| 1格 (Nominativ)  | der  | die  | das  | die  |
+| 2格 (Genitiv)    | des  | der  | des  | der  |
+| 3格 (Dativ)      | dem  | der  | dem  | den  |
+| 4格 (Akkusativ)  | den  | die  | das  | die  |
 
-### 指示代名詞 dieser の格変化
+### 不定冠詞・否定冠詞の格変化 (1格〜4格: ein/keine)
 
-| 格         | 男性   | 女性  | 中性   | 複数  |
-| ---------- | ------ | ----- | ------ | ----- |
-| Nominativ  | dieser | diese | dieses | diese |
-| Akkusativ  | diesen | diese | dieses | diese |
-| Dativ      | diesem | dieser | diesem | diesen |
-| Genitiv    | dieses | dieser | dieses | dieser |
+| 格               | 男性 (ein) | 女性 (eine) | 中性 (ein) | 複数 (keine) |
+| ----------------- | ---------- | ----------- | ---------- | ------------- |
+| 1格 (Nominativ)  | ein        | eine        | ein        | keine         |
+| 2格 (Genitiv)    | eines      | einer       | eines      | keiner        |
+| 3格 (Dativ)      | einem      | einer       | einem      | keinen        |
+| 4格 (Akkusativ)  | einen      | eine        | ein        | keine         |
+
+### 指示代名詞 dieser の格変化 (1格〜4格)
+
+| 格               | 男性   | 女性   | 中性   | 複数  |
+| ----------------- | ------ | ------ | ------ | ----- |
+| 1格 (Nominativ)  | dieser | diese  | dieses | diese |
+| 2格 (Genitiv)    | dieses | dieser | dieses | dieser |
+| 3格 (Dativ)      | diesem | dieser | diesem | diesen |
+| 4格 (Akkusativ)  | diesen | diese  | dieses | diese |
 
 </div>
