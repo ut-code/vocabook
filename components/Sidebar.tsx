@@ -126,8 +126,8 @@ export default function Sidebar({ allSections = {} }: SidebarProps) {
               onClick={() => setIsMyNotebooksOpen((prev) => !prev)}
               className={`flex-1 rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
                 isMyNotebooksActive
-                  ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400"
-                  : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-900"
+                  ? "bg-[#FF7F50]/10 text-[#FF7F50] dark:bg-[#FF7F50]/20 dark:text-[#FF7F50]"
+                  : "text-zinc-700 hover:bg-zinc-100 hover:text-[#FF7F50] dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:text-[#FF7F50]"
               }`}
             >
               My単語帳
@@ -165,8 +165,8 @@ export default function Sidebar({ allSections = {} }: SidebarProps) {
               onClick={() => setIsLearnOpen((prev) => !prev)}
               className={`flex-1 rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
                 isLearnActive && !currentLanguageSlug
-                  ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400"
-                  : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-900"
+                  ? "bg-[#367588]/10 text-[#367588] dark:bg-[#367588]/20 dark:text-[#367588]"
+                  : "text-zinc-700 hover:bg-zinc-100 hover:text-[#367588] dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:text-[#367588]"
               }`}
             >
               学習教材
@@ -216,7 +216,7 @@ export default function Sidebar({ allSections = {} }: SidebarProps) {
                         className={`flex-1 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
                           isLangActive && !currentSectionSlug
                             ? "bg-zinc-200/70 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100 font-semibold"
-                            : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-200"
+                            : "text-zinc-600 hover:bg-zinc-100 hover:text-[#367588] dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-[#367588]"
                         }`}
                       >
                         {lang.label}
@@ -261,8 +261,8 @@ export default function Sidebar({ allSections = {} }: SidebarProps) {
                               href={`/learn/${lang.languageSlug}/${section.sectionSlug}`}
                               className={`rounded-md px-2.5 py-1 text-xs transition-colors ${
                                 isSectionActive
-                                  ? "bg-emerald-100 text-emerald-800 font-semibold dark:bg-emerald-900/60 dark:text-emerald-300"
-                                  : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-200"
+                                  ? "bg-[#367588]/10 text-[#367588] font-semibold dark:bg-[#367588]/20 dark:text-[#367588]"
+                                  : "text-zinc-500 hover:bg-zinc-100 hover:text-[#367588] dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-[#367588]"
                               }`}
                             >
                               {section.title}

@@ -1,15 +1,17 @@
 import { notFound, redirect } from "next/navigation";
 
 import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/session";
 import StudyDeck from "../study/StudyDeck";
 import type { CardData } from "@/lib/card-data";
 
 export default async function ReviewPage(props: PageProps<"/my-notebooks/[notebookId]/review">) {
+  const user = await requireUser();
   const { notebookId } = await props.params;
 
   // 単語帳と、その中の★がついたカードだけをposition昇順で取得する
-  const notebook = await prisma.notebook.findUnique({
-    where: { id: notebookId },
+  const notebook = await prisma.notebook.findFirst({
+    where: { id: notebookId, userId: user.id },
     include: { cards: { where: { starred: true }, orderBy: { position: "asc" } } },
   });
 

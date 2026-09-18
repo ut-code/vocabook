@@ -19,7 +19,7 @@ function SaveButton() {
     <button
       type="submit"
       disabled={pending}
-      className="rounded-full bg-black px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-50 dark:text-black dark:hover:bg-zinc-200"
+      className="rounded-full bg-coral-500 px-3 py-1 text-xs font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-coral-600 hover:shadow-lg hover:shadow-coral-200 disabled:opacity-50 dark:hover:shadow-none"
     >
       {pending ? "保存中…" : "保存"}
     </button>
@@ -204,7 +204,7 @@ export default function CardRow({
             <button
               type="button"
               onClick={() => setEditing(false)}
-              className="text-sm text-zinc-500 transition-colors hover:underline dark:text-zinc-500"
+              className="text-sm text-coral-600 transition-all hover:-translate-y-0.5 hover:text-coral-800 hover:underline dark:text-coral-400 dark:hover:text-coral-200"
             >
               キャンセル
             </button>

@@ -14,7 +14,7 @@ function AddButton() {
     <button
       type="submit"
       disabled={pending}
-      className="rounded-full bg-black px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-50 dark:text-black dark:hover:bg-zinc-200"
+      className="rounded-full bg-coral-500 px-4 py-1.5 text-sm font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-coral-600 hover:shadow-lg hover:shadow-coral-200 disabled:opacity-50 dark:hover:shadow-none"
     >
       {pending ? "追加中…" : "追加"}
     </button>
