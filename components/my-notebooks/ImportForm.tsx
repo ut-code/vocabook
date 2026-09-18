@@ -8,13 +8,7 @@ import { importNotebookFromExcel, type FormState } from "@/app/my-notebooks/acti
 
 const initialState: FormState = {};
 
-const languageOptions = [
-  "フランス語",
-  "ドイツ語",
-  "スペイン語",
-  "中国語",
-  "英語",
-];
+const languageOptions = ["フランス語", "ドイツ語", "スペイン語", "中国語", "英語"];
 
 // フォーム送信中はボタンを disabled にし、ラベルを差し替える
 function SubmitButton() {
@@ -48,7 +42,10 @@ export function ImportTemplate() {
   return (
     <div className="flex flex-col gap-4 rounded-2xl border border-black/[.08] bg-white p-6 dark:border-white/[.145] dark:bg-zinc-950">
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="templateName" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+        <label
+          htmlFor="templateName"
+          className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+        >
           ファイル名(英数字のみ)
         </label>
         <input
@@ -62,10 +59,8 @@ export function ImportTemplate() {
         />
       </div>
 
-            <div className="flex flex-col gap-2">
-        <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-          言語を選択
-        </p>
+      <div className="flex flex-col gap-2">
+        <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">言語を選択</p>
         <div className="flex flex-wrap gap-2">
           {languageOptions.map((language) => {
             const isSelected = selectedLanguage === language;
@@ -88,7 +83,7 @@ export function ImportTemplate() {
         </div>
       </div>
 
-            <button
+      <button
         type="button"
         onClick={downloadTemplate}
         className="w-fit rounded-full bg-zinc-900 px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 dark:bg-zinc-50 dark:text-black dark:hover:bg-zinc-200"
@@ -104,7 +99,6 @@ export function ImportTemplate() {
     </div>
   );
 }
-
 
 export default function ImportForm() {
   // useActionStateは、Server Actionの戻り値（{ error }など）を
