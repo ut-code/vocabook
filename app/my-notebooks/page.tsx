@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { prisma } from "@/lib/prisma";
-import ImportForm, {ImportTemplate,} from "@/components/my-notebooks/ImportForm";
+import ImportForm, { ImportTemplate } from "@/components/my-notebooks/ImportForm";
 import { requireUser } from "@/lib/session";
 import DeleteNotebookButton from "@/components/my-notebooks/DeleteNotebookButton";
 import StarColorSettings from "@/components/StarColorSettings";
