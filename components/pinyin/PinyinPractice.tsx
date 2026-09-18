@@ -1,105 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { AccentInput } from "@/components/verbs/AccentInput";
+import { ACCENT_FONT_STYLE, AccentInput } from "@/components/verbs/AccentInput";
+import { canonicalPinyin, TONE_CYCLES, TOOLBAR_CHARS } from "@/lib/pinyin";
 import { speak } from "@/lib/speech";
-import type { HanziEntry } from "@/app/learn/chinese/03/characters";
-
-// 母音ごとの声調サイクル。母音を入力した直後に ↑/↓ キーで
-// 第1声→第2声→第3声→第4声（→軽声）と切り替えられる。
-const TONE_CYCLES: string[][] = [
-  ["a", "ā", "á", "ǎ", "à"],
-  ["e", "ē", "é", "ě", "è"],
-  ["i", "ī", "í", "ǐ", "ì"],
-  ["o", "ō", "ó", "ǒ", "ò"],
-  ["u", "ū", "ú", "ǔ", "ù"],
-  ["ü", "ǖ", "ǘ", "ǚ", "ǜ"],
-];
-
-const TOOLBAR_CHARS = [
-  "ü",
-  "ā",
-  "á",
-  "ǎ",
-  "à",
-  "ē",
-  "é",
-  "ě",
-  "è",
-  "ī",
-  "í",
-  "ǐ",
-  "ì",
-  "ō",
-  "ó",
-  "ǒ",
-  "ò",
-  "ū",
-  "ú",
-  "ǔ",
-  "ù",
-  "ǖ",
-  "ǘ",
-  "ǚ",
-  "ǜ",
-];
-
-// 声調記号付きの母音 → { 基本母音, 声調番号 }
-const TONE_MARKS: Record<string, { base: string; tone: string }> = {
-  ā: { base: "a", tone: "1" },
-  á: { base: "a", tone: "2" },
-  ǎ: { base: "a", tone: "3" },
-  à: { base: "a", tone: "4" },
-  ē: { base: "e", tone: "1" },
-  é: { base: "e", tone: "2" },
-  ě: { base: "e", tone: "3" },
-  è: { base: "e", tone: "4" },
-  ī: { base: "i", tone: "1" },
-  í: { base: "i", tone: "2" },
-  ǐ: { base: "i", tone: "3" },
-  ì: { base: "i", tone: "4" },
-  ō: { base: "o", tone: "1" },
-  ó: { base: "o", tone: "2" },
-  ǒ: { base: "o", tone: "3" },
-  ò: { base: "o", tone: "4" },
-  ū: { base: "u", tone: "1" },
-  ú: { base: "u", tone: "2" },
-  ǔ: { base: "u", tone: "3" },
-  ù: { base: "u", tone: "4" },
-  ǖ: { base: "ü", tone: "1" },
-  ǘ: { base: "ü", tone: "2" },
-  ǚ: { base: "ü", tone: "3" },
-  ǜ: { base: "ü", tone: "4" },
-};
-
-// ピンインを「基本つづり + 声調番号」の正規形にそろえる。
-// 声調記号（wǒ）・末尾の数字（wo3）どちらの入力でも同じ形になり、
-// v / u: は ü として扱う。軽声・無声調は番号なし。
-function canonicalPinyin(raw: string): string {
-  let s = raw.normalize("NFC").trim().toLowerCase().replace(/\s+/g, "");
-  s = s.replace(/u:/g, "ü").replace(/v/g, "ü");
-
-  let tone = "";
-  let base = "";
-  for (const ch of s) {
-    const mark = TONE_MARKS[ch];
-    if (mark) {
-      base += mark.base;
-      tone = mark.tone;
-    } else {
-      base += ch;
-    }
-  }
-
-  const trailing = base.match(/([0-5])$/);
-  if (trailing) {
-    base = base.slice(0, -1);
-    const t = trailing[1];
-    tone = t === "0" || t === "5" ? "" : t;
-  }
-
-  return base + tone;
-}
+import type { HanziEntry } from "@/app/learn/chinese/04/characters";
 
 interface Question {
   id: string;
@@ -339,7 +244,8 @@ export function PinyinPractice({ characters }: PinyinPracticeProps) {
           chordReplacements={{ "u\\": "ü" }}
           hintText={
             <>
-              ヒント: 母音（a e i o u ü）を入力した直後に ↑キーを押すと、a → ā → á → ǎ → à
+              ヒント: 母音（a e i o u ü）を入力した直後に ↑キーを押すと、
+              <span style={ACCENT_FONT_STYLE}>a → ā → á → ǎ → à</span>
               のように四声の記号を付けられます（↓キーで逆順）。ü は u に続けて \
               を打つと入力できます。 ü や記号は下のボタンからも入力できます。数字での声調入力（例:
               hao3）も正解になります。
@@ -358,11 +264,11 @@ export function PinyinPractice({ characters }: PinyinPracticeProps) {
           <div className="mt-4 flex flex-col items-center gap-2 text-center">
             {isCorrect ? (
               <div className="font-bold text-green-600 dark:text-green-400">
-                正解！（{question.pinyin}）
+                正解！（<span style={ACCENT_FONT_STYLE}>{question.pinyin}</span>）
               </div>
             ) : (
               <div className="font-bold text-red-600 dark:text-red-400">
-                不正解 — 正解は「{question.pinyin}」
+                不正解 — 正解は「<span style={ACCENT_FONT_STYLE}>{question.pinyin}</span>」
               </div>
             )}
             <button

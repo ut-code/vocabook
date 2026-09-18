@@ -52,6 +52,20 @@ body {
   font-family: var(--font-noto-sans-jp), Arial, Helvetica, sans-serif;
 }
 
+/* 中国語教材セクション（app/learn/chinese）専用のフォント指定。
+CJK統合漢字は同じ文字コードでも言語によって字形が異なるため、
+既定のNoto Sans JP（日本語字形）ではなく、簡体字の字形で表示されるOS標準フォントを優先する
+（next/font/googleは中国語フォントで不具合が出るため、components/background.tsxと同様にWebフォントは使わない） */
+.chinese-content {
+  font-family:
+    "PingFang SC",
+    "Microsoft YaHei",
+    "Noto Sans SC",
+    "Source Han Sans SC",
+    "WenQuanYi Micro Hei",
+    sans-serif;
+}
+
 /* フランス語教材セクション（app/learn/french）専用の MDX タイポグラフィ */
 .french-content h1 {
   border-bottom: 1px solid var(--color-zinc-200);

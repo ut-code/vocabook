@@ -1,69 +1,77 @@
-import GermanNumberPracticeLoader from "@/components/german/GermanNumberPracticeLoader";
+import GermanTablePracticeLoader from "@/components/german/GermanTablePracticeLoader";
 
-export const title = "数字タイピング演習";
+export const title = "人称代名詞・所有冠詞・冠詞・指示代名詞の表完成演習";
 
-# 数字タイピング演習
+# 人称代名詞・所有冠詞・冠詞・指示代名詞の表完成演習
 
-<GermanNumberPracticeLoader />
+<GermanTablePracticeLoader />
 
 {/* 出題データ定義テーブル (display:none) */}
 
 <div className="hidden" style={{ display: "none" }} aria-hidden="true">
 
-| 数  | 綴り             |
-| --- | ---------------- |
-| 0   | null             |
-| 1   | eins             |
-| 2   | zwei             |
-| 3   | drei             |
-| 4   | vier             |
-| 5   | fünf             |
-| 6   | sechs            |
-| 7   | sieben           |
-| 8   | acht             |
-| 9   | neun             |
-| 10  | zehn             |
-| 11  | elf              |
-| 12  | zwölf            |
-| 13  | dreizehn         |
-| 14  | vierzehn         |
-| 15  | fünfzehn         |
-| 16  | sechzehn         |
-| 17  | siebzehn         |
-| 18  | achtzehn         |
-| 19  | neunzehn         |
-| 20  | zwanzig          |
-| 21  | einundzwanzig    |
-| 22  | zweiundzwanzig   |
-| 23  | dreiundzwanzig   |
-| 24  | vierundzwanzig   |
-| 25  | fünfundzwanzig   |
-| 26  | sechsundzwanzig  |
-| 30  | dreißig          |
-| 31  | einunddreißig    |
-| 40  | vierzig          |
-| 41  | einundvierzig    |
-| 50  | fünfzig          |
-| 51  | einundfünfzig    |
-| 60  | sechzig          |
-| 61  | einundsechzig    |
-| 70  | siebzig          |
-| 71  | einundsiebzig    |
-| 72  | zweiundsiebzig   |
-| 73  | dreiundsiebzig   |
-| 74  | vierundsiebzig   |
-| 75  | fünfundsiebzig   |
-| 76  | sechsundsiebzig  |
-| 77  | siebenundsiebzig |
-| 78  | achtundsiebzig   |
-| 79  | neunundsiebzig   |
-| 80  | achtzig          |
-| 81  | einundachtzig    |
-| 82  | zweiundachtzig   |
-| 90  | neunzig          |
-| 91  | einundneunzig    |
-| 92  | zweiundneunzig   |
-| 99  | neunundneunzig   |
-| 100 | hundert          |
+### 人称代名詞の格変化 (1格〜4格)
+
+| 人称・性数    | 1格 Nominativ (〜は) | 2格 Genitiv (〜の) | 3格 Dativ (〜に) | 4格 Akkusativ (〜を) |
+| ------------- | -------------------- | ------------------ | ---------------- | -------------------- |
+| 1人称単数     | ich                  | meiner             | mir              | mich                 |
+| 2人称単数     | du                   | deiner             | dir              | dich                 |
+| 3人称単数男性 | er                   | seiner             | ihm              | ihn                  |
+| 3人称単数女性 | sie                  | ihrer              | ihr              | sie                  |
+| 3人称単数中性 | es                   | seiner             | ihm              | es                   |
+| 1人称複数     | wir                  | unser              | uns              | uns                  |
+| 2人称複数     | ihr                  | euer               | euch             | euch                 |
+| 3人称複数     | sie                  | ihrer              | ihnen            | sie                  |
+| 敬称 (Sie)    | Sie                  | Ihrer              | Ihnen            | Sie                  |
+
+### 所有冠詞の語幹 (人称ごと)
+
+| 人称                 | 語幹  |
+| -------------------- | ----- |
+| ich (私の)           | mein  |
+| du (君の)            | dein  |
+| er (彼の)            | sein  |
+| sie (彼女の)         | ihr   |
+| es (それの)          | sein  |
+| wir (私たちの)       | unser |
+| ihr (君たちの)       | euer  |
+| sie (彼らの)         | ihr   |
+| Sie (あなたの・敬称) | Ihr   |
+
+### 所有冠詞の語尾変化 (1格〜4格・ein型共通)
+
+| 格              | 男性語尾 | 女性語尾 | 中性語尾 | 複数語尾 |
+| --------------- | -------- | -------- | -------- | -------- |
+| 1格 (Nominativ) | (なし)   | e        | (なし)   | e        |
+| 2格 (Genitiv)   | es       | er       | es       | er       |
+| 3格 (Dativ)     | em       | er       | em       | en       |
+| 4格 (Akkusativ) | en       | e        | (なし)   | e        |
+
+### 定冠詞の格変化 (1格〜4格: der/die/das)
+
+| 格              | 男性 | 女性 | 中性 | 複数 |
+| --------------- | ---- | ---- | ---- | ---- |
+| 1格 (Nominativ) | der  | die  | das  | die  |
+| 2格 (Genitiv)   | des  | der  | des  | der  |
+| 3格 (Dativ)     | dem  | der  | dem  | den  |
+| 4格 (Akkusativ) | den  | die  | das  | die  |
+
+### 不定冠詞・否定冠詞の格変化 (1格〜4格: ein/keine)
+
+| 格              | 男性 (ein) | 女性 (eine) | 中性 (ein) | 複数 (keine) |
+| --------------- | ---------- | ----------- | ---------- | ------------ |
+| 1格 (Nominativ) | ein        | eine        | ein        | keine        |
+| 2格 (Genitiv)   | eines      | einer       | eines      | keiner       |
+| 3格 (Dativ)     | einem      | einer       | einem      | keinen       |
+| 4格 (Akkusativ) | einen      | eine        | ein        | keine        |
+
+### 指示代名詞 dieser の格変化 (1格〜4格)
+
+| 格              | 男性   | 女性   | 中性   | 複数   |
+| --------------- | ------ | ------ | ------ | ------ |
+| 1格 (Nominativ) | dieser | diese  | dieses | diese  |
+| 2格 (Genitiv)   | dieses | dieser | dieses | dieser |
+| 3格 (Dativ)     | diesem | dieser | diesem | diesen |
+| 4格 (Akkusativ) | diesen | diese  | dieses | diese  |
 
 </div>

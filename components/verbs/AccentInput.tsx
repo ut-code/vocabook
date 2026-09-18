@@ -1,7 +1,15 @@
 "use client";
 
 import { useMemo, useRef } from "react";
-import type { KeyboardEvent, ReactNode } from "react";
+import type { CSSProperties, KeyboardEvent, ReactNode } from "react";
+
+// アプリ標準のNoto Sans JPは、マクロン付き文字（ā/ē/ī/ō/ūなど、ピンインの一声）の
+// グリフ位置が文字からずれて表示されることがあるため、アクセント・声調記号を扱う要素には
+// 正しくレンダリングできるフォントスタックを明示的に指定する。
+// 入力欄以外でアクセント・声調付きの文字を表示する箇所（正解表示など）でも再利用する
+export const ACCENT_FONT_STYLE: CSSProperties = {
+  fontFamily: '"Noto Sans", Arial, "Helvetica Neue", "Segoe UI", sans-serif',
+};
 
 interface AccentInputProps {
   value: string;
@@ -154,6 +162,7 @@ export function AccentInput({
         placeholder={placeholder}
         autoFocus={autoFocus}
         className={className}
+        style={ACCENT_FONT_STYLE}
       />
       <div className="mt-2 flex flex-wrap gap-1">
         {toolbarChars.map((ch) => (
@@ -163,6 +172,7 @@ export function AccentInput({
             tabIndex={-1}
             onClick={() => insertChar(ch)}
             disabled={disabled}
+            style={ACCENT_FONT_STYLE}
             className="h-8 w-8 rounded-lg border border-zinc-200 bg-white text-sm font-medium text-zinc-600 transition-colors hover:border-tealblue-400 hover:text-tealblue-700 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:border-tealblue-500 dark:hover:text-tealblue-400"
           >
             {ch}
@@ -172,7 +182,8 @@ export function AccentInput({
       <div className="mt-1.5 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
         {hintText ?? (
           <>
-            ヒント: アルファベットを入力した直後に ↑キーを押すと、{accentCycles[0]?.join(" → ")}
+            ヒント: アルファベットを入力した直後に ↑キーを押すと、
+            <span style={ACCENT_FONT_STYLE}>{accentCycles[0]?.join(" → ")}</span>
             のようにアクセント記号付きの文字へ切り替えられます（↓キーで逆順）。上のボタンから直接入力することもできます。
           </>
         )}

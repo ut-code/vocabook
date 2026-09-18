@@ -1,18 +1,17 @@
 "use client";
 
-import { ConjugationPractice } from "@/components/verbs/ConjugationPractice";
-import { frenchConjugationConfig } from "@/lib/conjugation/fr/config";
-import { verbs } from "./verbs";
+import { ListeningPractice } from "@/components/listening/ListeningPractice";
+import { frenchListeningConfig, frenchListeningWords } from "@/lib/listening/fr";
 
-export const title = "動詞の活用";
+export const title = "発音識別";
 
-export default function FrenchVerbConjugationPage() {
+export default function FrenchListeningPage() {
   return (
     <div>
-      <h1>動詞の活用</h1>
-      <p>動詞・時制・法を選んで、活用形を入力しながら覚えましょう。</p>
+      <h1>発音識別</h1>
+      <p>発音を聞いて、紛らわしい同音異綴語などの正しい綴りを入力しましょう。</p>
       <div className="mt-8">
-        <ConjugationPractice verbs={verbs} language={frenchConjugationConfig} sectionSlug="03" />
+        <ListeningPractice words={frenchListeningWords} language={frenchListeningConfig} />
       </div>
     </div>
   );
