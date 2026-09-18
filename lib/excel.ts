@@ -13,6 +13,14 @@ export type ParsedNotebook = {
 
 export class ExcelParseError extends Error {}
 
+export async function createTemplateWorkbookBuffer(): Promise<ArrayBuffer> {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet("Sheet1");
+  worksheet.addRow([1, 2, 3]);
+
+  return (await workbook.xlsx.writeBuffer()) as ArrayBuffer;
+}
+
 // exceljsのCell.valueは文字列・数値・日付・数式結果オブジェクトなど
 // 型がまちまちなので、表示用の1本の文字列に正規化する
 function cellToText(value: ExcelJS.CellValue): string {
