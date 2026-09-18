@@ -20,7 +20,7 @@ export default function LogoutButton() {
     <button
       onClick={handleLogout}
       disabled={pending}
-      className="rounded-full border border-black/[.08] px-4 py-1.5 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 disabled:opacity-50 dark:border-white/[.145] dark:text-zinc-300 dark:hover:bg-zinc-900"
+      className="whitespace-nowrap rounded-full border border-black/[.08] px-4 py-1.5 text-base font-medium text-zinc-600 transition-colors hover:bg-zinc-100 disabled:opacity-50 dark:border-white/[.145] dark:text-zinc-300 dark:hover:bg-zinc-900"
     >
       {pending ? "ログアウト中…" : "ログアウト"}
     </button>

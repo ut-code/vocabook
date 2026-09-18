@@ -13,13 +13,13 @@ export default function AuthNavLinks() {
     <div className="flex items-center gap-3">
       <Link
         href={`/login?${redirectQuery}`}
-        className="text-sm font-medium text-zinc-600 transition-colors hover:text-emerald-500 dark:text-zinc-200 dark:hover:text-emerald-500"
+        className="whitespace-nowrap text-base font-medium text-zinc-600 transition-colors hover:text-[#eaa64d] dark:text-zinc-200 dark:hover:text-[#eaa64d]"
       >
         ログイン
       </Link>
       <Link
         href={`/signup?${redirectQuery}`}
-        className="rounded-full bg-black px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-black dark:hover:bg-zinc-200"
+        className="whitespace-nowrap rounded-full bg-black px-4 py-1.5 text-base font-medium text-white transition-colors hover:bg-[#eaa64d] dark:bg-zinc-50 dark:text-black dark:hover:bg-[#eaa64d]"
       >
         新規登録
       </Link>

@@ -10,7 +10,7 @@ export default async function HeaderAuthStatus() {
   if (user) {
     return (
       <div className="flex items-center gap-3">
-        <span className="hidden text-sm text-zinc-500 dark:text-zinc-400 sm:inline">
+        <span className="hidden text-base text-zinc-500 dark:text-zinc-400 sm:inline">
           {user.name}
         </span>
         <LogoutButton />
