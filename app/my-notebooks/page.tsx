@@ -1,8 +1,8 @@
 import Link from "next/link";
 
 import { prisma } from "@/lib/prisma";
+import ImportForm, { ImportTemplate } from "@/components/my-notebooks/ImportForm";
 import { requireUser } from "@/lib/session";
-import ImportForm from "@/components/my-notebooks/ImportForm";
 import DeleteNotebookButton from "@/components/my-notebooks/DeleteNotebookButton";
 import StarColorSettings from "@/components/StarColorSettings";
 
@@ -34,12 +34,22 @@ export default async function MyNotebooksPage() {
         </div>
       </div>
 
-      <section className="mt-10 w-full max-w-md">
-        <h2 className="mb-3 text-sm font-semibold tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
-          Excelから新規作成
-        </h2>
-        <ImportForm />
-      </section>
+      {/*以下の２つのセクションをパソコンでは横並びで、スマホではたて並びで表示する*/}
+      <div className="mt-10 flex flex-col md:flex-row gap-6 w-full max-w-4xl">
+        <section className="mt-10 w-full max-w-md">
+          <h2 className="mb-3 text-sm font-semibold tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
+            自分のExcelから新規作成
+          </h2>
+          <ImportForm />
+        </section>
+
+        <section className="mt-10 w-full max-w-md">
+          <h2 className="mb-3 text-sm font-semibold tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
+            テンプレートから新規作成
+          </h2>
+          <ImportTemplate />
+        </section>
+      </div>
 
       <section className="mt-12 w-full max-w-2xl">
         <h2 className="mb-3 text-sm font-semibold tracking-wide text-zinc-500 uppercase dark:text-zinc-500">

@@ -2,10 +2,13 @@
 
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
+import { useState } from "react";
 
 import { importNotebookFromExcel, type FormState } from "@/app/my-notebooks/actions";
 
 const initialState: FormState = {};
+
+const languageOptions = ["フランス語", "ドイツ語", "スペイン語", "中国語", "英語"];
 
 // フォーム送信中はボタンを disabled にし、ラベルを差し替える
 function SubmitButton() {
@@ -19,6 +22,81 @@ function SubmitButton() {
     >
       {pending ? "取り込み中…" : "単語帳を作成"}
     </button>
+  );
+}
+
+export function ImportTemplate() {
+  // useActionStateは、Server Actionの戻り値（{ error }など）を
+  // 前回の実行結果として保持してくれるReactのフック
+  const [state, formAction] = useActionState(importNotebookFromExcel, initialState);
+
+  const [templateName, setTemplateName] = useState("");
+  const [selectedLanguage, setSelectedLanguage] = useState<string | null>("英語");
+
+  const downloadTemplate = async () => {
+    const lang = selectedLanguage ?? "英語";
+    const url = `/my-notebooks/template?filename=${encodeURIComponent(templateName || "単語帳テンプレート")}&language=${encodeURIComponent(lang)}`;
+    window.location.href = url;
+  };
+
+  return (
+    <div className="flex flex-col gap-4 rounded-2xl border border-black/[.08] bg-white p-6 dark:border-white/[.145] dark:bg-zinc-950">
+      <div className="flex flex-col gap-1.5">
+        <label
+          htmlFor="templateName"
+          className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+        >
+          ファイル名(英数字のみ)
+        </label>
+        <input
+          id="templateName"
+          name="templateName"
+          type="text"
+          value={templateName}
+          onChange={(e) => setTemplateName(e.target.value)}
+          placeholder="例: French_1"
+          className="rounded-lg border border-black/[.08] bg-transparent px-3 py-2 text-sm outline-none focus:border-black/[.3] dark:border-white/[.145] dark:focus:border-white/[.4]"
+        />
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">言語を選択</p>
+        <div className="flex flex-wrap gap-2">
+          {languageOptions.map((language) => {
+            const isSelected = selectedLanguage === language;
+            return (
+              <button
+                key={language}
+                type="button"
+                onClick={() => setSelectedLanguage(language)}
+                className={[
+                  "rounded-full border px-3 py-1.5 text-sm transition-colors",
+                  isSelected
+                    ? "border-blue-600 bg-blue-600 text-white"
+                    : "border-black/[.08] bg-white text-zinc-700 hover:bg-zinc-100 dark:border-white/[.145] dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800",
+                ].join(" ")}
+              >
+                {language}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={downloadTemplate}
+        className="w-fit rounded-full bg-zinc-900 px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 dark:bg-zinc-50 dark:text-black dark:hover:bg-zinc-200"
+      >
+        テンプレートをダウンロード
+      </button>
+
+      {state?.error && (
+        <p role="alert" className="text-sm text-red-600 dark:text-red-400">
+          {state.error}
+        </p>
+      )}
+    </div>
   );
 }
 
