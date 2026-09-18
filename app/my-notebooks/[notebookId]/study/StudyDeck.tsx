@@ -9,6 +9,7 @@ import StarCountEditor from "@/components/StarCountEditor";
 import { useStarColors } from "@/components/UseStarColors";
 import { starColorFor } from "@/lib/star-colors";
 import type { CardData } from "@/lib/card-data";
+import MultiElementCard from "@/components/my-notebooks/MultiElement"; //三次元用の三角柱UIを導入
 
 type Card = {
   id: string;
@@ -49,10 +50,36 @@ export default function StudyDeck({
   // flipped: 今のカードが表（見出し語）か裏（意味）のどちらを向いているか
   const [flipped, setFlipped] = useState(false);
 
+  const [frontColumn, setFrontColumn] = useState<string>(columns[0]);
+
   // 現在表示すべきカードは、order[index]（実際のcardsインデックス）から引く
   const current = cards[order[index]];
-  const frontColumn = columns[0];
-  const senseColumns = columns.slice(1);
+  const primarySense = current?.data.senses[0] || {};
+
+  // 今のカードでデータが存在する列一覧
+  const rawActiveColumns = columns.filter((col, idx) => {
+    if (idx === 0) return Boolean(current?.data.head);
+    return Boolean(primarySense[col]);
+  });
+
+  // 選択された frontColumn が先頭（1面目）に来るように並び替える
+  const activeColumns = rawActiveColumns.includes(frontColumn)
+    ? [frontColumn, ...rawActiveColumns.filter((col) => col !== frontColumn)]
+    : rawActiveColumns;
+
+  const senseColumns = activeColumns.slice(1);
+
+  // 表示しようとしているカードの要素数が3個以上の時だけ3Dモードにする判定
+  const is3DMode = activeColumns.length >= 3;
+
+  // 3D多角柱のそれぞれの面に入れるコンテンツの準備
+
+  const faces = activeColumns.map((colName) => {
+    const isHead = colName === columns[0];
+    const value = isHead ? current?.data.head : primarySense[colName];
+
+    return <CardFace key={colName} colName={colName} value={value || "—"} isHead={isHead} />;
+  });
 
   // toggleStarの結果（サーバーの往復）を待たず、クリックした瞬間に★・回数・色を切り替えるためのUI
   // idも保持し、往復の間にカードを送り進めても別カードへ誤って適用されないようにする
@@ -109,59 +136,97 @@ export default function StudyDeck({
 
   return (
     <div className="flex flex-col items-center gap-6">
-      <p className="text-sm text-zinc-500 dark:text-zinc-500">
-        {index + 1} / {order.length}
-      </p>
+      {/* 進捗と最初の面選択UI */}
+      <div className="flex w-full max-w-[320px] items-center justify-between text-sm text-zinc-500">
+        <p>
+          {index + 1} / {order.length}
+        </p>
 
+        {/* ★ 最初に表にする項目の選択 */}
+        <select
+          value={frontColumn}
+          onChange={(e) => {
+            setFrontColumn(e.target.value);
+            setFlipped(false); // 切り替えたら表面に戻す
+          }}
+          className="rounded-lg border border-black/[.08] bg-white px-2 py-1 text-xs dark:border-white/[.145] dark:bg-zinc-900"
+        >
+          {columns.map((col) => (
+            <option key={col} value={col}>
+              おもて: {col}
+            </option>
+          ))}
+        </select>
+      </div>
       {/* relativeなラッパーで囲み、右上の★ボタンをカードに重ねて絶対配置する。
           ★ボタンはフリップ用ボタンとは別要素（兄弟）なので、クリックがフリップに巻き込まれない */}
-      <div className="relative w-full max-w-md">
+      <div className="relative mx-auto w-[320px]">
         {/* カード自体がクリック領域。クリックするたびに表裏(flipped)をトグルするだけで、
             カードの移動（前へ/次へ/シャッフル）とは独立した操作になっている */}
-        <button
-          type="button"
-          onClick={() => setFlipped((f) => !f)}
-          className="flex min-h-56 w-full flex-col items-center justify-center gap-3 rounded-2xl border border-black/[.08] bg-white p-8 text-center transition-colors hover:border-black/[.15] dark:border-white/[.145] dark:bg-zinc-950 dark:hover:border-white/[.25]"
-        >
-          {!flipped ? (
-            // 表面: 1列目（見出し語）だけを大きく表示する
-            <>
-              <span className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
-                {frontColumn}
-              </span>
-              <span className="text-2xl font-semibold text-black dark:text-zinc-50">
-                {current.data.head || "—"}
-              </span>
-            </>
-          ) : senseColumns.length > 0 && current.data.senses.length > 0 ? (
-            // 裏面: 意味が1件以上あれば、多義語すべてを「意味1」「意味2」…として順番に表示する
-            <div className="flex flex-col gap-4">
-              {current.data.senses.map((sense, senseIndex) => (
-                <div key={senseIndex} className="flex flex-col gap-3">
-                  {current.data.senses.length > 1 && (
-                    <p className="text-xs font-semibold text-zinc-400 dark:text-zinc-600">
-                      意味 {senseIndex + 1}
-                    </p>
-                  )}
-                  {senseColumns.map((column) => (
-                    <div key={column}>
-                      <p className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
-                        {column}
+
+        {is3DMode ? (
+          /* 3つの要素があるときは三角柱 */
+          <div className="my-2 flex flex-col items-center gap-2">
+            <MultiElementCard
+              key={current.id}
+              faces={faces}
+              columnNames={activeColumns}
+              width={320}
+              height={220}
+            />
+            <span className="mt-2 text-xs text-zinc-400 dark:text-zinc-600">
+              クリックして次の面へ回転（{activeColumns.length}角柱）
+            </span>
+          </div>
+        ) : (
+          /* それ以外の時は元通りの表裏ボタン */
+          <button
+            type="button"
+            onClick={() => setFlipped((f) => !f)}
+            className="flex h-[220px] w-[320px] flex-col items-center justify-center gap-3 rounded-2xl border border-black/[.08] bg-white p-8 text-center transition-colors hover:border-black/[.15] dark:border-white/[.145] dark:bg-zinc-950 dark:hover:border-white/[.25]"
+          >
+            {!flipped ? (
+              // 表面: 1列目（見出し語）だけを大きく表示する
+              <>
+                <span className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
+                  {frontColumn}
+                </span>
+                <span className="text-2xl font-semibold text-black dark:text-zinc-50">
+                  {current.data.head || "—"}
+                </span>
+              </>
+            ) : senseColumns.length > 0 && current.data.senses.length > 0 ? (
+              // 裏面: 意味が1件以上あれば、多義語すべてを「意味1」「意味2」…として順番に表示する
+              <div className="flex flex-col gap-4">
+                {current.data.senses.map((sense, senseIndex) => (
+                  <div key={senseIndex} className="flex flex-col gap-3">
+                    {current.data.senses.length > 1 && (
+                      <p className="text-xs font-semibold text-zinc-400 dark:text-zinc-600">
+                        意味 {senseIndex + 1}
                       </p>
-                      <p className="text-lg text-black dark:text-zinc-50">{sense[column] || "—"}</p>
-                    </div>
-                  ))}
-                </div>
-              ))}
-            </div>
-          ) : (
-            // 意味の列自体が無い、またはこのカードに意味が1件も登録されていない場合のフォールバック表示
-            <p className="text-sm text-zinc-500 dark:text-zinc-500">他に項目がありません</p>
-          )}
-          <span className="mt-2 text-xs text-zinc-400 dark:text-zinc-600">
-            クリックして{flipped ? "表" : "裏"}を見る
-          </span>
-        </button>
+                    )}
+                    {senseColumns.map((column) => (
+                      <div key={column}>
+                        <p className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
+                          {column}
+                        </p>
+                        <p className="text-lg text-black dark:text-zinc-50">
+                          {sense[column] || "—"}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              // 意味の列自体が無い、またはこのカードに意味が1件も登録されていない場合のフォールバック表示
+              <p className="text-sm text-zinc-500 dark:text-zinc-500">他に項目がありません</p>
+            )}
+            <span className="mt-2 text-xs text-zinc-400 dark:text-zinc-600">
+              クリックして{flipped ? "表" : "裏"}を見る
+            </span>
+          </button>
+        )}
 
         {/* handleToggleStar は楽観的UI: optimisticStar を即座に切り替えてから
             toggleStar（サーバー更新）を呼ぶ。表示も current.starred ではなく
@@ -175,7 +240,7 @@ export default function StudyDeck({
 
             全件モード（/study）は再検証しても件数・並び順が変わらないため、
             ★の付け外しをその場で反映できる。 */}
-        <div className="absolute top-3 right-3 flex items-center gap-1">
+        <div className="absolute top-10 right-3 flex items-center gap-1">
           <form action={handleToggleStar}>
             <button
               type="submit"
@@ -220,7 +285,7 @@ export default function StudyDeck({
         <button
           type="button"
           onClick={shuffle}
-          className="rounded-full border border-black/[.08] px-4 py-2 text-sm transition-colors hover:border-black/[.15] dark:border-white/[.145] dark:hover:border-white/[.25]"
+          className="rounded-full border border-coral-300 px-4 py-2 text-sm text-coral-700 transition-colors hover:border-coral-500 hover:text-coral-800 dark:border-coral-900/50 dark:text-coral-300 dark:hover:border-coral-600 dark:hover:text-coral-200"
         >
           シャッフル
         </button>
@@ -228,7 +293,7 @@ export default function StudyDeck({
           type="button"
           onClick={goNext}
           disabled={index === order.length - 1}
-          className="rounded-full bg-black px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-40 dark:bg-zinc-50 dark:text-black dark:hover:bg-zinc-200"
+          className="rounded-full bg-coral-500 px-4 py-2 text-sm font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-coral-600 hover:shadow-lg hover:shadow-coral-200 disabled:opacity-40 dark:hover:shadow-none"
         >
           次へ
         </button>
@@ -240,6 +305,25 @@ export default function StudyDeck({
       >
         ← 単語帳に戻る
       </Link>
+    </div>
+  );
+}
+
+function CardFace({ colName, value, isHead }: { colName: string; value: string; isHead: boolean }) {
+  return (
+    <div className="flex flex-col items-center gap-2 text-center">
+      <span className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
+        {colName}
+      </span>
+      <span
+        className={
+          isHead
+            ? "text-2xl font-semibold text-black dark:text-zinc-50"
+            : "text-lg text-zinc-800 dark:text-zinc-200"
+        }
+      >
+        {value}
+      </span>
     </div>
   );
 }

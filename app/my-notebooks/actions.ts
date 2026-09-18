@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/session";
 import { ExcelParseError, parseExcelWorkbook } from "@/lib/excel";
 import type { CardData } from "@/lib/card-data";
 
@@ -46,6 +47,8 @@ export async function importNotebookFromExcel(
   _prevState: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  const user = await requireUser();
+
   const title = String(formData.get("title") ?? "").trim();
   const file = formData.get("file");
 
@@ -75,6 +78,7 @@ export async function importNotebookFromExcel(
   const notebook = await prisma.notebook.create({
     data: {
       title,
+      userId: user.id,
       columns: parsed.columns,
       cards: {
         // data：その行の見出し語・意味などの情報
@@ -92,7 +96,9 @@ export async function importNotebookFromExcel(
 
 // 単語帳を削除する（中の単語もまとめて削除される）
 export async function deleteNotebook(notebookId: string) {
-  await prisma.notebook.delete({ where: { id: notebookId } });
+  const user = await requireUser();
+
+  await prisma.notebook.delete({ where: { id: notebookId, userId: user.id } });
   revalidatePath("/my-notebooks");
   redirect("/my-notebooks");
 }
@@ -103,8 +109,10 @@ export async function createCard(
   _prevState: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  const user = await requireUser();
+
   const notebook = await prisma.notebook.findUniqueOrThrow({
-    where: { id: notebookId },
+    where: { id: notebookId, userId: user.id },
     select: { columns: true },
   });
   const columns = notebook.columns as string[];
@@ -136,8 +144,10 @@ export async function updateCard(
   _prevState: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  const user = await requireUser();
+
   const notebook = await prisma.notebook.findUniqueOrThrow({
-    where: { id: notebookId },
+    where: { id: notebookId, userId: user.id },
     select: { columns: true },
   });
   const columns = notebook.columns as string[];
@@ -148,7 +158,7 @@ export async function updateCard(
   }
 
   await prisma.card.update({
-    where: { id: cardId },
+    where: { id: cardId, notebookId },
     data: { data },
   });
 
@@ -158,14 +168,44 @@ export async function updateCard(
 
 // 単語帳内の単語を1件、削除する
 export async function deleteCard(cardId: string, notebookId: string) {
-  await prisma.card.delete({ where: { id: cardId } });
+  const user = await requireUser();
+  await prisma.notebook.findUniqueOrThrow({
+    where: { id: notebookId, userId: user.id },
+    select: { id: true },
+  });
+
+  await prisma.card.delete({ where: { id: cardId, notebookId } });
   revalidatePath(`/my-notebooks/${notebookId}`);
+}
+
+// 単語帳の公開・非公開を切り替える。公開中は /share/[notebookId] からログイン無しで閲覧できる
+export async function toggleNotebookPublic(notebookId: string) {
+  const user = await requireUser();
+
+  const notebook = await prisma.notebook.findUniqueOrThrow({
+    where: { id: notebookId, userId: user.id },
+    select: { isPublic: true },
+  });
+
+  await prisma.notebook.update({
+    where: { id: notebookId },
+    data: { isPublic: !notebook.isPublic },
+  });
+
+  revalidatePath(`/my-notebooks/${notebookId}`);
+  revalidatePath(`/share/${notebookId}`);
 }
 
 // 単語の★を付け外しする。付けるときだけ starCount を+1し、外してもstarCountは減らさない
 export async function toggleStar(cardId: string, notebookId: string) {
+  const user = await requireUser();
+  await prisma.notebook.findUniqueOrThrow({
+    where: { id: notebookId, userId: user.id },
+    select: { id: true },
+  });
+
   const card = await prisma.card.findUniqueOrThrow({
-    where: { id: cardId },
+    where: { id: cardId, notebookId },
     select: { starred: true },
   });
 
@@ -183,11 +223,17 @@ export async function toggleStar(cardId: string, notebookId: string) {
 // 誤ってクリックした場合などに、★の回数を手動で書き換える
 // 0にした場合は「一度も★を付けていない」状態と矛盾しないよう、starredも自動でfalseに戻す
 export async function setStarCount(cardId: string, notebookId: string, formData: FormData) {
+  const user = await requireUser();
+  await prisma.notebook.findUniqueOrThrow({
+    where: { id: notebookId, userId: user.id },
+    select: { id: true },
+  });
+
   const raw = Number(formData.get("count"));
   const count = Number.isFinite(raw) ? Math.max(0, Math.trunc(raw)) : 0;
 
   await prisma.card.update({
-    where: { id: cardId },
+    where: { id: cardId, notebookId },
     data: count === 0 ? { starCount: 0, starred: false } : { starCount: count },
   });
 
@@ -197,8 +243,14 @@ export async function setStarCount(cardId: string, notebookId: string, formData:
 
 // ★の回数・付け外し状態をまとめて未使用の状態（0・未付与）に戻す
 export async function resetStar(cardId: string, notebookId: string) {
+  const user = await requireUser();
+  await prisma.notebook.findUniqueOrThrow({
+    where: { id: notebookId, userId: user.id },
+    select: { id: true },
+  });
+
   await prisma.card.update({
-    where: { id: cardId },
+    where: { id: cardId, notebookId },
     data: { starCount: 0, starred: false },
   });
 
@@ -208,6 +260,12 @@ export async function resetStar(cardId: string, notebookId: string) {
 
 // 単語帳内の全カードの★（回数・付け外し状態）を一括でリセットする
 export async function resetAllStars(notebookId: string) {
+  const user = await requireUser();
+  await prisma.notebook.findUniqueOrThrow({
+    where: { id: notebookId, userId: user.id },
+    select: { id: true },
+  });
+
   await prisma.card.updateMany({
     where: { notebookId },
     data: { starCount: 0, starred: false },
@@ -220,8 +278,14 @@ export async function resetAllStars(notebookId: string) {
 // 暗記学習モード（/study, /review）でカードが1枚表示されるたびに呼び、表示回数を+1する
 // ★の付け外しとは異なりカードの抽出条件（starred）を変えないため、復習モード（/review）を再検証しても表示中のカード構成はズレない
 export async function incrementViewCount(cardId: string, notebookId: string) {
+  const user = await requireUser();
+  await prisma.notebook.findUniqueOrThrow({
+    where: { id: notebookId, userId: user.id },
+    select: { id: true },
+  });
+
   await prisma.card.update({
-    where: { id: cardId },
+    where: { id: cardId, notebookId },
     data: { viewCount: { increment: 1 } },
   });
 

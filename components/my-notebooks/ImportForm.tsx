@@ -24,7 +24,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="rounded-full bg-black px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-50 dark:text-black dark:hover:bg-zinc-200"
+      className="rounded-full bg-coral-500 px-5 py-2 text-sm font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-coral-600 hover:shadow-lg hover:shadow-coral-200 disabled:opacity-50 dark:hover:shadow-none"
     >
       {pending ? "取り込み中…" : "単語帳を作成"}
     </button>
@@ -140,7 +140,7 @@ export default function ImportForm() {
           type="file"
           accept=".xlsx"
           required
-          className="text-sm text-zinc-600 file:mr-3 file:rounded-full file:border-0 file:bg-zinc-100 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-zinc-700 hover:file:bg-zinc-200 dark:text-zinc-400 dark:file:bg-zinc-800 dark:file:text-zinc-200 dark:hover:file:bg-zinc-700"
+          className="text-sm text-zinc-600 file:mr-3 file:rounded-full file:border-0 file:bg-coral-100 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-coral-700 hover:file:bg-coral-200 hover:file:text-coral-800 dark:text-zinc-400 dark:file:bg-coral-900/30 dark:file:text-coral-300 dark:hover:file:bg-coral-900/50 dark:hover:file:text-coral-200"
         />
         <p className="text-xs text-zinc-500 dark:text-zinc-500">
           1行目を見出し行として自動で読み取ります。列の数や名前は自由です。

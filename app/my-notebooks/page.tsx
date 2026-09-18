@@ -2,6 +2,8 @@ import Link from "next/link";
 
 import { prisma } from "@/lib/prisma";
 import ImportForm, {ImportTemplate,} from "@/components/my-notebooks/ImportForm";
+import { requireUser } from "@/lib/session";
+import ImportForm from "@/components/my-notebooks/ImportForm";
 import DeleteNotebookButton from "@/components/my-notebooks/DeleteNotebookButton";
 import StarColorSettings from "@/components/StarColorSettings";
 
@@ -9,9 +11,12 @@ import StarColorSettings from "@/components/StarColorSettings";
 export const dynamic = "force-dynamic";
 
 export default async function MyNotebooksPage() {
-  // 作成日が新しい単語帳を先頭に表示する。
+  const user = await requireUser();
+
+  // 作成日が新しい単語帳を先頭に表示する。ログイン中のユーザー自身の単語帳のみに絞り込む。
   // _count で各単語帳の単語数だけを取得し、cards本体は取得しない（一覧表示には不要なため軽量化）
   const notebooks = await prisma.notebook.findMany({
+    where: { userId: user.id },
     orderBy: { createdAt: "desc" },
     include: { _count: { select: { cards: true } } },
   });
@@ -63,7 +68,7 @@ export default async function MyNotebooksPage() {
             {notebooks.map((notebook) => (
               <li
                 key={notebook.id}
-                className="flex items-center justify-between gap-4 rounded-2xl border border-black/[.08] bg-white p-5 transition-colors hover:border-black/[.15] dark:border-white/[.145] dark:bg-zinc-950 dark:hover:border-white/[.25]"
+                className="flex items-center justify-between gap-4 rounded-2xl border border-coral-200 bg-white p-5 transition-all hover:-translate-y-1 hover:border-coral-300 hover:shadow-xl hover:shadow-coral-100 dark:border-coral-900/40 dark:bg-zinc-950 dark:hover:border-coral-700/60 dark:hover:shadow-none"
               >
                 <Link href={`/my-notebooks/${notebook.id}`} className="flex-1 text-left">
                   <p className="font-medium text-black dark:text-zinc-50">{notebook.title}</p>

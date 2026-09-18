@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 
 import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/session";
 import StudyDeck from "./StudyDeck";
 import type { CardData } from "@/lib/card-data";
 
@@ -8,11 +9,12 @@ import type { CardData } from "@/lib/card-data";
 export const dynamic = "force-dynamic";
 
 export default async function StudyPage(props: PageProps<"/my-notebooks/[notebookId]/study">) {
+  const user = await requireUser();
   const { notebookId } = await props.params;
 
   // 単語帳と、その中のカードをposition昇順（表側の並び順）で取得する
-  const notebook = await prisma.notebook.findUnique({
-    where: { id: notebookId },
+  const notebook = await prisma.notebook.findFirst({
+    where: { id: notebookId, userId: user.id },
     include: { cards: { orderBy: { position: "asc" } } },
   });
 

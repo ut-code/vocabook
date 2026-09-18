@@ -16,7 +16,7 @@ export default function ResetAllStarsButton({ notebookId }: { notebookId: string
     >
       <button
         type="submit"
-        className="rounded-full border border-black/[.08] px-5 py-2 text-sm text-zinc-600 transition-colors hover:border-black/[.15] dark:border-white/[.145] dark:text-zinc-300 dark:hover:border-white/[.25]"
+        className="rounded-full border border-coral-300 px-5 py-2 text-sm text-coral-700 transition-all hover:-translate-y-0.5 hover:border-coral-500 hover:bg-coral-50 hover:text-coral-800 hover:shadow-md hover:shadow-coral-100 dark:border-coral-900/50 dark:text-coral-300 dark:hover:border-coral-600 dark:hover:bg-coral-950/20 dark:hover:text-coral-200 dark:hover:shadow-none"
       >
         ★を一括リセット
       </button>
