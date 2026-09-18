@@ -3,16 +3,34 @@ import type { IrregularVerb, RegularVerb, VerbEntry } from "@/lib/conjugation/de
 // ==== 弱変化動詞（規則動詞） ====
 // 語幹と少数の音韻フラグだけで活用を機械的に導出できる動詞
 const regularVerbs: RegularVerb[] = [
-  { id: "machen", infinitive: "machen", meaning: "する、作る", kind: "regular", auxiliary: "haben" },
+  {
+    id: "machen",
+    infinitive: "machen",
+    meaning: "する、作る",
+    kind: "regular",
+    auxiliary: "haben",
+  },
   { id: "sagen", infinitive: "sagen", meaning: "言う", kind: "regular", auxiliary: "haben" },
-  { id: "spielen", infinitive: "spielen", meaning: "遊ぶ、演奏する", kind: "regular", auxiliary: "haben" },
+  {
+    id: "spielen",
+    infinitive: "spielen",
+    meaning: "遊ぶ、演奏する",
+    kind: "regular",
+    auxiliary: "haben",
+  },
   { id: "wohnen", infinitive: "wohnen", meaning: "住む", kind: "regular", auxiliary: "haben" },
   { id: "kaufen", infinitive: "kaufen", meaning: "買う", kind: "regular", auxiliary: "haben" },
   { id: "lernen", infinitive: "lernen", meaning: "学ぶ", kind: "regular", auxiliary: "haben" },
   { id: "hoeren", infinitive: "hören", meaning: "聞く", kind: "regular", auxiliary: "haben" },
   { id: "kochen", infinitive: "kochen", meaning: "料理する", kind: "regular", auxiliary: "haben" },
   { id: "lieben", infinitive: "lieben", meaning: "愛する", kind: "regular", auxiliary: "haben" },
-  { id: "brauchen", infinitive: "brauchen", meaning: "必要とする", kind: "regular", auxiliary: "haben" },
+  {
+    id: "brauchen",
+    infinitive: "brauchen",
+    meaning: "必要とする",
+    kind: "regular",
+    auxiliary: "haben",
+  },
   {
     id: "arbeiten",
     infinitive: "arbeiten",

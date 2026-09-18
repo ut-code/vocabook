@@ -2,14 +2,7 @@ import type { SixForms, TenseOption } from "@/lib/conjugation/shared";
 
 export type { SixForms };
 
-export const PERSONS: readonly string[] = [
-  "ich",
-  "du",
-  "er / sie / es",
-  "wir",
-  "ihr",
-  "sie / Sie",
-];
+export const PERSONS: readonly string[] = ["ich", "du", "er / sie / es", "wir", "ihr", "sie / Sie"];
 
 export type IndikativTense =
   | "präsens"

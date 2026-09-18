@@ -410,8 +410,8 @@ export default function GermanTablePractice({ tables }: { tables: GrammarTableDa
           ))}
         </div>
         <p className="mt-2.5 text-xs md:text-sm text-zinc-500 dark:text-zinc-400">
-          💡 入力セルで <strong>↑ / ↓ 矢印キー</strong> を押してもウムラウト・エスツェット（ä, ö,
-          ü, ß など）へ切り替えられます。
+          💡 入力セルで <strong>↑ / ↓ 矢印キー</strong> を押してもウムラウト・エスツェット（ä, ö, ü,
+          ß など）へ切り替えられます。
         </p>
       </div>
 

@@ -71,10 +71,11 @@ export function buildConjugation(verb: VerbEntry): ConjugationTable {
 
   // 弱変化動詞の接続法II式は過去形と同形。強変化・混合変化動詞は過去基本形にウムラウトをかけた語幹から作る
   const konjunktivIIPräsens =
-    verb.kind === "regular" ? base.präteritum : withEndings(verb.konjunktivIIBase, KONJUNKTIV_ENDINGS);
+    verb.kind === "regular"
+      ? base.präteritum
+      : withEndings(verb.konjunktivIIBase, KONJUNKTIV_ENDINGS);
 
-  const konjunktivIPräsens =
-    verb.konjunktivIOverride ?? konjunktivIFromInfinitive(verb.infinitive);
+  const konjunktivIPräsens = verb.konjunktivIOverride ?? konjunktivIFromInfinitive(verb.infinitive);
 
   const aux = auxiliaryForms(verb.auxiliary);
   const auxInfinitive = verb.auxiliary;
