@@ -33,24 +33,26 @@ function readCardData(columns: string[], formData: FormData): CardData {
   return { head, rows: rows.length > 0 ? rows : [{}] };
 }
 
-// Excelファイルから新しい単語帳を作成する
-export async function importNotebookFromExcel(
+// 既存の単語帳へ、Excelファイルから単語をまとめて追加する。
+// Excel側の列名（見出し語列を除く）を既存の単語帳の列と名前で突き合わせ、
+// 一致する列名があればそこに追加し、無ければ単語帳の末尾に新しい列として追加する
+export async function importCardsFromExcel(
+  notebookId: string,
   _prevState: FormState,
   formData: FormData,
 ): Promise<FormState> {
   const user = await requireUser();
 
-  const title = String(formData.get("title") ?? "").trim();
   const file = formData.get("file");
-
-  //　タイトルが欠けている場合をはじく
-  if (!title) {
-    return { error: "単語帳のタイトルを入力してください。" };
-  }
-  // ファイルサイズが0の場合をはじく
   if (!(file instanceof File) || file.size === 0) {
     return { error: "Excelファイル（.xlsx）を選択してください。" };
   }
+
+  const notebook = await prisma.notebook.findUniqueOrThrow({
+    where: { id: notebookId, userId: user.id },
+    select: { columns: true },
+  });
+  const existingColumns = normalizeColumns(notebook.columns);
 
   // Excelを解析（1行目=列名、2行目以降=単語データに変換）。
   // 解析に失敗した場合はエラーメッセージをフォームに戻す（それ以外の例外は再送出）
@@ -64,24 +66,55 @@ export async function importNotebookFromExcel(
     throw error;
   }
 
-  // Notebook本体とCard群を1回のPrisma呼び出しでまとめて作成する（ネストwrite）。
-  // position には行の並び順（Excelの出現順）をそのままインデックスとして採番する
+  // 見出し語列（1列目）は名前が違っても無視してよい（Card.dataではheadという固定フィールドで
+  // 扱われ、列名に依存しないため）。2列目以降だけを既存の列名リストに突き合わせる
+  const excelBodyColumns = parsed.columns.slice(1);
+  const newColumns = [...existingColumns];
+  for (const name of excelBodyColumns) {
+    if (!newColumns.includes(name)) newColumns.push(name);
+  }
+
+  // 追加するカードは既存カードの最大positionの続きから採番する
+  const last = await prisma.card.aggregate({
+    where: { notebookId },
+    _max: { position: true },
+  });
+  let nextPosition = (last._max.position ?? -1) + 1;
+
+  await prisma.$transaction([
+    prisma.notebook.update({ where: { id: notebookId }, data: { columns: newColumns } }),
+    ...parsed.rows.map((data) =>
+      prisma.card.create({ data: { notebookId, data, position: nextPosition++ } }),
+    ),
+  ]);
+
+  revalidatePath(`/my-notebooks/${notebookId}`);
+  return {};
+}
+
+// Excelを介さず、アプリ上でゼロから単語帳を作成する。
+// 「見出し語」「意味」の2列・単語0件で作成し、以降は列の追加/変更（ColumnsEditor）と
+// 単語の追加（CreateCardForm）をこの単語帳のページ上でそのまま行える
+export async function createBlankNotebook(
+  _prevState: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const user = await requireUser();
+
+  const title = String(formData.get("title") ?? "").trim();
+  if (!title) {
+    return { error: "単語帳のタイトルを入力してください。" };
+  }
+
   const notebook = await prisma.notebook.create({
     data: {
       title,
       userId: user.id,
-      columns: parsed.columns,
-      cards: {
-        // data：その行の見出し語・意味などの情報
-        // position：Excel内の行の並び順として採番
-        create: parsed.rows.map((data, index) => ({ data, position: index })),
-      },
+      columns: ["見出し語", "意味"],
     },
   });
 
-  // 単語帳一覧ページのキャッシュを無効化し、新しく作った単語帳を一覧に反映
   revalidatePath("/my-notebooks");
-  // 作成された単語帳の詳細ページへ自動的に遷移
   redirect(`/my-notebooks/${notebook.id}`);
 }
 

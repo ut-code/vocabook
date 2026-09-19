@@ -6,6 +6,7 @@ import { requireUser } from "@/lib/session";
 import CardRow from "./CardRow";
 import CreateCardForm from "./CreateCardForm";
 import ColumnsEditor from "@/components/my-notebooks/ColumnsEditor";
+import ImportCardsForm from "@/components/my-notebooks/ImportCardsForm";
 import ResetAllStarsButton from "@/components/my-notebooks/ResetAllStarsButton";
 import ShareNotebookButton from "@/components/my-notebooks/ShareNotebookButton";
 import { normalizeCardData } from "@/lib/card-data";
@@ -83,7 +84,8 @@ export default async function NotebookPage(props: PageProps<"/my-notebooks/[note
           )}
         </div>
 
-        <div className="mt-8 flex justify-end">
+        <div className="mt-8 flex flex-wrap items-center justify-end gap-4">
+          <ImportCardsForm notebookId={notebook.id} />
           <ColumnsEditor notebookId={notebook.id} columns={columns} />
         </div>
 
