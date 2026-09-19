@@ -95,7 +95,10 @@ export default async function SharedNotebookPage(props: PageProps<"/share/[noteb
                   );
 
                   return card.data.rows.map((row, rowIndex) => (
-                    <tr key={`${card.id}:${rowIndex}`} className="border-t border-black/[.06] dark:border-white/[.1]">
+                    <tr
+                      key={`${card.id}:${rowIndex}`}
+                      className="border-t border-black/[.06] dark:border-white/[.1]"
+                    >
                       {rowIndex === 0 && (
                         <td
                           rowSpan={rowCount}

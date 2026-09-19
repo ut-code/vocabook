@@ -205,7 +205,11 @@ export default function CardRow({
         {/* action={formAction} に渡すことで、Server Actionの結果がuseActionStateのstateに反映される */}
         <form action={formAction} className="flex flex-col items-start gap-3">
           {/* defaultHead/defaultRowsで現在の値を初期表示し、そこから編集する */}
-          <CardFieldsForm columns={columns} defaultHead={card.data.head} defaultRows={card.data.rows} />
+          <CardFieldsForm
+            columns={columns}
+            defaultHead={card.data.head}
+            defaultRows={card.data.rows}
+          />
           <div className="flex items-center gap-3">
             <SaveButton />
             <button

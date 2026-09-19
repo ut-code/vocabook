@@ -28,7 +28,10 @@ function emptyMerge(bodyColumns: string[]): Record<string, boolean> {
 
 // 初期表示時、既存データの時点で列の値が隣接して一致していれば結合済みとして表示する
 // （一覧表示のセル結合と同じ基準に揃えることで、編集を開いても見た目が変わらないようにする）
-function buildInitialRows(defaultRows: Record<string, string>[], bodyColumns: string[]): RowState[] {
+function buildInitialRows(
+  defaultRows: Record<string, string>[],
+  bodyColumns: string[],
+): RowState[] {
   const source = defaultRows.length > 0 ? defaultRows : [{}];
   return source.map((values, index) => {
     const mergedUp: Record<string, boolean> = {};
@@ -168,7 +171,11 @@ export default function CardFieldsForm({
     setRows((prev) =>
       prev.map((row, i) =>
         i === index
-          ? { ...row, mergedUp: { ...row.mergedUp, [column]: false }, values: { ...row.values, [column]: "" } }
+          ? {
+              ...row,
+              mergedUp: { ...row.mergedUp, [column]: false },
+              values: { ...row.values, [column]: "" },
+            }
           : row,
       ),
     );
@@ -265,7 +272,9 @@ export default function CardFieldsForm({
                             )}
                             {/* 結合セルではinputを伸ばさず、この操作行をmt-autoで下端に固定する
                                 （ネイティブinputをflex-1で伸ばす方式は実機で描画崩れが起きたため） */}
-                            <div className={`flex gap-2 text-xs whitespace-nowrap ${isMerged ? "mt-auto" : ""}`}>
+                            <div
+                              className={`flex gap-2 text-xs whitespace-nowrap ${isMerged ? "mt-auto" : ""}`}
+                            >
                               {group.length > 1 && (
                                 <button
                                   type="button"
@@ -305,7 +314,8 @@ export default function CardFieldsForm({
             </table>
           </div>
           <p className="text-[11px] text-zinc-400 dark:text-zinc-600">
-            「⬇ 次の行と結合」で列ごとにセルを結合すると、1回の入力が結合した行すべてに反映されます。
+            「⬇
+            次の行と結合」で列ごとにセルを結合すると、1回の入力が結合した行すべてに反映されます。
           </p>
           <button
             type="button"

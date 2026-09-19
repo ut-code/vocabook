@@ -197,7 +197,10 @@ async function migrateAllCards(
   newColumns: string[],
   transform: (data: CardData) => CardData,
 ) {
-  const cards = await prisma.card.findMany({ where: { notebookId }, select: { id: true, data: true } });
+  const cards = await prisma.card.findMany({
+    where: { notebookId },
+    select: { id: true, data: true },
+  });
 
   await prisma.$transaction([
     prisma.notebook.update({ where: { id: notebookId }, data: { columns: newColumns } }),
