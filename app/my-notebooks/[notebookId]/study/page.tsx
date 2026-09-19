@@ -3,7 +3,8 @@ import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import StudyDeck from "./StudyDeck";
-import type { CardData } from "@/lib/card-data";
+import { normalizeCardData } from "@/lib/card-data";
+import { normalizeColumns } from "@/lib/notebook-columns";
 
 // DBの最新状態を常に表示するため、ビルド時の静的プリレンダリングを避けてリクエスト時にレンダリングする
 export const dynamic = "force-dynamic";
@@ -29,10 +30,10 @@ export default async function StudyPage(props: PageProps<"/my-notebooks/[noteboo
 
   // シャッフルやフリップ等のインタラクションはすべてクライアント側のStudyDeckが担当するため、
   // ここではサーバーでDBから取得したデータをそのまま整形して渡すだけ
-  const columns = notebook.columns as string[];
+  const columns = normalizeColumns(notebook.columns);
   const cards = notebook.cards.map((card) => ({
     id: card.id,
-    data: card.data as CardData,
+    data: normalizeCardData(card.data),
     starred: card.starred,
     starCount: card.starCount,
     viewCount: card.viewCount,

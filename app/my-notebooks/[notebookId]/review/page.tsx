@@ -3,7 +3,8 @@ import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import StudyDeck from "../study/StudyDeck";
-import type { CardData } from "@/lib/card-data";
+import { normalizeCardData } from "@/lib/card-data";
+import { normalizeColumns } from "@/lib/notebook-columns";
 
 export default async function ReviewPage(props: PageProps<"/my-notebooks/[notebookId]/review">) {
   const user = await requireUser();
@@ -25,10 +26,10 @@ export default async function ReviewPage(props: PageProps<"/my-notebooks/[notebo
 
   // 表示・フリップ・★の付け外しはすべてクライアント側のStudyDeckが担当するため、
   // ここではサーバーでDBから取得したデータをそのまま整形して渡すだけ
-  const columns = notebook.columns as string[];
+  const columns = normalizeColumns(notebook.columns);
   const cards = notebook.cards.map((card) => ({
     id: card.id,
-    data: card.data as CardData,
+    data: normalizeCardData(card.data),
     starred: card.starred,
     starCount: card.starCount,
     viewCount: card.viewCount,

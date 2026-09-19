@@ -26,6 +26,20 @@ function SaveButton() {
   );
 }
 
+// Excelの結合セルのように、ある列で連続する組（行）の値が同じであればまとめてrowSpanで
+// 1つのセルにする。先頭行以外はnull（描画しない）を返し、代わりに直前のセルのrowSpanを伸ばす。
+// 空文字同士は結合しない（未入力のセルが1つの大きな空欄に見えて紛らわしいのを避けるため）
+function computeRowSpans(values: string[]): number[] {
+  const spans = values.map(() => 1);
+  for (let i = values.length - 1; i > 0; i -= 1) {
+    if (values[i] !== "" && values[i] === values[i - 1]) {
+      spans[i - 1] += spans[i];
+      spans[i] = 0;
+    }
+  }
+  return spans;
+}
+
 export default function CardRow({
   notebookId,
   columns,
@@ -54,7 +68,8 @@ export default function CardRow({
     }
   }
 
-  const senseColumns = columns.slice(1);
+  // 見出し語を除いた列。表示順そのまま
+  const bodyColumns = columns.slice(1);
 
   // toggleStarの結果（サーバーの往復）を待たず、クリックした瞬間に★・回数・色を切り替えるための
   // 楽観的UI。これが無いと、往復の間だけ古い状態（トグル前の☆）が表示され続けてしまい、
@@ -77,44 +92,41 @@ export default function CardRow({
   const starColor = starColorFor(optimisticStar.starCount, starColors);
 
   if (!editing) {
-    // 意味が0件でも見出し語だけの行を1行表示する（表側の "senses" が空配列にならないようフォールバック）
-    const senses = card.data.senses.length > 0 ? card.data.senses : [{}];
+    // 見出し語1件につき、rows（組）の件数ぶん<tr>を並べる。見出し語セルと操作セルは
+    // Excelの結合セルのように rowSpan で全組にまたがらせ、本文の各列は列ごとに
+    // 連続して同じ値が続く区間だけをrowSpanでまとめる（結合・分割）
+    const rowCount = card.data.rows.length;
+    const bodySpansByColumn = bodyColumns.map((column) =>
+      computeRowSpans(card.data.rows.map((row) => row[column] ?? "")),
+    );
 
-    // 1つの見出し語（1枚のカード）が複数の意味を持つ場合、
-    // <tr>をsenses件数ぶん並べて表現する。見出し語セルと操作セル（編集/削除）は
-    // rowSpan={senses.length} で縦に結合し、1行目にだけレンダリングする。
-    // 2行目以降は意味の列だけを持つ行になり、破線の罫線（border-dashed）で
-    // 「同じ見出し語グループの続き」であることを視覚的に示す
     return (
       <>
-        {senses.map((sense, index) => (
-          <tr
-            key={index}
-            className={
-              index === 0
-                ? "border-t border-black/[.06] dark:border-white/[.1]"
-                : "border-t border-dashed border-black/[.06] dark:border-white/[.1]"
-            }
-          >
-            {index === 0 && (
+        {card.data.rows.map((row, rowIndex) => (
+          <tr key={rowIndex} className="border-t border-black/[.06] dark:border-white/[.1]">
+            {rowIndex === 0 && (
               <td
-                rowSpan={senses.length}
+                rowSpan={rowCount}
                 className="px-4 py-3 align-top text-sm font-medium text-zinc-900 dark:text-zinc-100"
               >
                 {card.data.head}
               </td>
             )}
-            {/* 意味側の列は、senseColumns（columnsの2列目以降）の順番通りに1セルずつ描画する */}
-            {senseColumns.map((column) => (
-              <td key={column} className="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">
-                {sense[column] ?? ""}
-              </td>
-            ))}
-            {index === 0 && (
-              <td
-                rowSpan={senses.length}
-                className="px-4 py-3 text-right align-top whitespace-nowrap"
-              >
+            {bodyColumns.map((column, columnIndex) => {
+              const span = bodySpansByColumn[columnIndex][rowIndex];
+              if (span === 0) return null;
+              return (
+                <td
+                  key={column}
+                  rowSpan={span}
+                  className="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300"
+                >
+                  {row[column] ?? ""}
+                </td>
+              );
+            })}
+            {rowIndex === 0 && (
+              <td rowSpan={rowCount} className="px-4 py-3 text-right align-top whitespace-nowrap">
                 {/* handleToggleStarは楽観的UIでoptimisticStarを即座に切り替えてからtoggleStarを呼ぶ。
                     表示はcard.starredではなくoptimisticStar.starredを見ることで、
                     サーバーの往復を待たずに★・色が切り替わる。
@@ -185,19 +197,18 @@ export default function CardRow({
     );
   }
 
-  // 編集モードでは、表示モード時の複数<tr>を1つの<tr>にまとめ、
-  // colSpan（見出し語1列 + 意味の列数 + 操作列1列）で全カラムぶんを1セルに潰して
+  // 編集モードでは、colSpan（見出し語1列 + 列数 + 操作列1列）で全カラムぶんを1セルに潰して
   // その中にフォームを丸ごと展開する
   return (
     <tr className="border-t border-black/[.06] dark:border-white/[.1]">
-      <td colSpan={senseColumns.length + 2} className="px-4 py-3">
+      <td colSpan={bodyColumns.length + 2} className="px-4 py-3">
         {/* action={formAction} に渡すことで、Server Actionの結果がuseActionStateのstateに反映される */}
         <form action={formAction} className="flex flex-col items-start gap-3">
-          {/* defaultHead/defaultSensesで現在の値を初期表示し、そこから編集する */}
+          {/* defaultHead/defaultRowsで現在の値を初期表示し、そこから編集する */}
           <CardFieldsForm
             columns={columns}
             defaultHead={card.data.head}
-            defaultSenses={card.data.senses}
+            defaultRows={card.data.rows}
           />
           <div className="flex items-center gap-3">
             <SaveButton />

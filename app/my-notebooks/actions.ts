@@ -6,60 +6,53 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { ExcelParseError, parseExcelWorkbook } from "@/lib/excel";
-import type { CardData } from "@/lib/card-data";
+import { normalizeCardData, type CardData } from "@/lib/card-data";
+import { normalizeColumns } from "@/lib/notebook-columns";
 
 export type FormState = { error?: string };
 
 function readCardData(columns: string[], formData: FormData): CardData {
   const head = String(formData.get("head") ?? "").trim();
-  const senseColumns = columns.slice(1);
+  const bodyColumns = columns.slice(1);
 
-  // senseKeys：見つかった意味ブロックの識別キーを、出現順に並べて格納する配列（最終的な戻り値）
-  // seenKeys：「もうこのキーは見た」を判定するためのSet
-  const senseKeys: string[] = [];
-  const seenKeys = new Set<string>();
-  // formData に含まれる全ての入力欄の名前を1つずつ見ていく
-  for (const key of formData.keys()) {
-    const match = /^sense:([^:]+):/.exec(key);
-    if (match && !seenKeys.has(match[1])) {
-      seenKeys.add(match[1]);
-      senseKeys.push(match[1]);
+  // `row:0:列名`, `row:1:列名`, ... という連番の入力欄を、存在する分だけ読み取る
+  // （CardFieldsForm側は必ず0番から連番でレンダリングする）。同じ連番内の列同士は
+  // 同じ組（Excelの1行に相当）として対応付けられる。空文字の値は保存しない
+  const rows: Record<string, string>[] = [];
+  let i = 0;
+  while (bodyColumns.some((column) => formData.has(`row:${i}:${column}`))) {
+    const row: Record<string, string> = {};
+    for (const column of bodyColumns) {
+      const value = String(formData.get(`row:${i}:${column}`) ?? "").trim();
+      if (value !== "") row[column] = value;
     }
+    rows.push(row);
+    i += 1;
   }
 
-  // ステップ2〜3: キーごとに列名分の値を集めて1つの意味オブジェクトにし、
-  // 全列が空文字だったものだけをフィルタで除外する
-  const senses = senseKeys
-    .map((senseKey) => {
-      const sense: Record<string, string> = {};
-      for (const column of senseColumns) {
-        sense[column] = String(formData.get(`sense:${senseKey}:${column}`) ?? "").trim();
-      }
-      return sense;
-    })
-    .filter((sense) => Object.values(sense).some((value) => value !== ""));
-
-  return { head, senses };
+  return { head, rows: rows.length > 0 ? rows : [{}] };
 }
 
-// Excelファイルから新しい単語帳を作成する
-export async function importNotebookFromExcel(
+// 既存の単語帳へ、Excelファイルから単語をまとめて追加する。
+// Excel側の列名（見出し語列を除く）を既存の単語帳の列と名前で突き合わせ、
+// 一致する列名があればそこに追加し、無ければ単語帳の末尾に新しい列として追加する
+export async function importCardsFromExcel(
+  notebookId: string,
   _prevState: FormState,
   formData: FormData,
 ): Promise<FormState> {
   const user = await requireUser();
 
-  const title = String(formData.get("title") ?? "").trim();
   const file = formData.get("file");
-
-  //　タイトルが欠けている場合をはじく
-  if (!title) {
-    return { error: "単語帳のタイトルを入力してください。" };
-  }
-  // ファイルサイズが0の場合をはじく
   if (!(file instanceof File) || file.size === 0) {
     return { error: "Excelファイル（.xlsx）を選択してください。" };
   }
+
+  const notebook = await prisma.notebook.findUniqueOrThrow({
+    where: { id: notebookId, userId: user.id },
+    select: { columns: true },
+  });
+  const existingColumns = normalizeColumns(notebook.columns);
 
   // Excelを解析（1行目=列名、2行目以降=単語データに変換）。
   // 解析に失敗した場合はエラーメッセージをフォームに戻す（それ以外の例外は再送出）
@@ -73,24 +66,55 @@ export async function importNotebookFromExcel(
     throw error;
   }
 
-  // Notebook本体とCard群を1回のPrisma呼び出しでまとめて作成する（ネストwrite）。
-  // position には行の並び順（Excelの出現順）をそのままインデックスとして採番する
+  // 見出し語列（1列目）は名前が違っても無視してよい（Card.dataではheadという固定フィールドで
+  // 扱われ、列名に依存しないため）。2列目以降だけを既存の列名リストに突き合わせる
+  const excelBodyColumns = parsed.columns.slice(1);
+  const newColumns = [...existingColumns];
+  for (const name of excelBodyColumns) {
+    if (!newColumns.includes(name)) newColumns.push(name);
+  }
+
+  // 追加するカードは既存カードの最大positionの続きから採番する
+  const last = await prisma.card.aggregate({
+    where: { notebookId },
+    _max: { position: true },
+  });
+  let nextPosition = (last._max.position ?? -1) + 1;
+
+  await prisma.$transaction([
+    prisma.notebook.update({ where: { id: notebookId }, data: { columns: newColumns } }),
+    ...parsed.rows.map((data) =>
+      prisma.card.create({ data: { notebookId, data, position: nextPosition++ } }),
+    ),
+  ]);
+
+  revalidatePath(`/my-notebooks/${notebookId}`);
+  return {};
+}
+
+// Excelを介さず、アプリ上でゼロから単語帳を作成する。
+// 「見出し語」「意味」の2列・単語0件で作成し、以降は列の追加/変更（ColumnsEditor）と
+// 単語の追加（CreateCardForm）をこの単語帳のページ上でそのまま行える
+export async function createBlankNotebook(
+  _prevState: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const user = await requireUser();
+
+  const title = String(formData.get("title") ?? "").trim();
+  if (!title) {
+    return { error: "単語帳のタイトルを入力してください。" };
+  }
+
   const notebook = await prisma.notebook.create({
     data: {
       title,
       userId: user.id,
-      columns: parsed.columns,
-      cards: {
-        // data：その行の見出し語・意味などの情報
-        // position：Excel内の行の並び順として採番
-        create: parsed.rows.map((data, index) => ({ data, position: index })),
-      },
+      columns: ["見出し語", "意味"],
     },
   });
 
-  // 単語帳一覧ページのキャッシュを無効化し、新しく作った単語帳を一覧に反映
   revalidatePath("/my-notebooks");
-  // 作成された単語帳の詳細ページへ自動的に遷移
   redirect(`/my-notebooks/${notebook.id}`);
 }
 
@@ -115,7 +139,7 @@ export async function createCard(
     where: { id: notebookId, userId: user.id },
     select: { columns: true },
   });
-  const columns = notebook.columns as string[];
+  const columns = normalizeColumns(notebook.columns);
   const data = readCardData(columns, formData);
 
   if (!data.head) {
@@ -150,7 +174,7 @@ export async function updateCard(
     where: { id: notebookId, userId: user.id },
     select: { columns: true },
   });
-  const columns = notebook.columns as string[];
+  const columns = normalizeColumns(notebook.columns);
   const data = readCardData(columns, formData);
 
   if (!data.head) {
@@ -164,6 +188,143 @@ export async function updateCard(
 
   revalidatePath(`/my-notebooks/${notebookId}`);
   return {};
+}
+
+// 全カードのデータを取得し、変換関数を適用してまとめて保存するヘルパー。
+// 列の追加・変更に伴うデータ移行はすべてこの形で行う
+async function migrateAllCards(
+  notebookId: string,
+  newColumns: string[],
+  transform: (data: CardData) => CardData,
+) {
+  const cards = await prisma.card.findMany({
+    where: { notebookId },
+    select: { id: true, data: true },
+  });
+
+  await prisma.$transaction([
+    prisma.notebook.update({ where: { id: notebookId }, data: { columns: newColumns } }),
+    ...cards.map((card) => {
+      const data = transform(normalizeCardData(card.data));
+      return prisma.card.update({ where: { id: card.id }, data: { data } });
+    }),
+  ]);
+}
+
+// 単語帳の末尾に列（意味・発音などの列）を1つ追加する。
+// 新設列は既存カードのどのデータにも存在しないだけなので、移行は不要
+// （CardFieldsForm側でキー無し＝空欄として表示される）
+export async function addNotebookColumn(
+  notebookId: string,
+  _prevState: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const user = await requireUser();
+  const name = String(formData.get("name") ?? "").trim();
+
+  if (!name) {
+    return { error: "列名を入力してください。" };
+  }
+
+  const notebook = await prisma.notebook.findUniqueOrThrow({
+    where: { id: notebookId, userId: user.id },
+    select: { columns: true },
+  });
+  const columns = normalizeColumns(notebook.columns);
+
+  if (columns.includes(name)) {
+    return { error: "同じ名前の列がすでにあります。" };
+  }
+
+  await prisma.notebook.update({
+    where: { id: notebookId },
+    data: { columns: [...columns, name] },
+  });
+
+  revalidatePath(`/my-notebooks/${notebookId}`);
+  return {};
+}
+
+// 単語帳の列名を変更する。1列目（見出し語）はラベルの変更のみで済むが、
+// 2列目以降は既存カードのcellsオブジェクトのキー名も
+// 古い列名→新しい列名へ一括で付け替えないと、値が宙に浮いて表示されなくなる
+export async function renameNotebookColumn(
+  notebookId: string,
+  columnIndex: number,
+  _prevState: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const user = await requireUser();
+  const newName = String(formData.get("name") ?? "").trim();
+
+  if (!newName) {
+    return { error: "列名を入力してください。" };
+  }
+
+  const notebook = await prisma.notebook.findUniqueOrThrow({
+    where: { id: notebookId, userId: user.id },
+    select: { columns: true },
+  });
+  const columns = normalizeColumns(notebook.columns);
+  const oldName = columns[columnIndex];
+
+  if (oldName === undefined) {
+    return { error: "指定された列が見つかりません。" };
+  }
+  if (newName === oldName) {
+    return {};
+  }
+  if (columns.includes(newName)) {
+    return { error: "同じ名前の列がすでにあります。" };
+  }
+
+  const newColumns = columns.map((column, index) => (index === columnIndex ? newName : column));
+
+  if (columnIndex === 0) {
+    // 見出し語列はラベルの変更のみ（card.data.headはキーではなく固定フィールドのため移行不要）
+    await prisma.notebook.update({ where: { id: notebookId }, data: { columns: newColumns } });
+  } else {
+    await migrateAllCards(notebookId, newColumns, (data) => {
+      const rows = data.rows.map((row) => {
+        if (!(oldName in row)) return row;
+        const { [oldName]: value, ...rest } = row;
+        return { ...rest, [newName]: value };
+      });
+      return { ...data, rows };
+    });
+  }
+
+  revalidatePath(`/my-notebooks/${notebookId}`);
+  return {};
+}
+
+// 単語帳の列（見出し語列以外）を削除する。見出し語列は構造上削除不可。
+// 既存カードのcellsから該当キーも取り除く
+export async function deleteNotebookColumn(notebookId: string, columnIndex: number) {
+  const user = await requireUser();
+
+  const notebook = await prisma.notebook.findUniqueOrThrow({
+    where: { id: notebookId, userId: user.id },
+    select: { columns: true },
+  });
+  const columns = normalizeColumns(notebook.columns);
+  const name = columns[columnIndex];
+
+  // 見出し語列（0番目）は削除不可。存在しない列指定は何もしない
+  if (columnIndex <= 0 || name === undefined) {
+    return;
+  }
+
+  const newColumns = columns.filter((_, index) => index !== columnIndex);
+
+  await migrateAllCards(notebookId, newColumns, (data) => {
+    const rows = data.rows.map((row) =>
+      Object.fromEntries(Object.entries(row).filter(([key]) => key !== name)),
+    );
+    return { ...data, rows };
+  });
+
+  revalidatePath(`/my-notebooks/${notebookId}`);
 }
 
 // 単語帳内の単語を1件、削除する

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useOptimistic, useRef, useState } from "react";
+import { useEffect, useMemo, useOptimistic, useRef, useState } from "react";
 import Link from "next/link";
 
 import { incrementViewCount, toggleStar } from "../../actions";
@@ -18,6 +18,29 @@ type Card = {
   starCount: number;
   viewCount: number;
 };
+
+// 暗記学習で実際に1枚のカード（多角柱）として出題する単位。
+// 見出し語1件（1つのCard）が複数の意味・発音などを持つ場合でも、
+// 従来は1枚のカードの1面に複数値を「/」区切りでまとめて表示していたが、
+// それだと見にくいため「1組につき1枚のカード」に展開する。
+// card.data.rowsは既に「同じ添字の値同士が列をまたいで対応する組」の配列
+// （例: 訳と発音が同じ添字なら対応する意味・発音）になっているため、
+// そのまま1組=1枚のStudyUnitとして使う
+type StudyUnit = {
+  card: Card;
+  // 列名 → この組での値（見出し語列を除く。値が無い列はキー自体が存在しない）
+  values: Record<string, string>;
+};
+
+function expandToUnits(card: Card, bodyColumns: string[]): StudyUnit[] {
+  return card.data.rows.map((row) => {
+    const values: Record<string, string> = {};
+    for (const column of bodyColumns) {
+      if (row[column] !== undefined) values[column] = row[column];
+    }
+    return { card, values };
+  });
+}
 
 // Fisher-Yatesシャッフル: [0, 1, ..., length-1] という「カードの元の並び順（インデックス）」の
 // 配列を作り、末尾から先頭に向かって「自分より前（自分を含む）」のランダムな位置と1つずつ
@@ -42,62 +65,72 @@ export default function StudyDeck({
   columns: string[];
   cards: Card[];
 }) {
-  // order: 「何番目に何のカード（cards配列のインデックス）を出すか」を表す並び替えテーブル。
-  // 初期状態は [0, 1, 2, ...] で、cardsをそのままの順番で出す
-  const [order, setOrder] = useState(() => cards.map((_, i) => i));
+  // 見出し語1件（1つのCard）を、意味などの行数に応じて複数の出題単位（StudyUnit）に展開する
+  const units = useMemo(() => {
+    const bodyColumns = columns.slice(1);
+    return cards.flatMap((card) => expandToUnits(card, bodyColumns));
+  }, [cards, columns]);
+
+  // order: 「何番目に何のカード（unitsのインデックス）を出すか」を表す並び替えテーブル。
+  // 初期状態は [0, 1, 2, ...] で、unitsをそのままの順番で出す
+  const [order, setOrder] = useState(() => units.map((_, i) => i));
   // index: order の何番目（＝現在何枚目）を表示しているか
   const [index, setIndex] = useState(0);
   // flipped: 今のカードが表（見出し語）か裏（意味）のどちらを向いているか
   const [flipped, setFlipped] = useState(false);
 
-  const [frontColumn, setFrontColumn] = useState<string>(columns[0]);
+  const [frontColumn, setFrontColumn] = useState<string>(columns[0] ?? "");
 
-  // 現在表示すべきカードは、order[index]（実際のcardsインデックス）から引く
-  const current = cards[order[index]];
-  const primarySense = current?.data.senses[0] || {};
+  // 現在表示すべき出題単位は、order[index]（実際のunitsインデックス）から引く
+  const current = units[order[index]];
+  const currentCard = current.card;
+
+  // 指定した列の値を取得する。見出し語列はdata.head（1件）、
+  // それ以外はcurrent.values[列名]（この行に割り当てられた1件、無ければ無し）
+  function valuesFor(column: string, isHead: boolean): string[] {
+    if (isHead) return currentCard.data.head ? [currentCard.data.head] : [];
+    const value = current.values[column];
+    return value !== undefined ? [value] : [];
+  }
 
   // 今のカードでデータが存在する列一覧
-  const rawActiveColumns = columns.filter((col, idx) => {
-    if (idx === 0) return Boolean(current?.data.head);
-    return Boolean(primarySense[col]);
-  });
+  const rawActiveColumns = columns.filter((col, idx) => valuesFor(col, idx === 0).length > 0);
 
   // 選択された frontColumn が先頭（1面目）に来るように並び替える
   const activeColumns = rawActiveColumns.includes(frontColumn)
     ? [frontColumn, ...rawActiveColumns.filter((col) => col !== frontColumn)]
     : rawActiveColumns;
 
-  const senseColumns = activeColumns.slice(1);
+  const bodyColumns = activeColumns.slice(1);
 
   // 表示しようとしているカードの要素数が3個以上の時だけ3Dモードにする判定
   const is3DMode = activeColumns.length >= 3;
 
-  // 3D多角柱のそれぞれの面に入れるコンテンツの準備
-
+  // 3D多角柱のそれぞれの面に入れるコンテンツの準備。
+  // 展開済みのStudyUnitでは各列は必ず1件の値に揃っているため、そのまま表示する
   const faces = activeColumns.map((colName) => {
     const isHead = colName === columns[0];
-    const value = isHead ? current?.data.head : primarySense[colName];
-
-    return <CardFace key={colName} colName={colName} value={value || "—"} isHead={isHead} />;
+    const values = valuesFor(colName, isHead);
+    return <CardFace key={colName} colName={colName} value={values[0] ?? "—"} isHead={isHead} />;
   });
 
   // toggleStarの結果（サーバーの往復）を待たず、クリックした瞬間に★・回数・色を切り替えるためのUI
   // idも保持し、往復の間にカードを送り進めても別カードへ誤って適用されないようにする
   const [optimisticStar, setOptimisticStar] = useOptimistic(
-    { id: current.id, starred: current.starred, starCount: current.starCount },
+    { id: currentCard.id, starred: currentCard.starred, starCount: currentCard.starCount },
     (_state, next: { id: string; starred: boolean; starCount: number }) => next,
   );
   const displayedStar =
-    optimisticStar.id === current.id
+    optimisticStar.id === currentCard.id
       ? optimisticStar
-      : { id: current.id, starred: current.starred, starCount: current.starCount };
+      : { id: currentCard.id, starred: currentCard.starred, starCount: currentCard.starCount };
   async function handleToggleStar() {
     setOptimisticStar(
-      current.starred
-        ? { id: current.id, starred: false, starCount: current.starCount }
-        : { id: current.id, starred: true, starCount: current.starCount + 1 },
+      currentCard.starred
+        ? { id: currentCard.id, starred: false, starCount: currentCard.starCount }
+        : { id: currentCard.id, starred: true, starCount: currentCard.starCount + 1 },
     );
-    await toggleStar(current.id, notebookId);
+    await toggleStar(currentCard.id, notebookId);
   }
 
   // ★を付けた回数（displayedStar.starCount）に応じた色。0回（未使用）ならundefinedになりニュートラル表示にする
@@ -106,13 +139,14 @@ export default function StudyDeck({
 
   // カードが切り替わる（＝暗記モードでこの単語が表示される）たびに、表示回数を1増やす
   // countedIdRefで直前に数えたカードIDを覚えておき、同じidに対して二重に数えないようにする
-  // （開発時のStrictModeによるeffect二重発火対策も兼ねる）
+  // （開発時のStrictModeによるeffect二重発火対策も兼ねる。同じ見出し語の別の意味へ
+  // 移動しただけ＝idが変わらない場合も、ここで重複カウントを防いでいる）
   const countedIdRef = useRef<string | null>(null);
   useEffect(() => {
-    if (countedIdRef.current === current.id) return;
-    countedIdRef.current = current.id;
-    incrementViewCount(current.id, notebookId).catch(() => {});
-  }, [current.id, notebookId]);
+    if (countedIdRef.current === currentCard.id) return;
+    countedIdRef.current = currentCard.id;
+    incrementViewCount(currentCard.id, notebookId).catch(() => {});
+  }, [currentCard.id, notebookId]);
 
   // 次のカードへ。indexが末尾を超えないようMath.minでクランプし、
   // カードが切り替わったら必ず表向きに戻す
@@ -129,7 +163,7 @@ export default function StudyDeck({
 
   // 出題順を丸ごとシャッフルし直し、1枚目（index=0）・表向きの状態からやり直す
   function shuffle() {
-    setOrder(shuffleOrder(cards.length));
+    setOrder(shuffleOrder(units.length));
     setIndex(0);
     setFlipped(false);
   }
@@ -168,7 +202,9 @@ export default function StudyDeck({
           /* 3つの要素があるときは三角柱 */
           <div className="my-2 flex flex-col items-center gap-2">
             <MultiElementCard
-              key={current.id}
+              // 同じ見出し語の別の行（意味違い）へ移動したときも確実に再マウントさせ、
+              // 直前の回転状態を引きずらないようにするため、unitsの位置（order[index]）をkeyにする
+              key={order[index]}
               faces={faces}
               columnNames={activeColumns}
               width={320}
@@ -192,34 +228,27 @@ export default function StudyDeck({
                   {frontColumn}
                 </span>
                 <span className="text-2xl font-semibold text-black dark:text-zinc-50">
-                  {current.data.head || "—"}
+                  {currentCard.data.head || "—"}
                 </span>
               </>
-            ) : senseColumns.length > 0 && current.data.senses.length > 0 ? (
-              // 裏面: 意味が1件以上あれば、多義語すべてを「意味1」「意味2」…として順番に表示する
+            ) : bodyColumns.length > 0 ? (
+              // 裏面: 列ごとに、この行に割り当てられた1件の値を表示する
               <div className="flex flex-col gap-4">
-                {current.data.senses.map((sense, senseIndex) => (
-                  <div key={senseIndex} className="flex flex-col gap-3">
-                    {current.data.senses.length > 1 && (
-                      <p className="text-xs font-semibold text-zinc-400 dark:text-zinc-600">
-                        意味 {senseIndex + 1}
+                {bodyColumns.map((column) => {
+                  const value = current.values[column];
+                  if (value === undefined) return null;
+                  return (
+                    <div key={column}>
+                      <p className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
+                        {column}
                       </p>
-                    )}
-                    {senseColumns.map((column) => (
-                      <div key={column}>
-                        <p className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
-                          {column}
-                        </p>
-                        <p className="text-lg text-black dark:text-zinc-50">
-                          {sense[column] || "—"}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                ))}
+                      <p className="text-lg text-black dark:text-zinc-50">{value}</p>
+                    </div>
+                  );
+                })}
               </div>
             ) : (
-              // 意味の列自体が無い、またはこのカードに意味が1件も登録されていない場合のフォールバック表示
+              // 意味の列自体が無い、またはこのカードに項目が1件も登録されていない場合のフォールバック表示
               <p className="text-sm text-zinc-500 dark:text-zinc-500">他に項目がありません</p>
             )}
             <span className="mt-2 text-xs text-zinc-400 dark:text-zinc-600">
@@ -256,7 +285,7 @@ export default function StudyDeck({
             </button>
           </form>
           <StarCountEditor
-            cardId={current.id}
+            cardId={currentCard.id}
             notebookId={notebookId}
             starCount={displayedStar.starCount}
             color={starColor}
@@ -268,7 +297,7 @@ export default function StudyDeck({
             className="inline-flex items-center gap-0.5 text-sm text-zinc-400 dark:text-zinc-600"
           >
             <EyeIcon className="h-6 w-6" />
-            {current.viewCount}
+            {currentCard.viewCount}
           </span>
         </div>
       </div>

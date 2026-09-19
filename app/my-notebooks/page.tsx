@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { prisma } from "@/lib/prisma";
-import ImportForm, { ImportTemplate } from "@/components/my-notebooks/ImportForm";
+import CreateBlankNotebookForm from "@/components/my-notebooks/CreateBlankNotebookForm";
 import { requireUser } from "@/lib/session";
 import DeleteNotebookButton from "@/components/my-notebooks/DeleteNotebookButton";
 import StarColorSettings from "@/components/StarColorSettings";
@@ -27,29 +27,22 @@ export default async function MyNotebooksPage() {
           My単語帳
         </h1>
         <p className="mt-4 text-base leading-7 text-zinc-600 dark:text-zinc-400">
-          Excelファイルから自分だけの単語帳を作成できます。
+          単語帳を新規作成し、Excelファイルから単語をまとめて追加できます。
         </p>
         <div className="mt-4 flex justify-center">
           <StarColorSettings />
         </div>
       </div>
 
-      {/*以下の２つのセクションをパソコンでは横並びで、スマホではたて並びで表示する*/}
-      <div className="mt-10 flex flex-col md:flex-row gap-6 w-full max-w-4xl">
-        <section className="mt-10 w-full max-w-md">
-          <h2 className="mb-3 text-sm font-semibold tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
-            自分のExcelから新規作成
-          </h2>
-          <ImportForm />
-        </section>
-
-        <section className="mt-10 w-full max-w-md">
-          <h2 className="mb-3 text-sm font-semibold tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
-            テンプレートから新規作成
-          </h2>
-          <ImportTemplate />
-        </section>
-      </div>
+      <section className="mt-10 w-full max-w-md">
+        <h2 className="mb-3 text-sm font-semibold tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
+          新規作成
+        </h2>
+        <CreateBlankNotebookForm />
+        <p className="mt-3 text-xs text-zinc-500 dark:text-zinc-500">
+          作成後の単語帳ページの「Excelから単語を追加」から、テンプレートのダウンロードとExcelファイルの取り込みができます。
+        </p>
+      </section>
 
       <section className="mt-12 w-full max-w-2xl">
         <h2 className="mb-3 text-sm font-semibold tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
@@ -58,7 +51,7 @@ export default async function MyNotebooksPage() {
         {/* 単語帳が1件も無ければ空状態のメッセージ、あれば一覧をレンダリング */}
         {notebooks.length === 0 ? (
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            まだ単語帳がありません。上のフォームからExcelファイルを取り込んでみましょう。
+            まだ単語帳がありません。上のフォームから作成してみましょう。
           </p>
         ) : (
           <ul className="flex flex-col gap-3">

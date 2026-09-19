@@ -2,7 +2,8 @@ import { notFound, redirect } from "next/navigation";
 
 import { prisma } from "@/lib/prisma";
 import PublicStudyDeck from "./PublicStudyDeck";
-import type { CardData } from "@/lib/card-data";
+import { normalizeCardData } from "@/lib/card-data";
+import { normalizeColumns } from "@/lib/notebook-columns";
 
 export const dynamic = "force-dynamic";
 
@@ -21,8 +22,8 @@ export default async function SharedStudyPage(props: PageProps<"/share/[notebook
     redirect(`/share/${notebook.id}`);
   }
 
-  const columns = notebook.columns as string[];
-  const cards = notebook.cards.map((card) => ({ id: card.id, data: card.data as CardData }));
+  const columns = normalizeColumns(notebook.columns);
+  const cards = notebook.cards.map((card) => ({ id: card.id, data: normalizeCardData(card.data) }));
 
   return (
     <main className="flex flex-1 flex-col items-center px-6 py-16 text-center">

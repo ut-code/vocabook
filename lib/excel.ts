@@ -92,8 +92,8 @@ export async function parseExcelWorkbook(buffer: ArrayBuffer): Promise<ParsedNot
   }
 
   // 見出し語（1列目）を除いた列名一覧
-  const senseColumns = columns.slice(1);
-  const rows: CardData[] = [];
+  const bodyColumns = columns.slice(1);
+  const cards: CardData[] = [];
   // 見出し語（1列目）ごとにカードをまとめるためのインデックス。
   // 同じ見出し語の行を1つのカードにまとめるため、「見出し語→配列内でのインデックス」を記録するMap
   const groupIndexByHead = new Map<string, number>();
@@ -114,30 +114,37 @@ export async function parseExcelWorkbook(buffer: ArrayBuffer): Promise<ParsedNot
 
     // head：1列目の値（見出し語）
     const head = cellValues[0];
-    // sense：2列目以降の、その列名をキーとするオブジェクト
-    const sense: Record<string, string> = {};
-    senseColumns.forEach((name, index) => {
-      sense[name] = cellValues[index + 1];
-    });
 
     const groupKey = head !== "" ? `h:${head}` : `b:${blankHeadCount++}`;
     let groupIndex = groupIndexByHead.get(groupKey);
     // 初出のグループなら新規カードを作成
     if (groupIndex === undefined) {
-      groupIndex = rows.length;
+      groupIndex = cards.length;
       groupIndexByHead.set(groupKey, groupIndex);
-      rows.push({ head, senses: [] });
+      cards.push({ head, rows: [] });
     }
 
-    // 既出のグループなら既存カードに追記
-    if (senseColumns.length > 0 && Object.values(sense).some((value) => value !== "")) {
-      rows[groupIndex].senses.push(sense);
+    // Excelの物理的な1行を、そのままこの見出し語の「組」1件として追加する。
+    // 同じ行にある列同士（例: 訳・発音）は自動的にその行の添字で対応付けられる
+    const cardRow: Record<string, string> = {};
+    bodyColumns.forEach((name, index) => {
+      const value = cellValues[index + 1];
+      if (value !== "") cardRow[name] = value;
+    });
+    if (Object.keys(cardRow).length > 0) {
+      cards[groupIndex].rows.push(cardRow);
     }
   }
 
-  if (rows.length === 0) {
+  // 見出し語のみで本文列が1件も無かったカードには、空の組を1件持たせておく
+  // （CardFieldsForm・表示側は常に1件以上のrowsがある前提のため）
+  for (const card of cards) {
+    if (card.rows.length === 0) card.rows.push({});
+  }
+
+  if (cards.length === 0) {
     throw new ExcelParseError("2行目以降にデータが見つかりませんでした。");
   }
 
-  return { columns, rows };
+  return { columns, rows: cards };
 }

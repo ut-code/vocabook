@@ -1,12 +1,26 @@
-import { Fragment } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { prisma } from "@/lib/prisma";
-import type { CardData } from "@/lib/card-data";
+import { normalizeCardData } from "@/lib/card-data";
+import { normalizeColumns } from "@/lib/notebook-columns";
 
 // 公開中の単語帳をログイン無しで閲覧できるページ。公開状態はDBの最新値を都度見る必要があるため静的化しない
 export const dynamic = "force-dynamic";
+
+// Excelの結合セルのように、ある列で連続する組（行）の値が同じであればまとめてrowSpanで
+// 1つのセルにする。先頭行以外は0を返し、呼び出し側でそのセルの描画をスキップする。
+// 空文字同士は結合しない（未入力のセルが1つの大きな空欄に見えて紛らわしいのを避けるため）
+function computeRowSpans(values: string[]): number[] {
+  const spans = values.map(() => 1);
+  for (let i = values.length - 1; i > 0; i -= 1) {
+    if (values[i] !== "" && values[i] === values[i - 1]) {
+      spans[i - 1] += spans[i];
+      spans[i] = 0;
+    }
+  }
+  return spans;
+}
 
 export default async function SharedNotebookPage(props: PageProps<"/share/[notebookId]">) {
   const { notebookId } = await props.params;
@@ -21,9 +35,9 @@ export default async function SharedNotebookPage(props: PageProps<"/share/[noteb
     notFound();
   }
 
-  const columns = notebook.columns as string[];
-  const senseColumns = columns.slice(1);
-  const cards = notebook.cards.map((card) => ({ id: card.id, data: card.data as CardData }));
+  const columns = normalizeColumns(notebook.columns);
+  const bodyColumns = columns.slice(1);
+  const cards = notebook.cards.map((card) => ({ id: card.id, data: normalizeCardData(card.data) }));
 
   return (
     <main className="flex flex-1 flex-col items-center px-6 py-16">
@@ -72,39 +86,42 @@ export default async function SharedNotebookPage(props: PageProps<"/share/[noteb
                   </td>
                 </tr>
               ) : (
-                cards.map((card) => {
-                  const senses = card.data.senses.length > 0 ? card.data.senses : [{}];
-                  return (
-                    <Fragment key={card.id}>
-                      {senses.map((sense, index) => (
-                        <tr
-                          key={`${card.id}-${index}`}
-                          className={
-                            index === 0
-                              ? "border-t border-black/[.06] dark:border-white/[.1]"
-                              : "border-t border-dashed border-black/[.06] dark:border-white/[.1]"
-                          }
-                        >
-                          {index === 0 && (
-                            <td
-                              rowSpan={senses.length}
-                              className="px-4 py-3 align-top text-sm font-medium text-zinc-900 dark:text-zinc-100"
-                            >
-                              {card.data.head}
-                            </td>
-                          )}
-                          {senseColumns.map((column) => (
-                            <td
-                              key={column}
-                              className="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300"
-                            >
-                              {sense[column] ?? ""}
-                            </td>
-                          ))}
-                        </tr>
-                      ))}
-                    </Fragment>
+                cards.flatMap((card) => {
+                  // Excelの結合セルのように、見出し語セルは組（rows）の件数ぶんrowSpanでまたがらせ、
+                  // 本文の各列は連続して同じ値が続く区間だけをrowSpanでまとめる
+                  const rowCount = card.data.rows.length;
+                  const bodySpansByColumn = bodyColumns.map((column) =>
+                    computeRowSpans(card.data.rows.map((row) => row[column] ?? "")),
                   );
+
+                  return card.data.rows.map((row, rowIndex) => (
+                    <tr
+                      key={`${card.id}:${rowIndex}`}
+                      className="border-t border-black/[.06] dark:border-white/[.1]"
+                    >
+                      {rowIndex === 0 && (
+                        <td
+                          rowSpan={rowCount}
+                          className="px-4 py-3 align-top text-sm font-medium text-zinc-900 dark:text-zinc-100"
+                        >
+                          {card.data.head}
+                        </td>
+                      )}
+                      {bodyColumns.map((column, columnIndex) => {
+                        const span = bodySpansByColumn[columnIndex][rowIndex];
+                        if (span === 0) return null;
+                        return (
+                          <td
+                            key={column}
+                            rowSpan={span}
+                            className="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300"
+                          >
+                            {row[column] ?? ""}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ));
                 })
               )}
             </tbody>

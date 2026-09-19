@@ -5,9 +5,12 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import CardRow from "./CardRow";
 import CreateCardForm from "./CreateCardForm";
+import ColumnsEditor from "@/components/my-notebooks/ColumnsEditor";
+import ImportCardsForm from "@/components/my-notebooks/ImportCardsForm";
 import ResetAllStarsButton from "@/components/my-notebooks/ResetAllStarsButton";
 import ShareNotebookButton from "@/components/my-notebooks/ShareNotebookButton";
-import type { CardData } from "@/lib/card-data";
+import { normalizeCardData } from "@/lib/card-data";
+import { normalizeColumns } from "@/lib/notebook-columns";
 
 // DBの最新状態を常に表示するため、ビルド時の静的プリレンダリングを避けてリクエスト時にレンダリングする
 export const dynamic = "force-dynamic";
@@ -28,10 +31,11 @@ export default async function NotebookPage(props: PageProps<"/my-notebooks/[note
     notFound();
   }
 
-  // columns は「1列目=見出し語、2列目以降=意味の列名」という順序付き配列。
-  // 列数・列名はNotebookごとに異なる（Excel由来）ため、テーブルのヘッダーや
-  // 各行の入力欄は columns をループして動的に組み立てる
-  const columns = notebook.columns as string[];
+  // columns は「1列目=見出し語、2列目以降=意味・発音などの列名」という順序付き配列。
+  // 各列の値は見出し語につき1件〜複数件を自由に持てる（列ごとの件数は完全に独立）。
+  // 列数・列名はNotebookごとに異なるため、テーブルのヘッダーや各行の入力欄は
+  // columns をループして動的に組み立てる
+  const columns = normalizeColumns(notebook.columns);
   // ★がついている単語の件数。1件以上あれば「復習」への導線を出す
   const starredCount = notebook.cards.filter((card) => card.starred).length;
   // ★の回数が1回でも付いている単語があれば「一括リセット」の導線を出す
@@ -80,7 +84,12 @@ export default async function NotebookPage(props: PageProps<"/my-notebooks/[note
           )}
         </div>
 
-        <div className="mt-8 overflow-x-auto rounded-2xl border border-black/[.08] dark:border-white/[.145]">
+        <div className="mt-8 flex flex-wrap items-center justify-end gap-4">
+          <ImportCardsForm notebookId={notebook.id} />
+          <ColumnsEditor notebookId={notebook.id} columns={columns} />
+        </div>
+
+        <div className="mt-3 overflow-x-auto rounded-2xl border border-black/[.08] dark:border-white/[.145]">
           <table className="w-full min-w-max border-collapse text-left">
             <thead className="bg-zinc-50 dark:bg-zinc-900">
               <tr>
@@ -116,7 +125,7 @@ export default async function NotebookPage(props: PageProps<"/my-notebooks/[note
                     columns={columns}
                     card={{
                       id: card.id,
-                      data: card.data as CardData,
+                      data: normalizeCardData(card.data),
                       starred: card.starred,
                       starCount: card.starCount,
                       viewCount: card.viewCount,
