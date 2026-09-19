@@ -15,22 +15,22 @@ function readCardData(columns: string[], formData: FormData): CardData {
   const head = String(formData.get("head") ?? "").trim();
   const bodyColumns = columns.slice(1);
 
-  // 各列につき、`cell:列名:0`, `cell:列名:1`, ... という連番の入力欄を
-  // 存在する分だけ読み取る（CardFieldsForm側は必ず0番から連番でレンダリングする）。
-  // 空文字の値は保存しない
-  const cells: Record<string, string[]> = {};
-  for (const column of bodyColumns) {
-    const values: string[] = [];
-    let i = 0;
-    while (formData.has(`cell:${column}:${i}`)) {
-      const value = String(formData.get(`cell:${column}:${i}`) ?? "").trim();
-      if (value !== "") values.push(value);
-      i += 1;
+  // `row:0:列名`, `row:1:列名`, ... という連番の入力欄を、存在する分だけ読み取る
+  // （CardFieldsForm側は必ず0番から連番でレンダリングする）。同じ連番内の列同士は
+  // 同じ組（Excelの1行に相当）として対応付けられる。空文字の値は保存しない
+  const rows: Record<string, string>[] = [];
+  let i = 0;
+  while (bodyColumns.some((column) => formData.has(`row:${i}:${column}`))) {
+    const row: Record<string, string> = {};
+    for (const column of bodyColumns) {
+      const value = String(formData.get(`row:${i}:${column}`) ?? "").trim();
+      if (value !== "") row[column] = value;
     }
-    if (values.length > 0) cells[column] = values;
+    rows.push(row);
+    i += 1;
   }
 
-  return { head, cells };
+  return { head, rows: rows.length > 0 ? rows : [{}] };
 }
 
 // Excelファイルから新しい単語帳を作成する
@@ -249,9 +249,12 @@ export async function renameNotebookColumn(
     await prisma.notebook.update({ where: { id: notebookId }, data: { columns: newColumns } });
   } else {
     await migrateAllCards(notebookId, newColumns, (data) => {
-      if (!(oldName in data.cells)) return data;
-      const { [oldName]: value, ...rest } = data.cells;
-      return { ...data, cells: { ...rest, [newName]: value } };
+      const rows = data.rows.map((row) => {
+        if (!(oldName in row)) return row;
+        const { [oldName]: value, ...rest } = row;
+        return { ...rest, [newName]: value };
+      });
+      return { ...data, rows };
     });
   }
 
@@ -279,8 +282,10 @@ export async function deleteNotebookColumn(notebookId: string, columnIndex: numb
   const newColumns = columns.filter((_, index) => index !== columnIndex);
 
   await migrateAllCards(notebookId, newColumns, (data) => {
-    const cells = Object.fromEntries(Object.entries(data.cells).filter(([key]) => key !== name));
-    return { ...data, cells };
+    const rows = data.rows.map((row) =>
+      Object.fromEntries(Object.entries(row).filter(([key]) => key !== name)),
+    );
+    return { ...data, rows };
   });
 
   revalidatePath(`/my-notebooks/${notebookId}`);

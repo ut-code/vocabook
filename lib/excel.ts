@@ -93,7 +93,7 @@ export async function parseExcelWorkbook(buffer: ArrayBuffer): Promise<ParsedNot
 
   // 見出し語（1列目）を除いた列名一覧
   const bodyColumns = columns.slice(1);
-  const rows: CardData[] = [];
+  const cards: CardData[] = [];
   // 見出し語（1列目）ごとにカードをまとめるためのインデックス。
   // 同じ見出し語の行を1つのカードにまとめるため、「見出し語→配列内でのインデックス」を記録するMap
   const groupIndexByHead = new Map<string, number>();
@@ -119,25 +119,32 @@ export async function parseExcelWorkbook(buffer: ArrayBuffer): Promise<ParsedNot
     let groupIndex = groupIndexByHead.get(groupKey);
     // 初出のグループなら新規カードを作成
     if (groupIndex === undefined) {
-      groupIndex = rows.length;
+      groupIndex = cards.length;
       groupIndexByHead.set(groupKey, groupIndex);
-      rows.push({ head, cells: {} });
+      cards.push({ head, rows: [] });
     }
 
-    // 同じ見出し語の行から、列ごとに値を集めて追記していく（空文字は追加しない）。
-    // これにより、値が1行にしか無い列は自然と1件だけ、複数行にまたがる列は
-    // 複数件のリストになる（列ごとの単値/多値を事前に決める必要が無い）
-    const cells = rows[groupIndex].cells;
+    // Excelの物理的な1行を、そのままこの見出し語の「組」1件として追加する。
+    // 同じ行にある列同士（例: 訳・発音）は自動的にその行の添字で対応付けられる
+    const cardRow: Record<string, string> = {};
     bodyColumns.forEach((name, index) => {
       const value = cellValues[index + 1];
-      if (value === "") return;
-      (cells[name] ??= []).push(value);
+      if (value !== "") cardRow[name] = value;
     });
+    if (Object.keys(cardRow).length > 0) {
+      cards[groupIndex].rows.push(cardRow);
+    }
   }
 
-  if (rows.length === 0) {
+  // 見出し語のみで本文列が1件も無かったカードには、空の組を1件持たせておく
+  // （CardFieldsForm・表示側は常に1件以上のrowsがある前提のため）
+  for (const card of cards) {
+    if (card.rows.length === 0) card.rows.push({});
+  }
+
+  if (cards.length === 0) {
     throw new ExcelParseError("2行目以降にデータが見つかりませんでした。");
   }
 
-  return { columns, rows };
+  return { columns, rows: cards };
 }

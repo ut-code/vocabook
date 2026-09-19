@@ -8,6 +8,20 @@ import { normalizeColumns } from "@/lib/notebook-columns";
 // 公開中の単語帳をログイン無しで閲覧できるページ。公開状態はDBの最新値を都度見る必要があるため静的化しない
 export const dynamic = "force-dynamic";
 
+// Excelの結合セルのように、ある列で連続する組（行）の値が同じであればまとめてrowSpanで
+// 1つのセルにする。先頭行以外は0を返し、呼び出し側でそのセルの描画をスキップする。
+// 空文字同士は結合しない（未入力のセルが1つの大きな空欄に見えて紛らわしいのを避けるため）
+function computeRowSpans(values: string[]): number[] {
+  const spans = values.map(() => 1);
+  for (let i = values.length - 1; i > 0; i -= 1) {
+    if (values[i] !== "" && values[i] === values[i - 1]) {
+      spans[i - 1] += spans[i];
+      spans[i] = 0;
+    }
+  }
+  return spans;
+}
+
 export default async function SharedNotebookPage(props: PageProps<"/share/[notebookId]">) {
   const { notebookId } = await props.params;
 
@@ -72,32 +86,40 @@ export default async function SharedNotebookPage(props: PageProps<"/share/[noteb
                   </td>
                 </tr>
               ) : (
-                cards.map((card) => (
-                  <tr key={card.id} className="border-t border-black/[.06] dark:border-white/[.1]">
-                    <td className="px-4 py-3 align-top text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                      {card.data.head}
-                    </td>
-                    {bodyColumns.map((column) => {
-                      const values = card.data.cells[column] ?? [];
-                      return (
+                cards.flatMap((card) => {
+                  // Excelの結合セルのように、見出し語セルは組（rows）の件数ぶんrowSpanでまたがらせ、
+                  // 本文の各列は連続して同じ値が続く区間だけをrowSpanでまとめる
+                  const rowCount = card.data.rows.length;
+                  const bodySpansByColumn = bodyColumns.map((column) =>
+                    computeRowSpans(card.data.rows.map((row) => row[column] ?? "")),
+                  );
+
+                  return card.data.rows.map((row, rowIndex) => (
+                    <tr key={`${card.id}:${rowIndex}`} className="border-t border-black/[.06] dark:border-white/[.1]">
+                      {rowIndex === 0 && (
                         <td
-                          key={column}
-                          className="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300"
+                          rowSpan={rowCount}
+                          className="px-4 py-3 align-top text-sm font-medium text-zinc-900 dark:text-zinc-100"
                         >
-                          {values.length <= 1 ? (
-                            (values[0] ?? "")
-                          ) : (
-                            <ol className="list-decimal space-y-0.5 pl-4">
-                              {values.map((value, i) => (
-                                <li key={i}>{value}</li>
-                              ))}
-                            </ol>
-                          )}
+                          {card.data.head}
                         </td>
-                      );
-                    })}
-                  </tr>
-                ))
+                      )}
+                      {bodyColumns.map((column, columnIndex) => {
+                        const span = bodySpansByColumn[columnIndex][rowIndex];
+                        if (span === 0) return null;
+                        return (
+                          <td
+                            key={column}
+                            rowSpan={span}
+                            className="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300"
+                          >
+                            {row[column] ?? ""}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ));
+                })
               )}
             </tbody>
           </table>
