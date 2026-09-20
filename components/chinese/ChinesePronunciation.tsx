@@ -60,8 +60,8 @@ export function ChineseFreePractice() {
     mode === "preset"
       ? selectedProblem.pinyin
       : currentTargetText
-      ? pinyin(currentTargetText, { style: pinyin.STYLE_TONE }).flat().join(" ")
-      : "";
+        ? pinyin(currentTargetText, { style: pinyin.STYLE_TONE }).flat().join(" ")
+        : "";
 
   useEffect(() => {
     const SpeechRecognition =
@@ -99,9 +99,7 @@ export function ChineseFreePractice() {
 
       if (currentText) {
         // 認識結果が漢字の場合はピンインに変換
-        const convertedPinyin = pinyin(currentText, { style: pinyin.STYLE_TONE })
-          .flat()
-          .join(" ");
+        const convertedPinyin = pinyin(currentText, { style: pinyin.STYLE_TONE }).flat().join(" ");
         setRecognizedPinyin(convertedPinyin);
       }
     };
@@ -162,7 +160,7 @@ export function ChineseFreePractice() {
     setIsRecording(false);
 
     const rawTranscript = latestTranscriptRef.current;
-    
+
     // 1. 句読点やスペースを除去して正規化
     const cleanRecognized = normalizeText(rawTranscript);
     const cleanTarget = normalizeText(currentTargetText);
@@ -262,7 +260,9 @@ export function ChineseFreePractice() {
       {/* メインカード */}
       <div className="rounded-xl bg-zinc-50 p-6 text-center dark:bg-zinc-800/50">
         <div className="text-4xl font-black text-zinc-800 dark:text-zinc-100">
-          {currentTargetText || <span className="text-zinc-300 dark:text-zinc-600">（未入力）</span>}
+          {currentTargetText || (
+            <span className="text-zinc-300 dark:text-zinc-600">（未入力）</span>
+          )}
         </div>
         <div className="mt-1 min-h-[24px] text-base font-semibold text-tealblue-600 dark:text-tealblue-400">
           {currentTargetPinyin}
