@@ -3,18 +3,17 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import pinyin from "pinyin";
 
+interface CustomSpeechRecognitionErrorEvent extends Event {
+  readonly error: string;
+  readonly message?: string;
+}
+
+interface CustomSpeechRecognitionEvent extends Event {
+  readonly resultIndex: number;
+  readonly results: SpeechRecognitionResultList;
+}
+
 declare global {
-  // 不足しているイベントの型定義を追加
-  interface SpeechRecognitionEvent extends Event {
-    readonly resultIndex: number;
-    readonly results: SpeechRecognitionResultList;
-  }
-
-  interface SpeechRecognitionErrorEvent extends Event {
-    readonly error: SpeechRecognitionErrorCode;
-    readonly message: string;
-  }
-
   interface SpeechRecognition extends EventTarget {
     lang: string;
     continuous: boolean;
@@ -23,8 +22,8 @@ declare global {
     start(): void;
     stop(): void;
     abort(): void;
-    onresult: ((event: SpeechRecognitionEvent) => void) | null;
-    onerror: ((event: SpeechRecognitionErrorEvent) => void) | null;
+    onresult: ((event: CustomSpeechRecognitionEvent) => void) | null;
+    onerror: ((event: CustomSpeechRecognitionErrorEvent) => void) | null;
     onend: (() => void) | null;
   }
 
@@ -38,7 +37,6 @@ declare global {
     webkitSpeechRecognition?: typeof SpeechRecognition;
   }
 }
-
 interface PracticeProblem {
   id: string;
   hanzi: string;
@@ -147,7 +145,7 @@ export function ChinesePronunciation() {
     recognition.interimResults = true;
     recognition.maxAlternatives = 5;
 
-    recognition.onresult = (event: SpeechRecognitionEvent) => {
+    recognition.onresult = (event: CustomSpeechRecognitionEvent) => {
       const resultsArray = Array.from({ length: event.results.length }, (_, i) => event.results[i]);
       const currentText = resultsArray.map((res) => res[0].transcript).join("");
 
@@ -159,7 +157,7 @@ export function ChinesePronunciation() {
       setAlternatives(altList);
     };
 
-    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+    recognition.onerror = (event: CustomSpeechRecognitionErrorEvent) => {
       if (event.error !== "no-speech" && event.error !== "aborted") {
         setError("音声認識エラーが発生しました。もう一度お試しください。");
       }
