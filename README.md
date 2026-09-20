@@ -16,6 +16,7 @@ npm ci # ciとはclean installの略, package-lock.jsonの内容を基にパッ�
 
 ```bash
 cp .env.example .env # .env.exampleの内容をコピーして自分用の.envを作成する
+# 自分の.envファイルに必要情報を記入すること（特にOPENROUTER_API_KEYはAI機能をローカルで利用するために必須）
 ```
 
 （`.env`ファイルは秘密情報を含みうるため`.gitignore`でGit管理から除外されている。`.env.example`はGit管理されているのでcloneすれば手元にあるはずだが、無ければ手動で作成すること）
@@ -52,6 +53,18 @@ git switch -c ブランチ名 # ブランチを新たに作成する
 rm -rf リポジトリ名
 # リポジトリを強制削除する
 # どうしてもうまくいかなかったときは、一旦ローカルリポジトリを削除して再びクローンしてもよい（多分正攻法ではない）
+```
+
+```bash
+npm run format # formatterを利用し、コードの見た目を整形する
+```
+
+```bash
+npm run lint # linterを利用し、コードのバグや不適切な記述を見つける
+```
+
+```bash
+npm run typecheck # 型の確認を行う
 ```
 
 ## プロジェクト構成の大枠
