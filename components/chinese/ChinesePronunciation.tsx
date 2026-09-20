@@ -118,9 +118,7 @@ export function ChinesePronunciation() {
       setAlternatives(altList);
 
       if (currentText) {
-        const convertedPinyin = pinyin(currentText, { style: pinyin.STYLE_TONE })
-          .flat()
-          .join(" ");
+        const convertedPinyin = pinyin(currentText, { style: pinyin.STYLE_TONE }).flat().join(" ");
         setRecognizedPinyin(convertedPinyin);
       }
     };
@@ -267,7 +265,9 @@ export function ChinesePronunciation() {
       {/* メインカード */}
       <div className="rounded-xl bg-zinc-50 p-6 text-center dark:bg-zinc-800/50">
         <div className="text-4xl font-black text-zinc-800 dark:text-zinc-100">
-          {currentTargetText || <span className="text-zinc-300 dark:text-zinc-600">（未入力）</span>}
+          {currentTargetText || (
+            <span className="text-zinc-300 dark:text-zinc-600">（未入力）</span>
+          )}
         </div>
         <div className="mt-1 min-h-[24px] text-base font-semibold text-tealblue-600 dark:text-tealblue-400">
           {currentTargetPinyin}

@@ -1,6 +1,6 @@
 "use client";
 
-import { ChineseFreePractice } from "@/components/chinese/ChinesePronunciation";
+import { ChinesePronunciation } from "@/components/chinese/ChinesePronunciation";
 
 export const title = "発音・四声チェック";
 
@@ -14,7 +14,7 @@ export default function ChinesePronunciationPage() {
       </p>
 
       <div className="mt-8">
-        <ChineseFreePractice />
+        <ChinesePronunciation />
       </div>
     </div>
   );
