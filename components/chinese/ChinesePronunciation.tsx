@@ -4,6 +4,17 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import pinyin from "pinyin";
 
 declare global {
+  // 不足しているイベントの型定義を追加
+  interface SpeechRecognitionEvent extends Event {
+    readonly resultIndex: number;
+    readonly results: SpeechRecognitionResultList;
+  }
+
+  interface SpeechRecognitionErrorEvent extends Event {
+    readonly error: SpeechRecognitionErrorCode;
+    readonly message: string;
+  }
+
   interface SpeechRecognition extends EventTarget {
     lang: string;
     continuous: boolean;
