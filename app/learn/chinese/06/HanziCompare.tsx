@@ -69,10 +69,7 @@ export default function HanziCompare() {
             <div className="mt-4 text-center">
               <p className="mb-2">簡体字を書こう</p>
               <p className="text-6xl font-bold">{selected.japanese}</p>
-              <button
-                onClick={() => setRevealed(true)}
-                className="mt-4 underline"
-              >
+              <button onClick={() => setRevealed(true)} className="mt-4 underline">
                 簡体字を表示
               </button>
             </div>
@@ -90,9 +87,7 @@ export default function HanziCompare() {
                   <p className="text-6xl font-bold">{selected.simplified}</p>
                 </div>
               </div>
-              <p className="mt-6 text-center text-sm text-zinc-600">
-                {selected.difference}
-              </p>
+              <p className="mt-6 text-center text-sm text-zinc-600">{selected.difference}</p>
             </div>
           )}
         </div>

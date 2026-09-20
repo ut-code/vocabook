@@ -10,7 +10,7 @@ function pickRandomQuestion(list: QuizQuestion[]): QuizQuestion {
 
 export default function Quiz() {
   const [currentQuestion, setCurrentQuestion] = useState<QuizQuestion>(() =>
-    pickRandomQuestion(auxiliaryVerbQuiz)
+    pickRandomQuestion(auxiliaryVerbQuiz),
   );
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [wrongList, setWrongList] = useState<QuizQuestion[]>([]);

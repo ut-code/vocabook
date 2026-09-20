@@ -153,7 +153,7 @@ export const compareList: CharacterCompare[] = [
     meaning: "庭・園",
     difference: "「囗」の中の「袁」の部分が省略され、「元」だけが残った形です。",
   },
-    {
+  {
     id: "guan",
     japanese: "関",
     simplified: "关",
@@ -190,8 +190,7 @@ export const compareList: CharacterCompare[] = [
     pinyin: "tí",
     reading: "だい",
     meaning: "テーマ・問題",
-    difference:
-      "左側の「是」の部分は同じですが、右側の「頁」が「页」に簡略化されています。",
+    difference: "左側の「是」の部分は同じですが、右側の「頁」が「页」に簡略化されています。",
   },
   {
     id: "yan",
@@ -200,8 +199,7 @@ export const compareList: CharacterCompare[] = [
     pinyin: "yàn",
     reading: "けん",
     meaning: "試す・経験",
-    difference:
-      "「馬」へんが「马」に簡略化され、右側の形もやや変化しています。",
+    difference: "「馬」へんが「马」に簡略化され、右側の形もやや変化しています。",
   },
   {
     id: "yi2",
@@ -220,8 +218,7 @@ export const compareList: CharacterCompare[] = [
     pinyin: "wéi",
     reading: "い",
     meaning: "〜のために・行う",
-    difference:
-      "元の形の面影がほとんど残らないほど、大きく簡略化された代表的な例の一つです。",
+    difference: "元の形の面影がほとんど残らないほど、大きく簡略化された代表的な例の一つです。",
   },
   {
     id: "jian",

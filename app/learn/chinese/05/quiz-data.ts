@@ -1,11 +1,10 @@
 export type QuizQuestion = {
   id: string;
-  sentence: string;       // 中国語の文
-  choices: string[];      // 4つの選択肢(日本語訳)
-  answerIndex: number;    // 正解が何番目か(0始まり)
-  explanation: string;    // 解説
+  sentence: string; // 中国語の文
+  choices: string[]; // 4つの選択肢(日本語訳)
+  answerIndex: number; // 正解が何番目か(0始まり)
+  explanation: string; // 解説
 };
-
 
 export const auxiliaryVerbQuiz: QuizQuestion[] = [
   {
@@ -74,5 +73,4 @@ export const auxiliaryVerbQuiz: QuizQuestion[] = [
       "「能(néng)」は「状況や条件的に可能かどうか」を表す助動詞です(例: 用事があって行けない、体調が悪くて行けない、など)。「会」の“習得した技能”とは区別されます。",
   },
 ];
-  // ここに問題を追加していく
-;
+// ここに問題を追加していく
