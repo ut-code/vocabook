@@ -1,51 +1,38 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import pinyin from "pinyin";
+
+declare global {
+  interface SpeechRecognition extends EventTarget {
+    lang: string;
+    continuous: boolean;
+    interimResults: boolean;
+    maxAlternatives: number;
+    start(): void;
+    stop(): void;
+    abort(): void;
+    onresult: ((event: SpeechRecognitionEvent) => void) | null;
+    onerror: ((event: SpeechRecognitionErrorEvent) => void) | null;
+    onend: (() => void) | null;
+  }
+
+  var SpeechRecognition: {
+    prototype: SpeechRecognition;
+    new (): SpeechRecognition;
+  };
+
+  interface Window {
+    SpeechRecognition?: typeof SpeechRecognition;
+    webkitSpeechRecognition?: typeof SpeechRecognition;
+  }
+}
 
 interface PracticeProblem {
   id: string;
   hanzi: string;
   pinyin: string;
   meaning: string;
-}
-
-// Web Speech API 用のインターフェース定義（any回避用）
-interface SpeechRecognitionResultLike {
-  readonly length: number;
-  [index: number]: { transcript: string };
-}
-
-interface SpeechRecognitionEventLike {
-  results: {
-    readonly length: number;
-    [index: number]: SpeechRecognitionResultLike;
-  };
-}
-
-interface SpeechRecognitionErrorEventLike {
-  error: string;
-}
-
-interface SpeechRecognitionInstance {
-  lang: string;
-  continuous: boolean;
-  interimResults: boolean;
-  maxAlternatives: number;
-  start: () => void;
-  stop: () => void;
-  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
-  onerror: ((event: SpeechRecognitionErrorEventLike) => void) | null;
-  onend: (() => void) | null;
-}
-
-interface SpeechRecognitionConstructor {
-  new (): SpeechRecognitionInstance;
-}
-
-interface IWindow {
-  SpeechRecognition?: SpeechRecognitionConstructor;
-  webkitSpeechRecognition?: SpeechRecognitionConstructor;
 }
 
 const SAMPLE_PROBLEMS: PracticeProblem[] = [
@@ -79,7 +66,7 @@ export function ChinesePronunciation() {
   const [alternatives, setAlternatives] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
   const latestTranscriptRef = useRef<string>("");
 
   const currentTargetText = mode === "preset" ? selectedProblem.hanzi : customText.trim();
@@ -88,52 +75,27 @@ export function ChinesePronunciation() {
       ? selectedProblem.pinyin
       : pinyin(currentTargetText, { style: pinyin.STYLE_TONE }).flat().join(" ");
 
-  useEffect(() => {
-    const win = typeof window !== "undefined" ? (window as unknown as IWindow) : {};
-    const SpeechRecognitionClass = win.SpeechRecognition || win.webkitSpeechRecognition;
-
-    if (!SpeechRecognitionClass) {
-      // react-hooks/set-state-in-effect 警告を回避するため setTimeout を使用
-      const timer = setTimeout(() => {
-        setError("お使いのブラウザは音声認識に対応していません。（Chrome/Edge推奨）");
-      }, 0);
-      return () => clearTimeout(timer);
+  const cleanupRecognition = useCallback(() => {
+    if (recognitionRef.current) {
+      // イベントリスナーを解除して不要なコールバック発火を抑止
+      recognitionRef.current.onresult = null;
+      recognitionRef.current.onerror = null;
+      recognitionRef.current.onend = null;
+      try {
+        recognitionRef.current.abort(); // マイク入力を即座に切断
+      } catch {
+        // すでに停止済みのエラーは無視
+      }
+      recognitionRef.current = null;
     }
-
-    const recognition = new SpeechRecognitionClass();
-    recognition.lang = "zh-CN";
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.maxAlternatives = 5;
-
-    recognition.onresult = (event: SpeechRecognitionEventLike) => {
-      const resultsArray = Array.from({ length: event.results.length }, (_, i) => event.results[i]);
-      const currentText = resultsArray.map((res) => res[0].transcript).join("");
-
-      const lastResult = event.results[event.results.length - 1];
-      const altList = Array.from({ length: lastResult.length }, (_, i) => lastResult[i].transcript);
-
-      latestTranscriptRef.current = currentText;
-      setRecognizedText(currentText);
-      setAlternatives(altList);
-
-      if (currentText) {
-        const convertedPinyin = pinyin(currentText, { style: pinyin.STYLE_TONE }).flat().join(" ");
-        setRecognizedPinyin(convertedPinyin);
-      }
-    };
-
-    recognition.onerror = (event: SpeechRecognitionErrorEventLike) => {
-      if (event.error !== "no-speech") {
-        setError("音声認識エラーが発生しました。もう一度お試しください。");
-      }
-      setIsRecording(false);
-    };
-
-    recognition.onend = () => setIsRecording(false);
-
-    recognitionRef.current = recognition;
   }, []);
+
+  useEffect(() => {
+    // ページ遷移やコンポーネント破棄時にマイクを強制解放
+    return () => {
+      cleanupRecognition();
+    };
+  }, [cleanupRecognition]);
 
   const playAudio = () => {
     if (!currentTargetText || !("speechSynthesis" in window)) return;
@@ -150,7 +112,16 @@ export function ChinesePronunciation() {
       setError("練習する文章・単語を入力してください。");
       return;
     }
-    if (!recognitionRef.current) return;
+
+    const SpeechRecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognitionClass) {
+      setError("お使いのブラウザは音声認識に対応していません。（Chrome/Edge推奨）");
+      return;
+    }
+
+    // 残っている既存セッションを破棄
+    cleanupRecognition();
 
     latestTranscriptRef.current = "";
     setRecognizedText("");
@@ -159,14 +130,55 @@ export function ChinesePronunciation() {
     setAlternatives([]);
     setError(null);
 
-    recognitionRef.current.start();
-    setIsRecording(true);
+    const recognition = new SpeechRecognitionClass();
+    recognition.lang = "zh-CN";
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 5;
+
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      const resultsArray = Array.from({ length: event.results.length }, (_, i) => event.results[i]);
+      const currentText = resultsArray.map((res) => res[0].transcript).join("");
+
+      const lastResult = event.results[event.results.length - 1];
+      const altList = Array.from({ length: lastResult.length }, (_, i) => lastResult[i].transcript);
+
+      latestTranscriptRef.current = currentText;
+      setRecognizedText(currentText);
+      setAlternatives(altList);
+    };
+
+    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+      if (event.error !== "no-speech" && event.error !== "aborted") {
+        setError("音声認識エラーが発生しました。もう一度お試しください。");
+      }
+      setIsRecording(false);
+    };
+
+    recognition.onend = () => {
+      setIsRecording(false);
+    };
+
+    try {
+      recognition.start();
+      recognitionRef.current = recognition;
+      setIsRecording(true);
+    } catch {
+      setError("音声認識の起動に失敗しました。マイクの権限を確認してください。");
+      setIsRecording(false);
+    }
   };
 
   const handleStopRecording = () => {
-    if (!recognitionRef.current || !isRecording) return;
+    if (!isRecording) return;
 
-    recognitionRef.current.stop();
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch {
+        // 無視
+      }
+    }
     setIsRecording(false);
 
     const rawTranscript = latestTranscriptRef.current;
@@ -174,6 +186,10 @@ export function ChinesePronunciation() {
     const cleanTarget = normalizeText(currentTargetText);
 
     if (cleanRecognized) {
+      // 停止時のみ 1 回だけ pinyin 変換を行いUI負荷を抑える
+      const convertedPinyin = pinyin(rawTranscript, { style: pinyin.STYLE_TONE }).flat().join(" ");
+      setRecognizedPinyin(convertedPinyin);
+
       let isPass = cleanRecognized === cleanTarget;
 
       if (!isPass) {
@@ -347,9 +363,9 @@ export function ChinesePronunciation() {
             <div className="pt-2">
               <div className="text-[10px] text-zinc-400">検知された類似候補:</div>
               <div className="mt-1 flex flex-wrap gap-1">
-                {alternatives.map((alt, i) => (
+                {alternatives.map((alt) => (
                   <span
-                    key={i}
+                    key={alt}
                     className="rounded bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
                   >
                     {alt}
