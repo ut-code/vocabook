@@ -24,8 +24,37 @@ model Notebook {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   cards     Card[]
+  shares    NotebookShare[]
+  invites   NotebookInvite[]
 
   @@index([userId])
+}
+
+// 単語帳の共同編集者（招待リンク経由で参加したユーザー）。カード・列の追加/編集/削除が可能。
+// 閲覧のみの共有は別途 Notebook.isPublic の公開リンク（ログイン不要）が担うため、
+// ここでの共同編集者は常に編集可能（権限の区別を持たない）
+model NotebookShare {
+  id         String   @id @default(cuid())
+  notebookId String
+  notebook   Notebook @relation(fields: [notebookId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([notebookId, userId])
+  @@index([userId])
+}
+
+// 単語帳作成者が発行する、編集可能な共同編集者への招待リンク。トークンを知っていてログイン済みなら
+// 誰でも開いてNotebookShareとして参加できる。作成者はいつでも個別に失効（削除）できる
+model NotebookInvite {
+  id         String   @id @default(cuid())
+  token      String   @unique @default(cuid())
+  notebookId String
+  notebook   Notebook @relation(fields: [notebookId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@index([notebookId])
 }
 
 // 単語帳内の1単語（1行）分のデータ
@@ -38,16 +67,31 @@ model Card {
   data       Json
   // Notebook.columns で先頭に来る列を「表」、次を「裏」として暗記学習モードに使う
   position   Int
-  // 現在★がついているか（復習抽出の対象になるかどうか）
-  starred    Boolean  @default(false)
-  // ★を付けた累計回数。付け外しを繰り返すほど増え、覚えにくさの目安になる
-  starCount  Int      @default(0)
-  // 暗記学習モード（/study, /review）でこの単語がカードとして表示された累計回数
-  viewCount  Int      @default(0)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+  progress   CardProgress[]
 
   @@index([notebookId, position])
+}
+
+// 単語1件に対する、ユーザーごとの学習進捗。単語帳は共同編集者間で共有されるが、
+// ★・表示回数はユーザーごとに独立させたいためCardではなくここで持つ
+model CardProgress {
+  id        String   @id @default(cuid())
+  cardId    String
+  card      Card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // 現在★がついているか（復習抽出の対象になるかどうか）
+  starred   Boolean  @default(false)
+  // ★を付けた累計回数。付け外しを繰り返すほど増え、覚えにくさの目安になる
+  starCount Int      @default(0)
+  // 暗記学習モード（/study, /review）でこの単語がカードとして表示された累計回数
+  viewCount Int      @default(0)
+  updatedAt DateTime @updatedAt
+
+  @@unique([cardId, userId])
+  @@index([userId, starred])
 }
 
 model User {
@@ -63,6 +107,8 @@ model User {
   sessions               Session[]
   accounts               Account[]
   notebooks              Notebook[]
+  notebookShares         NotebookShare[]
+  cardProgress           CardProgress[]
   sectionProgress        SectionProgress[]
   essaySubmissions       EssaySubmission[]
   translationSubmissions TranslationSubmission[]
