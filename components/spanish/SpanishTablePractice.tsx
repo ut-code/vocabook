@@ -427,13 +427,17 @@ export default function SpanishTablePractice({ tables }: { tables: GrammarTableD
             <h3 className="mb-4 text-lg font-extrabold text-zinc-900 dark:text-zinc-50">
               【{table.categoryTitle}】
             </h3>
-            <table className="w-full border-collapse rounded-2xl border border-zinc-200 text-left text-base dark:border-zinc-800">
+            {/* スマホでは表が潰れて入力しづらいので、最小幅を確保して横スクロールさせる */}
+            <p className="mb-2 text-xs text-zinc-500 sm:hidden dark:text-zinc-400">
+              ← 表は横にスクロールできます →
+            </p>
+            <table className="w-full min-w-[600px] border-collapse rounded-2xl border border-zinc-200 text-left text-base dark:border-zinc-800">
               <thead>
                 <tr className="bg-zinc-100/80 dark:bg-zinc-900">
                   {table.headers.map((h, hIdx) => (
                     <th
                       key={hIdx}
-                      className="border border-zinc-200 p-3.5 font-bold text-zinc-800 dark:border-zinc-800 dark:text-zinc-200"
+                      className="border border-zinc-200 p-2.5 font-bold sm:p-3.5 text-zinc-800 dark:border-zinc-800 dark:text-zinc-200"
                     >
                       {h}
                     </th>
@@ -443,7 +447,7 @@ export default function SpanishTablePractice({ tables }: { tables: GrammarTableD
               <tbody>
                 {table.rows.map((row, rIdx) => (
                   <tr key={rIdx} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50">
-                    <td className="border border-zinc-200 p-3.5 font-bold text-zinc-900 dark:border-zinc-800 dark:text-zinc-100 bg-zinc-50/30 dark:bg-zinc-900/30">
+                    <td className="border border-zinc-200 p-2.5 font-bold sm:p-3.5 text-zinc-900 dark:border-zinc-800 dark:text-zinc-100 bg-zinc-50/30 dark:bg-zinc-900/30">
                       {row.label}
                     </td>
                     {row.cells.map((cell, cIdx) => {
@@ -458,7 +462,7 @@ export default function SpanishTablePractice({ tables }: { tables: GrammarTableD
                         <td
                           key={cIdx}
                           colSpan={cell.colSpan}
-                          className="border border-zinc-200 p-2.5 dark:border-zinc-800"
+                          className="border border-zinc-200 p-1.5 sm:p-2.5 dark:border-zinc-800"
                         >
                           {isBlankTarget ? (
                             <div className="flex flex-col gap-1">
