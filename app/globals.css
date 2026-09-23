@@ -1,9 +1,18 @@
 @import "tailwindcss";
 
+/* 手動でライト/ダークを切り替えられるように、OS設定ではなくhtmlの.darkクラスを基準にする */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  color-scheme: light dark;
+  color-scheme: light;
+}
+
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -37,13 +46,6 @@
   --color-tealblue-800: #145154;
   --color-tealblue-900: #123f42;
   --color-tealblue-950: #0a2426;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
@@ -150,35 +152,33 @@ body {
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  .french-content h1 {
-    border-color: var(--color-zinc-800);
-    color: var(--color-zinc-50);
-  }
-  .french-content h2 {
-    color: var(--color-zinc-100);
-  }
-  .french-content p,
-  .french-content td,
-  .french-content li {
-    color: var(--color-zinc-300);
-  }
-  .french-content em {
-    background: color-mix(in oklab, var(--color-blue-500) 15%, transparent);
-    color: var(--color-blue-300);
-  }
-  .french-content table {
-    border-color: var(--color-zinc-800);
-  }
-  .french-content thead {
-    background: color-mix(in oklab, var(--color-zinc-800) 60%, transparent);
-  }
-  .french-content th {
-    color: var(--color-zinc-200);
-  }
-  .french-content td {
-    border-color: var(--color-zinc-800);
-  }
+.dark .french-content h1 {
+  border-color: var(--color-zinc-800);
+  color: var(--color-zinc-50);
+}
+.dark .french-content h2 {
+  color: var(--color-zinc-100);
+}
+.dark .french-content p,
+.dark .french-content td,
+.dark .french-content li {
+  color: var(--color-zinc-300);
+}
+.dark .french-content em {
+  background: color-mix(in oklab, var(--color-blue-500) 15%, transparent);
+  color: var(--color-blue-300);
+}
+.dark .french-content table {
+  border-color: var(--color-zinc-800);
+}
+.dark .french-content thead {
+  background: color-mix(in oklab, var(--color-zinc-800) 60%, transparent);
+}
+.dark .french-content th {
+  color: var(--color-zinc-200);
+}
+.dark .french-content td {
+  border-color: var(--color-zinc-800);
 }
 
 .vb-arrow-window {
