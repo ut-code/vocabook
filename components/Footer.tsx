@@ -19,8 +19,12 @@ export default function Footer() {
   return (
     <footer className="border-t border-black/[.08] bg-zinc-300 dark:border-white/[.145] dark:bg-zinc-600">
       <div className="px-[5%] pt-4 pb-1.5">
-        <div className="flex flex-col gap-0.5">
-          <nav className="flex flex-wrap justify-end gap-8 text-2xl font-semibold tracking-[0.04em] text-zinc-600 dark:text-zinc-100">
+        {/*
+          スマホは右寄せで縦積み、PCは「コピーライト（左）／リンク（右）」の1行に揃える。
+          row-reverseを使うことで、DOM順（リンク→コピーライト）を変えずにPCでリンクを右端に置いている
+        */}
+        <div className="flex flex-col items-end gap-1 sm:flex-row-reverse sm:items-baseline sm:justify-between">
+          <nav className="flex flex-wrap justify-end gap-x-5 gap-y-1 text-lg font-semibold tracking-[0.04em] text-zinc-600 sm:gap-x-8 sm:text-2xl dark:text-zinc-100">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.href}
@@ -32,7 +36,7 @@ export default function Footer() {
             ))}
           </nav>
 
-          <div className="flex items-baseline justify-center gap-1.5 text-xl tracking-wide text-zinc-400 dark:text-zinc-400">
+          <div className="flex items-baseline justify-end gap-1.5 text-sm tracking-wide text-zinc-400 sm:text-xl dark:text-zinc-400">
             <span>© {new Date().getFullYear()}</span>
             <span
               className={`${bebasNeue.variable} leading-none tracking-[0.06em] [font-family:var(--font-bebas-neue)]`}
