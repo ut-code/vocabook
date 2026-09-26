@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Bebas_Neue } from "next/font/google";
 
 import HeaderAuthStatus from "@/components/HeaderAuthStatus";
+import ThemeToggle from "@/components/ThemeToggle";
 
 // ヘッダーロゴ「Vocabook」専用の見出しフォント（トップページの見出しと統一感を出す）
 const bebasNeue = Bebas_Neue({
@@ -58,6 +59,7 @@ export default function Header() {
           <Suspense fallback={<div className="h-8 w-24" />}>
             <HeaderAuthStatus />
           </Suspense>
+          <ThemeToggle />
         </div>
       </div>
     </header>
