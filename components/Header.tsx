@@ -3,7 +3,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { Bebas_Neue } from "next/font/google";
 
-import HeaderAuthStatus from "@/components/HeaderAuthStatus";
+import HeaderNav from "@/components/HeaderNav";
+import type { HeaderNavLink } from "@/components/HeaderNavClient";
 import ThemeToggle from "@/components/ThemeToggle";
 
 // ヘッダーロゴ「Vocabook」専用の見出しフォント（トップページの見出しと統一感を出す）
@@ -13,7 +14,7 @@ const bebasNeue = Bebas_Neue({
   weight: "400",
 });
 
-const NAV_LINKS = [
+const NAV_LINKS: HeaderNavLink[] = [
   {
     href: "/my-notebooks",
     label: "My単語帳",
@@ -45,7 +46,7 @@ export default function Header() {
           </span>
         </Link>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <nav className="flex flex-wrap gap-x-4 gap-y-2 text-[clamp(1rem,2.2vw,1.125rem)] font-semibold tracking-[0.04em] text-zinc-600 dark:text-zinc-200">
+          <nav className="hidden items-center gap-x-4 text-[clamp(1rem,2.2vw,1.125rem)] font-semibold tracking-[0.04em] text-zinc-600 md:flex dark:text-zinc-200">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.href}
@@ -56,8 +57,15 @@ export default function Header() {
               </Link>
             ))}
           </nav>
-          <Suspense fallback={<div className="h-8 w-24" />}>
-            <HeaderAuthStatus />
+          <Suspense
+            fallback={
+              <>
+                <div className="hidden h-9 w-24 md:block" />
+                <div className="h-9 w-9 md:hidden" />
+              </>
+            }
+          >
+            <HeaderNav links={NAV_LINKS} />
           </Suspense>
           <ThemeToggle />
         </div>
