@@ -33,7 +33,19 @@ export default async function RootLayout({
   const allSections = await getAllLanguageSections(LANGUAGES.map((l) => l.languageSlug));
 
   return (
-    <html lang="ja" className={`${notoSansJP.variable} ${geistMono.variable} h-full antialiased`}>
+    <html
+      lang="ja"
+      className={`${notoSansJP.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
+    >
+      <head>
+        {/* 初回描画前に保存済みテーマ（未保存ならOS設定）をhtmlの.darkクラスへ反映し、ちらつきを防ぐ */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem("theme");var d=t?t==="dark":window.matchMedia("(prefers-color-scheme: dark)").matches;document.documentElement.classList.toggle("dark",d);}catch(e){}})()`,
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col">
         <Header />
         <div className="flex flex-1 flex-col md:flex-row">
