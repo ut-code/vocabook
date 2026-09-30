@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -58,46 +58,53 @@ const LANGUAGES: LanguagePreview[] = [
   },
 ];
 
-export function MaterialsPreview() {
+// children: 言語ボタンの上に並べる見出しと説明文（カード左側の列）。
+// 言語ボタンとプレビュー画像はホバー中の言語を共有するため、左右の列をまとめてここで描画する
+export function MaterialsPreview({ children }: { children: ReactNode }) {
   const [activeKey, setActiveKey] = useState<string>(LANGUAGES[0].key);
   const activeLang = LANGUAGES.find((l) => l.key === activeKey) ?? LANGUAGES[0];
 
   return (
     <>
-      <div className="relative z-10 flex flex-col gap-1.5">
-        <span className="pointer-events-none text-[11px] tracking-wide text-zinc-400">
-          言語を学ぶ
-        </span>
-        <div className="flex flex-wrap items-center gap-1.5">
-          {LANGUAGES.map((lang) => (
-            <Link
-              key={lang.key}
-              href={lang.href}
-              onMouseEnter={() => setActiveKey(lang.key)}
-              className={`rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors ${
-                activeLang.key === lang.key
-                  ? "bg-tealblue-100 text-tealblue-800 dark:bg-tealblue-900/50 dark:text-tealblue-200"
-                  : "bg-tealblue-50 text-tealblue-700 hover:bg-tealblue-100 dark:bg-tealblue-950/30 dark:text-tealblue-300 dark:hover:bg-tealblue-950/50"
-              }`}
-            >
-              {lang.label}
-            </Link>
-          ))}
+      <div className="flex flex-col gap-6 sm:flex-1">
+        {children}
+        <div className="relative z-10 flex flex-col gap-1.5">
+          <span className="pointer-events-none text-[11px] tracking-wide text-zinc-400">
+            言語を学ぶ
+          </span>
+          <div className="flex flex-wrap items-center gap-1.5">
+            {LANGUAGES.map((lang) => (
+              <Link
+                key={lang.key}
+                href={lang.href}
+                onMouseEnter={() => setActiveKey(lang.key)}
+                className={`rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                  activeLang.key === lang.key
+                    ? "bg-tealblue-100 text-tealblue-800 dark:bg-tealblue-900/50 dark:text-tealblue-200"
+                    : "bg-tealblue-50 text-tealblue-700 hover:bg-tealblue-100 dark:bg-tealblue-950/30 dark:text-tealblue-300 dark:hover:bg-tealblue-950/50"
+                }`}
+              >
+                {lang.label}
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
 
-      <div className="pointer-events-none relative z-10 overflow-hidden rounded-2xl border border-tealblue-200/70 dark:border-tealblue-900/30">
-        <p className="border-b border-tealblue-200/70 bg-tealblue-50/60 px-5 py-2 text-xs font-medium text-tealblue-800 dark:border-tealblue-900/30 dark:bg-tealblue-950/20 dark:text-tealblue-300">
-          {activeLang.caption}
-        </p>
-        <div className="relative aspect-[4/3] w-full bg-white p-4 dark:bg-zinc-900">
-          <Image
-            key={activeLang.key}
-            src={activeLang.src}
-            alt={activeLang.alt}
-            fill
-            className="object-contain opacity-90 saturate-50 transition-all duration-300 group-hover:opacity-100 group-hover:saturate-100"
-          />
+      <div className="sm:w-[42%]">
+        <div className="pointer-events-none relative z-10 overflow-hidden rounded-2xl border border-tealblue-200/70 dark:border-tealblue-900/30">
+          <p className="border-b border-tealblue-200/70 bg-tealblue-50/60 px-5 py-2 text-xs font-medium text-tealblue-800 dark:border-tealblue-900/30 dark:bg-tealblue-950/20 dark:text-tealblue-300">
+            {activeLang.caption}
+          </p>
+          <div className="relative aspect-[4/3] w-full bg-white p-4 dark:bg-zinc-900">
+            <Image
+              key={activeLang.key}
+              src={activeLang.src}
+              alt={activeLang.alt}
+              fill
+              className="object-contain opacity-90 saturate-50 transition-all duration-300 group-hover:opacity-100 group-hover:saturate-100"
+            />
+          </div>
         </div>
       </div>
     </>

@@ -4,18 +4,17 @@ export default function BookShape() {
   return (
     <svg
       aria-hidden="true"
-      viewBox="2.5 6.25 19 12"
+      viewBox="3 6.75 18 11"
       fill="none"
       preserveAspectRatio="none"
-      // 見出しブロック（バッジ・見出し・説明文）を包むdivは中身の実際の幅に
-      // シュリンクラップされている（page.tsx側でw-fullを外している）ため、
-      // そこに少しだけ外側にはみ出させて（負のinset）重ねれば、
-      // 文字を欠けさせず、かつ幅が広がりすぎて本に見えなくなることもない。
-      className="pointer-events-none absolute -inset-x-4 -inset-y-6 -z-10 fill-white/70 sm:-inset-x-6 sm:-inset-y-8 dark:fill-zinc-900/60"
-      // Bebas Neueはディセンダー分の余白が行下側に大きく偏っているため、
-      // insetを上下均等にしただけだとVOCABOOKの文字の中心より下にずれる。
-      // 見出しのフォントサイズ（18.7vw）に比例させてその分だけ上に引き上げて中心を合わせる。
-      style={{ transform: "translateY(-5.4vw)" }}
+      // 見出しブロック（バッジ・見出し・説明文）を包むdivは中身の実際の幅と高さに
+      // シュリンクラップされているため、そこに少しだけ外側にはみ出させて重ねれば、
+      // 文字を欠けさせず、かつ広がりすぎて本に見えなくなることもない。
+      // svgは置換要素で、insetだけ指定してもviewBoxの縦横比が優先され文字からはみ出すため、
+      // 位置（負のleft/top）に加えて幅・高さも「100% + 左右（上下）のはみ出し分」で明示する。
+      // viewBoxは本の輪郭ぴったり（x: 3〜21, y: 6.75〜17.75）にしてあり、ページ下端は
+      // 高さの10/11の位置（残り1/11は下中央の綴じ目の出っ張り）なので、高さはその分1.1倍する
+      className="pointer-events-none absolute -top-6 -left-4 -z-10 h-[calc((100%+3rem)*1.1)] w-[calc(100%+2rem)] fill-white/70 sm:-top-8 sm:-left-6 sm:h-[calc((100%+4rem)*1.1)] sm:w-[calc(100%+3rem)] dark:fill-zinc-900/60"
     >
       <path d="M3.25 6.75L11 6.75A1 1 0 0 1 12 7.75L12 17.75A1 1 0 0 0 11 16.75L3.25 16.75A0.25 0.25 0 0 1 3 16.5L3 7A0.25 0.25 0 0 1 3.25 6.75Z" />
       <path d="M20.75 6.75L13 6.75A1 1 0 0 0 12 7.75L12 17.75A1 1 0 0 1 13 16.75L20.75 16.75A0.25 0.25 0 0 0 21 16.5L21 7A0.25 0.25 0 0 0 20.75 6.75Z" />
