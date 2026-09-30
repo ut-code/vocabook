@@ -24,7 +24,7 @@ type SidebarProps = {
  * 画面上の機能:
  * - ルートパス（`/`）等ではサイドバーを表示しない自動判定
  * - サイドバー全体の折りたたみ（完全閉じる・開く）機能
- * - 言語名クリック / 矢印ボタンクリックでの開閉制御 (State管理)
+ * - 言語名クリックでの開閉制御 (State管理)
  * - usePathnameによるアクティブなルートの判定と視覚的ハイライト (色付け)
  */
 export default function Sidebar({ allSections = {} }: SidebarProps) {
@@ -45,7 +45,6 @@ export default function Sidebar({ allSections = {} }: SidebarProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
 
   // 大枠グループのアコーディオン開閉状態を管理するState
-  const [isMyNotebooksOpen, setIsMyNotebooksOpen] = useState<boolean>(isMyNotebooksActive);
   const [isLearnOpen, setIsLearnOpen] = useState<boolean>(isLearnActive || true);
 
   // 各言語アコーディオンの開閉状態を管理するState (現在アクセス中の言語は初期状態で自動オープン)
@@ -123,7 +122,6 @@ export default function Sidebar({ allSections = {} }: SidebarProps) {
           <div className="flex items-center justify-between">
             <Link
               href="/my-notebooks"
-              onClick={() => setIsMyNotebooksOpen((prev) => !prev)}
               className={`flex-1 rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
                 isMyNotebooksActive
                   ? "bg-[#FF7F50]/10 text-[#FF7F50] dark:bg-[#FF7F50]/20 dark:text-[#FF7F50]"
@@ -132,28 +130,6 @@ export default function Sidebar({ allSections = {} }: SidebarProps) {
             >
               My単語帳
             </Link>
-            {/* My単語帳の開閉ボタン */}
-            <button
-              onClick={() => setIsMyNotebooksOpen((prev) => !prev)}
-              aria-label="My単語帳の開閉"
-              className="p-2 text-zinc-400 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
-            >
-              <svg
-                className={`h-4 w-4 transition-transform duration-200 ${
-                  isMyNotebooksOpen ? "rotate-90" : ""
-                }`}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-            </button>
           </div>
         </div>
 
@@ -171,28 +147,6 @@ export default function Sidebar({ allSections = {} }: SidebarProps) {
             >
               学習教材
             </Link>
-            {/* 学習教材全体の開閉ボタン */}
-            <button
-              onClick={() => setIsLearnOpen((prev) => !prev)}
-              aria-label="学習教材の開閉"
-              className="p-2 text-zinc-400 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
-            >
-              <svg
-                className={`h-4 w-4 transition-transform duration-200 ${
-                  isLearnOpen ? "rotate-90" : ""
-                }`}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-            </button>
           </div>
 
           {/* ==================== 2-1. 各言語の階層 ==================== */}
@@ -221,30 +175,6 @@ export default function Sidebar({ allSections = {} }: SidebarProps) {
                       >
                         {lang.label}
                       </Link>
-                      {/* セクションが存在する場合の矢印ボタン（アコーディオン開閉トグル） */}
-                      {sections.length > 0 && (
-                        <button
-                          onClick={() => toggleLanguage(lang.languageSlug)}
-                          aria-label={`${lang.label}の開閉`}
-                          className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
-                        >
-                          <svg
-                            className={`h-3.5 w-3.5 transition-transform duration-200 ${
-                              isLangOpen ? "rotate-90" : ""
-                            }`}
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M9 5l7 7-7 7"
-                            />
-                          </svg>
-                        </button>
-                      )}
                     </div>
 
                     {/* ==================== 2-2. 各セクション（項目）の階層 ==================== */}
